@@ -16,6 +16,7 @@
 #   cp .env.cloudflare.example .env.cloudflare   # once; paste DNS token locally
 #   npm run attach:production:hostname
 #   ATTACH_DRY_RUN=1 npm run attach:production:hostname   # list planned deletes only
+#   ATTACH_SKIP_HEALTH=1 npm run attach:production:hostname  # soft-fail HTTPS during deploy window
 #
 # Safer one-off alternative (no token): Dashboard → DNS → delete A/AAAA/CNAME
 # for exact name squadme.app (keep TXT/MX), then npm run deploy:production.
@@ -35,6 +36,7 @@ SERVICE="${PRODUCTION_WORKER:-squad-me-production-app}"
 API="https://api.cloudflare.com/client/v4"
 INVENTORY="docs/inventory-production.md"
 DRY_RUN="${ATTACH_DRY_RUN:-0}"
+SKIP_HEALTH="${ATTACH_SKIP_HEALTH:-0}"
 
 cf() {
   local method="$1" path="$2"
@@ -95,6 +97,7 @@ console.log("    workers domain:", hit.hostname, "→", hit.service, hit.id || "
 ' "$list" "$HOSTNAME" "$SERVICE"
 }
 
+# Exit 0 on healthy production; exit 1 on soft-fail when ATTACH_SKIP_HEALTH=1; else die.
 verify_https_health() {
   local code body
   code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 "https://${HOSTNAME}/" || true)"
@@ -102,13 +105,21 @@ verify_https_health() {
   [[ -z "${code}" ]] && code="000"
   ok "HTTPS / → HTTP ${code}"
   if [[ "${code}" != "200" ]]; then
+    if [[ "${SKIP_HEALTH}" == "1" ]]; then
+      ok "HTTPS health soft-fail (ATTACH_SKIP_HEALTH=1): expected 200, got ${code}"
+      return 1
+    fi
     die "HTTPS health check failed (expected 200 on https://${HOSTNAME}/)"
   fi
   if echo "${body}" | grep -q '"environment"[[:space:]]*:[[:space:]]*"production"'; then
     ok "/api/health → environment=production"
-  else
-    die "Unexpected /api/health body (want environment=production): ${body:-"(empty)"}"
+    return 0
   fi
+  if [[ "${SKIP_HEALTH}" == "1" ]]; then
+    ok "HTTPS health soft-fail (ATTACH_SKIP_HEALTH=1): unexpected /api/health body"
+    return 1
+  fi
+  die "Unexpected /api/health body (want environment=production): ${body:-"(empty)"}"
 }
 
 log "Listing DNS records for ${HOSTNAME} (zone ${ZONE_ID})"
@@ -180,9 +191,15 @@ else
 fi
 
 # HTTPS is the source of truth when DNS is already Worker-managed (1043 / 100::).
-verify_https_health
-if [[ "${ATTACHED}" -eq 0 ]]; then
+# ATTACH_SKIP_HEALTH=1 soft-fails during deploy windows (warn, do not die).
+HEALTH_OK=0
+if verify_https_health; then
+  HEALTH_OK=1
+fi
+if [[ "${ATTACHED}" -eq 0 && "${HEALTH_OK}" -eq 1 ]]; then
   ok "already attached (HTTPS production health OK; apex CF-managed)"
+elif [[ "${ATTACHED}" -eq 0 && "${SKIP_HEALTH}" == "1" ]]; then
+  ok "Workers/domain unverified via HTTPS (ATTACH_SKIP_HEALTH=1); re-check after deploy"
 fi
 
 if [[ -f "${INVENTORY}" ]]; then

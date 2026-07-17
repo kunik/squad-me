@@ -39,6 +39,15 @@ cp .env.cloudflare.example .env.cloudflare
 `infra-setup/lib/common.sh` loads `.env.cloudflare` when present (does not print
 values). Shell-exported env still wins over the file. Keep token scopes
 separated: Access-only token ≠ CI deploy token ≠ DNS attach token.
+`require_wrangler_auth` (used by `provision:dev` / `provision:production`) also
+loads the file first so `CLOUDFLARE_API_TOKEN` there can satisfy wrangler without
+a prior `wrangler login`.
+
+**Sanity check:** `npm run infra:doctor` reports which token roles are set
+(booleans only), `wrangler whoami`, and probes DNS / Workers domains (or scripts)
+/ Access when those tokens (or the generic fallback) are present. Missing
+optional tokens → warn + skip; set-but-rejected → exit non-zero. Never prints
+secret values. Account/zone IDs from `.env.cloudflare` override script defaults.
 
 **Agent rule:** run `npm run …` / infra scripts so the file is sourced; do **not**
 Read/cat `.env.cloudflare` to extract secrets.
@@ -56,6 +65,7 @@ Ongoing helpers (seed, smoke, parity) stay in `scripts/`.
 | `npm run provision:access:dev` | `infra-setup/provision-access-dev.sh` | Access app for `dev.squadme.app` (Access API token; separate auth surface) |
 | `npm run provision:access:smoke:dev` | `infra-setup/provision-access-smoke-dev.sh` | Access service token + Service Auth policy for GHA/local smoke |
 | `npm run attach:production:hostname` | `infra-setup/attach-production-hostname.sh` | Clear conflicting apex DNS + attach `squadme.app` (needs `CLOUDFLARE_API_TOKEN_DNS` in `.env.cloudflare`) |
+| `npm run infra:doctor` | `infra-setup/doctor.sh` | Local auth sanity check: token roles set?, wrangler login, DNS/Workers/Access probes (no secrets in output) |
 | `npm run ci:wire-secrets` | `infra-setup/wire-github-ci-secrets.sh` | Set `cloud-dev` GitHub secrets from `.env.cloudflare` / env (not production deploy token) |
 
 ## What is scripted vs manual
@@ -181,7 +191,7 @@ GitHub Environments on `kunik/squad-me` (**created** via `gh`):
 | Environment | Secrets | Protection |
 |---|---|---|
 | `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci-dev`), `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET` (**all set**; Deploy Cloud Dev green) | none |
-| `production` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci-prod`) (**both set**) | **required reviewer:** `kunik` |
+| `production` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci-prod`) (**both set**) | none (manual `workflow_dispatch` only) |
 
 Wrangler OAuth **cannot** create Account API tokens or Access resources. Dev
 deploy token lives in Environment `cloud-dev` (not repo-level secrets).
@@ -289,7 +299,8 @@ npm run attach:production:hostname
 Clears conflicting A/AAAA/CNAME for exact name `squadme.app` (keeps TXT/MX),
 then attaches the Worker custom domain via the Cloudflare API. Loads tokens from
 `.env.cloudflare` automatically. Dry-run (list planned deletes only):
-`ATTACH_DRY_RUN=1 npm run attach:production:hostname`.
+`ATTACH_DRY_RUN=1 npm run attach:production:hostname`. Soft-fail HTTPS health
+during a deploy window: `ATTACH_SKIP_HEALTH=1 npm run attach:production:hostname`.
 
 **One-off alternative (documented):** [DNS for squadme.app](https://dash.cloudflare.com/2758c21b02e5c7efcfa745cb49948ace/squadme.app/dns/records)
 → delete A/AAAA/CNAME for exact name `squadme.app` (keep SPF TXT / MX) →
@@ -306,11 +317,11 @@ npx wrangler secret put SESSION_SIGNING_KEY --env production
 # …other Production secrets when ready
 ```
 
-GitHub Environment `production` exists with required reviewer `kunik` and
-`CLOUDFLARE_ACCOUNT_ID`. Production `CLOUDFLARE_API_TOKEN` is intentionally
-unset until a separate Production-scoped token is created. First automated ship
-remains **Deploy Production** (`workflow_dispatch`) after Dev gate; until then
-owner can deploy locally as above.
+GitHub Environment `production` holds `CLOUDFLARE_ACCOUNT_ID` and
+`CLOUDFLARE_API_TOKEN` (`squad-me-ci-prod`); **no** required reviewers —
+Production ships only via **Deploy Production** (`workflow_dispatch`), which
+deploys the selected ref tip (`github.sha`). Owner can still deploy locally as
+above when needed.
 
 ## Zone facts (`squadme.app`)
 
@@ -353,7 +364,7 @@ Dashboard: [Workers & Pages](https://dash.cloudflare.com/2758c21b02e5c7efcfa745c
 | Custom domain pending (Dev) | Confirm zone active + no conflicting CNAME; re-run `npm run deploy:dev` |
 | Apex custom domain `100117` (Production) | Conflicting A/AAAA/CNAME on `squadme.app`. Run `npm run attach:production:hostname` (DNS-capable token) or delete those records in Dashboard DNS, then `npm run deploy:production` |
 | Apex DNS delete `1043` / AAAA `100::` | Cloudflare-managed read-only record (Workers already owns the apex). Attach script skips it and verifies Workers domain + `https://squadme.app/api/health`. Not a failure if the domain is already attached. |
-| Attach script when apex already live | Idempotent: skip 1043, confirm Workers custom domain mapping, HTTPS health. Use `ATTACH_DRY_RUN=1` to list planned deletes without mutating. |
+| Attach script when apex already live | Idempotent: skip 1043, confirm Workers custom domain mapping, HTTPS health. Use `ATTACH_DRY_RUN=1` to list planned deletes without mutating. Use `ATTACH_SKIP_HEALTH=1` to soft-fail non-200 HTTPS during a deploy window. |
 | CPU limits Free plan `100328` | Omit `limits.cpu_ms` (both envs) or enable Workers Paid |
 | Missing `workers.dev` subdomain `10063` | Open Workers & Pages once, or `PUT /accounts/:id/workers/subdomain` with `{"subdomain":"…"}` |
 | Smoke 302/403 on Dev | Access blocking; browser: allowed email. CI/local automation: `CF_ACCESS_CLIENT_ID` + `CF_ACCESS_CLIENT_SECRET` (`provision-access-smoke.yml` or `npm run provision:access:smoke:dev`) |

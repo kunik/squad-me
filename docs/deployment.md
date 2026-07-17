@@ -1,7 +1,7 @@
 # Deployment
 
 Two-tier delivery: local `workerd` inner loop → Cloud Dev parity → manual
-Production promote. Product canon:
+Production deploy. Product canon:
 `products/match-platform/specs/deployment.md` (Obsidian KB).
 
 ## Environments
@@ -10,7 +10,7 @@ Production promote. Product canon:
 |---|---|---|---|
 | Local | `squad-me-local` (not deployed) | localhost | `npm run dev` |
 | Cloud Dev | `squad-me-dev-app` | `dev.squadme.app` | merge to `main` |
-| Production | `squad-me-production-app` | `squadme.app` (Worker custom domain; see inventory) | manual + approval |
+| Production | `squad-me-production-app` | `squadme.app` (Worker custom domain; see inventory) | manual `workflow_dispatch` |
 
 Logical bindings are identical everywhere: `DB`, `MATCHES`, `JOBS`, `FILES`.
 Only resource IDs, hostnames, secrets, and sampling differ.
@@ -19,7 +19,8 @@ Only resource IDs, hostnames, secrets, and sampling differ.
 
 1. `CLOUDFLARE_ENV=dev vite build` → `dist/` for Cloud Dev.
 2. Same commit later: `CLOUDFLARE_ENV=production vite build` → Production.
-3. Do **not** rebuild different source for Production; promote the tested SHA.
+3. Do **not** rebuild different source for Production; deploy the tested SHA
+   (the ref tip selected when running **Deploy Production**).
 
 The Cloudflare Vite plugin selects the Wrangler named environment at **build**
 time via `CLOUDFLARE_ENV`. After `vite build`, `wrangler deploy` uses the
@@ -66,11 +67,11 @@ PR CI). Apex `squadme.app` is attached to `squad-me-production-app`. If deploy
 reports API `100117` again, put `CLOUDFLARE_API_TOKEN_DNS` in `.env.cloudflare`
 and run `npm run attach:production:hostname` (or Dashboard DNS one-off; see
 `docs/provision.md`). Production hostname is public for the stub (no Access).
-GitHub Environments exist (`cloud-dev`, `production` with required reviewer
-`kunik`). Wire Dev deploy + Access smoke secrets with `npm run ci:wire-secrets`
-(tokens from `.env.cloudflare`; see `docs/provision.md`). Production API token
-remains separate / unset until promote CI is enabled; local owner deploy of a
-Dev-tested SHA still works.
+GitHub Environments exist (`cloud-dev`, `production`); Production has **no**
+required reviewers — gate is manual `workflow_dispatch` only. Wire Dev deploy +
+Access smoke secrets with `npm run ci:wire-secrets` (tokens from
+`.env.cloudflare`; see `docs/provision.md`). Production API token
+(`squad-me-ci-prod`) is on Environment `production`.
 
 ## CI/CD (GitHub Actions)
 
@@ -85,7 +86,7 @@ GitHub Environments:
 | Environment | Status |
 |---|---|
 | `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci-dev`), `CF_ACCESS_CLIENT_*` set; Deploy Cloud Dev green (Access smoke) |
-| `production` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci-prod`) set; required reviewer `kunik` |
+| `production` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci-prod`) set; **no** protection rules (manual workflow only) |
 
 Cloud Dev smoke sends `CF-Access-Client-Id` / `CF-Access-Client-Secret` when
 those environment secrets are present (`scripts/smoke-cloud-dev.ts`). Without
@@ -95,14 +96,18 @@ Concurrency groups `cloud-dev` and `production` serialize deploys.
 
 Workers Builds is **not** used.
 
-## Production promote
+## Production deploy
 
-1. Confirm Cloud Dev deploy + smoke for the commit SHA succeeded.
-2. Run **Deploy Production** workflow (`workflow_dispatch`), optionally passing
-   that SHA.
-3. Required reviewer approves the `production` environment.
-4. Job: D1 export backup → migrations → deploy same SHA → health smoke.
-5. Watch metrics 15–30 minutes for high-risk releases.
+One human action: Actions → **Deploy Production** → Run (choose **branch**;
+the run checks out that tip and deploys its `github.sha`).
+
+1. Prefer a branch tip already deployed and smoked on Cloud Dev (usually `main`).
+2. Job: D1 export backup → migrations → deploy `github.sha` → health smoke.
+3. Watch metrics 15–30 minutes for high-risk releases.
+
+No Environment approval gate. There is **no** `commit_sha` (or other) input —
+do not paste a short SHA into Run; `actions/checkout` would treat it as a
+branch/tag name and fail (`refs/heads/704ad14*`). Pick the branch instead.
 
 ## Rollback
 

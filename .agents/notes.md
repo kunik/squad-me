@@ -18,7 +18,8 @@ be derived reliably from source code, documentation, or git history.
   `Allow Dev operators` (`taras.kunch@gmail.com`); manage via
   `npm run provision:access:dev` with an Access-capable API token (Wrangler
   OAuth lacks Access scopes). GitHub Environments `cloud-dev` + `production`
-  exist (`production` required reviewer `kunik`); both have
+  exist (`production` has no required reviewers — gate is manual
+  `workflow_dispatch` only); both have
   `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN`. Dashboard names:
   Dev `squad-me-ci-dev`, Prod `squad-me-ci-prod` (rename alone does not
   change the secret string). `cloud-dev` also has `CF_ACCESS_CLIENT_*`.

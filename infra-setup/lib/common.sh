@@ -71,13 +71,16 @@ use_cloudflare_api_token() {
 }
 
 # Fail if Wrangler OAuth / API token is missing. Never print credential values.
+# Loads .env.cloudflare first so CLOUDFLARE_API_TOKEN there satisfies wrangler
+# (same as CI-style auth) for provision.sh and other OAuth-or-token scripts.
 require_wrangler_auth() {
   local npm_hint="${1:-provision}"
   local whoami
+  load_cloudflare_env
   whoami="$(npx wrangler whoami 2>&1 || true)"
-  if echo "${whoami}" | grep -qiE 'not authenticated|not logged in|CLOUDFLARE_API_TOKEN'; then
+  if echo "${whoami}" | grep -qiE 'not authenticated|not logged in'; then
     die "Not authenticated. Run: npx wrangler login
-Or put a token in .env.cloudflare (see .env.cloudflare.example), then: npm run ${npm_hint}"
+Or put CLOUDFLARE_API_TOKEN in .env.cloudflare (see .env.cloudflare.example), then: npm run ${npm_hint}"
   fi
 }
 
