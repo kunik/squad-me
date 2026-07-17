@@ -2,6 +2,11 @@ name: Deploy Production
 
 on:
   workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: "Optional short or full commit SHA (empty = latest main)"
+        required: false
+        type: string
 
 concurrency:
   group: production
@@ -16,7 +21,44 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Resolve checkout ref
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_SHA: ${{ inputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "${INPUT_SHA}" ]; then
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+            echo "Resolved empty commit_sha → checkout main (tip after checkout)"
+            exit 0
+          fi
+          # Expand short/full SHA via API before checkout. Never pass a short
+          # SHA as actions/checkout ref — it is treated as a branch/tag name
+          # (e.g. refs/heads/704ad14*).
+          FULL="$(gh api "repos/${{ github.repository }}/commits/${INPUT_SHA}" --jq .sha)"
+          if ! printf '%s' "$FULL" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::Could not resolve '${INPUT_SHA}' to a full 40-char SHA (got: '${FULL}')"
+            exit 1
+          fi
+          echo "ref=${FULL}" >> "$GITHUB_OUTPUT"
+          echo "Resolved ${INPUT_SHA} → ${FULL}"
+
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.resolve.outputs.ref }}
+
+      - name: Record deploy SHA
+        id: sha
+        run: |
+          set -euo pipefail
+          FULL="$(git rev-parse HEAD)"
+          if ! printf '%s' "$FULL" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::error::Checked-out HEAD is not a full 40-char SHA: '${FULL}'"
+            exit 1
+          fi
+          echo "full_sha=${FULL}" >> "$GITHUB_OUTPUT"
+          echo "Deploying ${FULL}"
 
       - uses: actions/setup-node@v4
         with:
@@ -47,12 +89,12 @@ jobs:
           mkdir -p backups
           npx wrangler d1 export squad-me-production-db \
             --remote \
-            --output "backups/squad-me-production-${{ github.sha }}.sql"
+            --output "backups/squad-me-production-${{ steps.sha.outputs.full_sha }}.sql"
 
       - name: Upload backup artifact
         uses: actions/upload-artifact@v4
         with:
-          name: d1-backup-${{ github.sha }}
+          name: d1-backup-${{ steps.sha.outputs.full_sha }}
           path: backups/
           retention-days: 30
 
@@ -66,7 +108,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler deploy --var COMMIT_SHA:${{ github.sha }}
+        run: npx wrangler deploy --var COMMIT_SHA:${{ steps.sha.outputs.full_sha }}
 
       - name: Production smoke (health)
         env:

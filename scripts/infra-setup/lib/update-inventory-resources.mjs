@@ -4,7 +4,7 @@
  * Access / GitHub / human follow-up state. Creates a minimal file if missing.
  *
  * Usage:
- *   node infra-setup/lib/update-inventory-resources.mjs <env> \
+ *   node scripts/infra-setup/lib/update-inventory-resources.mjs <env> \
  *     --worker W --hostname H --zone-id Z --account-id A \
  *     --db-name N --db-id ID --bucket B --queue Q --dlq D
  */

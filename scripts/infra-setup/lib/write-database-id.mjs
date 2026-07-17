@@ -3,8 +3,8 @@
  * Write (or verify) D1 database_id in wrangler.jsonc for a known database_name.
  *
  * Usage:
- *   node infra-setup/lib/write-database-id.mjs <database_name> <database_id> [env]
- *   node infra-setup/lib/write-database-id.mjs --check <database_name> <database_id> [env]
+ *   node scripts/infra-setup/lib/write-database-id.mjs <database_name> <database_id> [env]
+ *   node scripts/infra-setup/lib/write-database-id.mjs --check <database_name> <database_id> [env]
  *
  * --check: exit 0 if file already has that id; exit 1 otherwise (no write).
  * No-op write when id already matches (prints "unchanged").

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Diagnose local Cloudflare auth for infra-setup scripts.
+# Diagnose local Cloudflare auth for scripts/infra-setup.
 # Loads .env.cloudflare (if present), reports which token roles are set
 # (booleans only), checks wrangler login, and probes DNS / Workers / Access
 # APIs when the matching token (or fallback CLOUDFLARE_API_TOKEN) is configured.
@@ -14,10 +14,10 @@
 #   npm run infra:doctor
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 # shellcheck source=lib/common.sh
-source "${ROOT}/infra-setup/lib/common.sh"
+source "${ROOT}/scripts/infra-setup/lib/common.sh"
 
 # Load before defaults so CLOUDFLARE_ACCOUNT_ID / ZONE_* from .env.cloudflare apply.
 load_cloudflare_env

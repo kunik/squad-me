@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 # Idempotent D1/R2/Queue bootstrap for Cloud Dev or Production.
 # Usage: npm run provision:dev | npm run provision:production
-#    or: bash infra-setup/provision.sh <dev|production>
+#    or: bash scripts/infra-setup/provision.sh <dev|production>
 #
 # Owner/local only — never from PR CI. Access and apex DNS attach stay separate
 # (different credentials / APIs). Safe to re-run; does not wipe Access/GitHub
 # inventory notes.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 # shellcheck source=lib/common.sh
-source "${ROOT}/infra-setup/lib/common.sh"
+source "${ROOT}/scripts/infra-setup/lib/common.sh"
 
 ENV_NAME="${1:-}"
 case "${ENV_NAME}" in
   dev|production) ;;
   *)
-    die "Usage: bash infra-setup/provision.sh <dev|production>
+    die "Usage: bash scripts/infra-setup/provision.sh <dev|production>
   npm run provision:dev
   npm run provision:production"
     ;;
@@ -80,7 +80,7 @@ else
 fi
 
 log "Writing database_id into wrangler.jsonc env.${ENV_NAME}"
-node infra-setup/lib/write-database-id.mjs "${DB_NAME}" "${DB_ID}" "${ENV_NAME}"
+node scripts/infra-setup/lib/write-database-id.mjs "${DB_NAME}" "${DB_ID}" "${ENV_NAME}"
 
 log "Ensuring R2 bucket ${BUCKET}"
 wrangler_ensure "R2 ${BUCKET}" 'Created bucket|already exists' \
@@ -97,7 +97,7 @@ log "Applying D1 migrations (remote, env=${ENV_NAME})"
 npx wrangler d1 migrations apply DB --remote --env "${ENV_NAME}"
 
 log "Updating inventory resource rows (preserves Access/GitHub notes)"
-node infra-setup/lib/update-inventory-resources.mjs "${ENV_NAME}" \
+node scripts/infra-setup/lib/update-inventory-resources.mjs "${ENV_NAME}" \
   --worker "${WORKER}" \
   --hostname "${HOSTNAME}" \
   --zone-id "${ZONE_ID}" \
@@ -109,7 +109,7 @@ node infra-setup/lib/update-inventory-resources.mjs "${ENV_NAME}" \
   --dlq "${DLQ}"
 
 log "Verifying wrangler.jsonc database_id"
-node infra-setup/lib/write-database-id.mjs --check "${DB_NAME}" "${DB_ID}" "${ENV_NAME}"
+node scripts/infra-setup/lib/write-database-id.mjs --check "${DB_NAME}" "${DB_ID}" "${ENV_NAME}"
 
 echo "Done (${ENV_NAME})."
 if [[ "${ENV_NAME}" == "dev" ]]; then

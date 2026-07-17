@@ -22,10 +22,10 @@
 # for exact name squadme.app (keep TXT/MX), then npm run deploy:production.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 # shellcheck source=lib/common.sh
-source "${ROOT}/infra-setup/lib/common.sh"
+source "${ROOT}/scripts/infra-setup/lib/common.sh"
 
 require_api_token "apex DNS attach (Zone DNS Edit + Workers Scripts Edit)" dns
 

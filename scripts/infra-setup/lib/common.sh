@@ -1,4 +1,4 @@
-# Shared helpers for infra-setup/*.sh (source from repo root or after cd ROOT).
+# Shared helpers for scripts/infra-setup/*.sh (source from repo root or after cd ROOT).
 # shellcheck shell=bash
 
 log() { echo "==> $*"; }
@@ -6,7 +6,7 @@ ok() { echo "    $*"; }
 die() { echo "ERROR: $*" >&2; exit 1; }
 
 _INFRA_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-_REPO_ROOT="$(cd "${_INFRA_LIB_DIR}/../.." && pwd)"
+_REPO_ROOT="$(cd "${_INFRA_LIB_DIR}/../../.." && pwd)"
 
 # Load KEY=VALUE pairs from .env.cloudflare when present.
 # - Never cats/echoes secret values
@@ -62,7 +62,7 @@ resolve_cloudflare_api_token() {
   fi
 }
 
-# Call once near the top of infra-setup scripts that need Dashboard API tokens.
+# Call once near the top of scripts/infra-setup scripts that need Dashboard API tokens.
 # role: dns | access | any
 use_cloudflare_api_token() {
   local role="${1:-any}"

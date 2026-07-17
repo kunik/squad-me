@@ -20,7 +20,7 @@ Only resource IDs, hostnames, secrets, and sampling differ.
 1. `CLOUDFLARE_ENV=dev vite build` → `dist/` for Cloud Dev.
 2. Same commit later: `CLOUDFLARE_ENV=production vite build` → Production.
 3. Do **not** rebuild different source for Production; deploy the tested SHA
-   (the ref tip selected when running **Deploy Production**).
+   (`main` tip by default, or an optional resolved commit — see below).
 
 The Cloudflare Vite plugin selects the Wrangler named environment at **build**
 time via `CLOUDFLARE_ENV`. After `vite build`, `wrangler deploy` uses the
@@ -48,8 +48,9 @@ required. Remote bindings are opt-in only.
 
 ## Provision Cloud Dev
 
-One-time bootstrap scripts live in `infra-setup/` (npm entry points below).
-Requires `wrangler login` (or a Dev-scoped API token):
+One-time bootstrap scripts live in `scripts/infra-setup/` (npm entry points
+below; see `scripts/infra-setup/README.md`). Requires `wrangler login` (or a
+Dev-scoped API token):
 
 ```bash
 npm run provision:dev
@@ -98,16 +99,23 @@ Workers Builds is **not** used.
 
 ## Production deploy
 
-One human action: Actions → **Deploy Production** → Run (choose **branch**;
-the run checks out that tip and deploys its `github.sha`).
+One human action: Actions → **Deploy Production** → Run workflow.
 
-1. Prefer a branch tip already deployed and smoked on Cloud Dev (usually `main`).
-2. Job: D1 export backup → migrations → deploy `github.sha` → health smoke.
+| `commit_sha` input | What deploys |
+|---|---|
+| Empty (default) | Latest **`main`** tip (always; ignore the branch picker in the UI for the deploy ref) |
+| Set (short or full) | That commit, after API expand to a full 40-char SHA |
+
+1. Prefer a SHA already deployed and smoked on Cloud Dev (usually `main` tip).
+2. Job: resolve ref → checkout → D1 export backup → migrations → deploy
+   `COMMIT_SHA` → health smoke.
 3. Watch metrics 15–30 minutes for high-risk releases.
 
-No Environment approval gate. There is **no** `commit_sha` (or other) input —
-do not paste a short SHA into Run; `actions/checkout` would treat it as a
-branch/tag name and fail (`refs/heads/704ad14*`). Pick the branch instead.
+No Environment approval gate. Optional input `commit_sha` is expanded with
+`gh api …/commits/{sha}` **before** `actions/checkout`. Never pass a short
+SHA as checkout `ref` — GitHub treats it as a branch/tag name and fails
+(`refs/heads/704ad14*`). Backup artifact names and `wrangler --var COMMIT_SHA`
+use `git rev-parse HEAD` after checkout (not `github.sha` from the UI branch).
 
 ## Rollback
 

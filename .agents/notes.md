@@ -19,24 +19,24 @@ be derived reliably from source code, documentation, or git history.
   `npm run provision:access:dev` with an Access-capable API token (Wrangler
   OAuth lacks Access scopes). GitHub Environments `cloud-dev` + `production`
   exist (`production` has no required reviewers — gate is manual
-  `workflow_dispatch` only); both have
+  `workflow_dispatch` only; optional `commit_sha`, empty = latest `main`); both have
   `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN`. Dashboard names:
   Dev `squad-me-ci-dev`, Prod `squad-me-ci-prod` (rename alone does not
   change the secret string). `cloud-dev` also has `CF_ACCESS_CLIENT_*`.
 - Local Cloudflare API tokens: gitignored `.env.cloudflare` (template
   `.env.cloudflare.example`). Keys: `CLOUDFLARE_API_TOKEN_DNS`,
   `CLOUDFLARE_API_TOKEN_ACCESS`, fallback `CLOUDFLARE_API_TOKEN`. Scripts in
-  `infra-setup/` load via `lib/common.sh`. Agents must run npm scripts — never
-  Read/cat `.env.cloudflare`. Keep Access / CI / DNS tokens separate.
+  `scripts/infra-setup/` load via `lib/common.sh`. Agents must run npm scripts —
+  never Read/cat `.env.cloudflare`. Keep Access / CI / DNS tokens separate.
 - Production: `npm run provision:production` created `squad-me-production-*`
   (D1 id in `wrangler.jsonc` / `docs/inventory-production.md`). Worker
   `squad-me-production-app` + apex `squadme.app` attached (health OK). Recover
   DNS conflicts with `CLOUDFLARE_API_TOKEN_DNS` in `.env.cloudflare` then
   `npm run attach:production:hostname`. Production stub is public (no Access).
-  One-time bootstrap in `infra-setup/`; runtime helpers in `scripts/`. Infra
-  rule: document every infra action; prefer those scripts.
+  One-time bootstrap in `scripts/infra-setup/`; runtime helpers in `scripts/`.
+  Infra rule: document every infra action; prefer those scripts.
 - Client landing is a brand coming-soon stub (`src/client/App.tsx` +
   `styles.css`). Logo: `public/logo-full.svg` from KB
   `products/match-platform/design/completed/brand/`. Palette from
   `specs/brand-brief.md` / `design/principles.md` (dark neutral + tactical
-  orange `#E8823C`). Landing display font Barlow Condensed (not Inter).
+  orange `#E8823C`). Landing font Inter (same as brand guide; not Barlow).

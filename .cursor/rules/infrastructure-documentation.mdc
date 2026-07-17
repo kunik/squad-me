@@ -9,16 +9,33 @@ alwaysApply: true
 
 When creating, changing, or running infrastructure (Cloudflare Workers, D1, R2,
 Queues, DNS, Access, secrets workflow, deploy/provision CI), update the matching
-docs in the same change:
+docs in the **same** change:
 
 | Change area | Primary docs |
 |---|---|
 | Bootstrap / resources / Access / zone | `docs/provision.md` |
 | Deploy tiers, CI, promote path | `docs/deployment.md` |
 | Live resource IDs / names | `docs/inventory-dev.md`, `docs/inventory-production.md` |
+| Script catalog (what/why) | `scripts/README.md`, `scripts/infra-setup/README.md` |
 
 Also keep package scripts and `wrangler.jsonc` bindings consistent with those
 docs.
+
+## Script changes → docs checklist (same change)
+
+After **any** add / move / rename / behavior change under `scripts/` or
+`scripts/infra-setup/`:
+
+1. Update the matching README (`scripts/README.md` and/or
+   `scripts/infra-setup/README.md`) — what the script does and why it exists.
+2. Update `docs/provision.md` when bootstrap/Access/DNS/token wiring changes.
+3. Update `docs/deployment.md` when deploy/CI entry points or promote path change.
+4. Update `docs/inventory-*.md` when resource names, IDs, or live status change.
+5. Update `package.json` npm script paths if the file path changed.
+6. Do **not** leave stale path references (`infra-setup/` at repo root is wrong;
+   use `scripts/infra-setup/`).
+
+Skipping docs for a script-only change is not allowed.
 
 ## What to write (and not write)
 
@@ -30,10 +47,10 @@ docs.
 
 ## Prefer scripts over ad-hoc commands
 
-- One-time / bootstrap infrastructure lives under `infra-setup/` (e.g.
+- One-time / bootstrap infrastructure lives under `scripts/infra-setup/` (e.g.
   `provision-*.sh`, hostname attach) and is invoked via npm scripts — not
   one-off shell history. Ongoing runtime helpers (seed, smoke, parity) stay
-  under `scripts/`.
+  under `scripts/` alongside that folder.
 - Genuinely simpler one-offs (login, single `secret put`, dashboard enablement)
   are allowed **only if** they are recorded in `docs/provision.md` (or the
   table above) as manual/semi-scripted steps.
@@ -42,8 +59,9 @@ docs.
 ## Local Cloudflare API tokens (`.env.cloudflare`)
 
 - User stores tokens in **gitignored** `.env.cloudflare` (template:
-  `.env.cloudflare.example`). Scripts under `infra-setup/` load it via
-  `infra-setup/lib/common.sh` (`load_cloudflare_env` / `require_api_token`).
+  `.env.cloudflare.example`). Scripts under `scripts/infra-setup/` load it via
+  `scripts/infra-setup/lib/common.sh` (`load_cloudflare_env` /
+  `require_api_token`).
 - Agents **must** invoke those npm/scripts so the shell sources the file.
   Agents must **not** `Read`, `cat`, or otherwise open `.env.cloudflare` to
   extract or display token values. Prefer telling the user to fill the file
@@ -52,11 +70,15 @@ docs.
 ## Examples
 
 ```text
-✅ Add infra-setup/provision-foo.sh + npm run provision:foo, then document
-   purpose and when to run it in docs/provision.md; refresh inventory if IDs change.
+✅ Add scripts/infra-setup/provision-foo.sh + npm run provision:foo, then
+   document purpose in scripts/infra-setup/README.md + docs/provision.md;
+   refresh inventory if IDs change.
 
 ❌ Run wrangler/API one-liners to create prod resources and commit wrangler.jsonc
-   with no doc/inventory update.
+   with no doc/inventory/README update.
 
 ❌ Paste the full bash script into docs/ — link the npm script and state outcomes.
+
+❌ Move or rename a script under scripts/ without updating READMEs and
+   package.json paths in the same change.
 ```

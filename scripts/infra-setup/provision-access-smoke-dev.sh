@@ -13,10 +13,10 @@
 # (or: npm run ci:wire-secrets after Access client pair is in the env / .env.cloudflare)
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 # shellcheck source=lib/common.sh
-source "${ROOT}/infra-setup/lib/common.sh"
+source "${ROOT}/scripts/infra-setup/lib/common.sh"
 
 require_api_token "Access smoke token (Access Apps/Policies Edit + Service Tokens Edit)" access
 

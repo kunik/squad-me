@@ -36,8 +36,8 @@ cp .env.cloudflare.example .env.cloudflare
 | `CLOUDFLARE_API_TOKEN` | Fallback for the above; also `npm run ci:wire-secrets` (CI deploy token) |
 | `CLOUDFLARE_ACCOUNT_ID` | Optional override (public default is already in docs) |
 
-`infra-setup/lib/common.sh` loads `.env.cloudflare` when present (does not print
-values). Shell-exported env still wins over the file. Keep token scopes
+`scripts/infra-setup/lib/common.sh` loads `.env.cloudflare` when present (does not
+print values). Shell-exported env still wins over the file. Keep token scopes
 separated: Access-only token ≠ CI deploy token ≠ DNS attach token.
 `require_wrangler_auth` (used by `provision:dev` / `provision:production`) also
 loads the file first so `CLOUDFLARE_API_TOKEN` there can satisfy wrangler without
@@ -52,21 +52,22 @@ secret values. Account/zone IDs from `.env.cloudflare` override script defaults.
 **Agent rule:** run `npm run …` / infra scripts so the file is sourced; do **not**
 Read/cat `.env.cloudflare` to extract secrets.
 
-## One-time infra setup (`infra-setup/`)
+## One-time infra setup (`scripts/infra-setup/`)
 
 Bootstrap scripts that create or attach Cloudflare resources live in
-`infra-setup/` and are run via npm (idempotent; owner/local, not PR CI).
-Ongoing helpers (seed, smoke, parity) stay in `scripts/`.
+`scripts/infra-setup/` and are run via npm (idempotent; owner/local, not PR CI).
+See `scripts/infra-setup/README.md`. Ongoing helpers (seed, smoke, parity) stay
+alongside them under `scripts/` (see `scripts/README.md`).
 
 | npm script | Script | Why |
 |---|---|---|
-| `npm run provision:dev` | `infra-setup/provision.sh dev` | Shared bootstrap: Dev D1/R2/queues, `database_id`, migrate, inventory rows |
-| `npm run provision:production` | `infra-setup/provision.sh production` | Same shared bootstrap for Production |
-| `npm run provision:access:dev` | `infra-setup/provision-access-dev.sh` | Access app for `dev.squadme.app` (Access API token; separate auth surface) |
-| `npm run provision:access:smoke:dev` | `infra-setup/provision-access-smoke-dev.sh` | Access service token + Service Auth policy for GHA/local smoke |
-| `npm run attach:production:hostname` | `infra-setup/attach-production-hostname.sh` | Clear conflicting apex DNS + attach `squadme.app` (needs `CLOUDFLARE_API_TOKEN_DNS` in `.env.cloudflare`) |
-| `npm run infra:doctor` | `infra-setup/doctor.sh` | Local auth sanity check: token roles set?, wrangler login, DNS/Workers/Access probes (no secrets in output) |
-| `npm run ci:wire-secrets` | `infra-setup/wire-github-ci-secrets.sh` | Set `cloud-dev` GitHub secrets from `.env.cloudflare` / env (not production deploy token) |
+| `npm run provision:dev` | `scripts/infra-setup/provision.sh dev` | Shared bootstrap: Dev D1/R2/queues, `database_id`, migrate, inventory rows |
+| `npm run provision:production` | `scripts/infra-setup/provision.sh production` | Same shared bootstrap for Production |
+| `npm run provision:access:dev` | `scripts/infra-setup/provision-access-dev.sh` | Access app for `dev.squadme.app` (Access API token; separate auth surface) |
+| `npm run provision:access:smoke:dev` | `scripts/infra-setup/provision-access-smoke-dev.sh` | Access service token + Service Auth policy for GHA/local smoke |
+| `npm run attach:production:hostname` | `scripts/infra-setup/attach-production-hostname.sh` | Clear conflicting apex DNS + attach `squadme.app` (needs `CLOUDFLARE_API_TOKEN_DNS` in `.env.cloudflare`) |
+| `npm run infra:doctor` | `scripts/infra-setup/doctor.sh` | Local auth sanity check: token roles set?, wrangler login, DNS/Workers/Access probes (no secrets in output) |
+| `npm run ci:wire-secrets` | `scripts/infra-setup/wire-github-ci-secrets.sh` | Set `cloud-dev` GitHub secrets from `.env.cloudflare` / env (not production deploy token) |
 
 ## What is scripted vs manual
 
@@ -246,7 +247,7 @@ Workflows:
 
 - `.github/workflows/ci.yml` — PR gate, no deploy
 - `.github/workflows/deploy-dev.yml` — merge to `main` (smoke uses Access service token secrets)
-- `.github/workflows/deploy-production.yml` — `workflow_dispatch` only
+- `.github/workflows/deploy-production.yml` — `workflow_dispatch` only (optional `commit_sha`; default `main` tip)
 - `.github/workflows/provision-access-smoke.yml` — one-shot Access smoke secret bootstrap
 
 ## Production — owner order
@@ -319,9 +320,10 @@ npx wrangler secret put SESSION_SIGNING_KEY --env production
 
 GitHub Environment `production` holds `CLOUDFLARE_ACCOUNT_ID` and
 `CLOUDFLARE_API_TOKEN` (`squad-me-ci-prod`); **no** required reviewers —
-Production ships only via **Deploy Production** (`workflow_dispatch`), which
-deploys the selected ref tip (`github.sha`). Owner can still deploy locally as
-above when needed.
+Production ships only via **Deploy Production** (`workflow_dispatch`): empty
+optional `commit_sha` → latest `main`; otherwise resolve short/full SHA via
+API then checkout the full commit. Owner can still deploy locally as above
+when needed.
 
 ## Zone facts (`squadme.app`)
 

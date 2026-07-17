@@ -15,10 +15,10 @@
 # Idempotent for existing org/app/policy. Does not print token values.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
 # shellcheck source=lib/common.sh
-source "${ROOT}/infra-setup/lib/common.sh"
+source "${ROOT}/scripts/infra-setup/lib/common.sh"
 
 require_api_token "Access provisioning (scopes: Access Apps/Policies Edit; Access Organizations Edit)" access
 
