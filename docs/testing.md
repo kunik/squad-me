@@ -16,7 +16,7 @@ Canonical product rationale: knowledge-base
 | `npm run migrations:local` | Apply D1 migrations to local DB |
 | `npm run build` | Build with local/top-level Wrangler config |
 | `npm run parity:check` | Dev/Prod Wrangler shape parity |
-| `npm run smoke:dev` | Against `https://dev.squadme.app` after deploy |
+| `npm run smoke:dev` | Against `https://dev.squadme.app` after deploy (needs Access service token env vars when Access is on) |
 
 ## Tier 1 — local (PR gate)
 
@@ -52,7 +52,9 @@ Runs in `deploy-dev.yml` after merge to `main`. Target: `dev.squadme.app`.
 - observability pipeline sanity
 
 Current smoke entrypoint: `scripts/smoke-cloud-dev.ts` (health, D1, DO ping).
-Expand as domain features land.
+When Access protects Dev, set `CF_ACCESS_CLIENT_ID` and
+`CF_ACCESS_CLIENT_SECRET` (from `npm run provision:access:smoke:dev`). Expand
+as domain features land.
 
 ## Overlap
 

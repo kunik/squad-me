@@ -1,0 +1,52 @@
+---
+description: Document every infrastructure action; prefer provision scripts over ad-hoc commands
+alwaysApply: true
+---
+
+# Infrastructure documentation and scripting
+
+## Document every action
+
+When creating, changing, or running infrastructure (Cloudflare Workers, D1, R2,
+Queues, DNS, Access, secrets workflow, deploy/provision CI), update the matching
+docs in the same change:
+
+| Change area | Primary docs |
+|---|---|
+| Bootstrap / resources / Access / zone | `docs/provision.md` |
+| Deploy tiers, CI, promote path | `docs/deployment.md` |
+| Live resource IDs / names | `docs/inventory-dev.md`, `docs/inventory-production.md` |
+
+Also keep package scripts and `wrangler.jsonc` bindings consistent with those
+docs.
+
+## What to write (and not write)
+
+- Document **what** a script or step does and **why** it exists.
+- Do **not** narrate script internals, control flow, or line-by-line logic.
+- Prefer tables, checklists, and `npm run …` entry points over prose dumps.
+- After any infra change, refresh stale claims (status, hostnames, IDs, “manual
+  vs scripted”).
+
+## Prefer scripts over ad-hoc commands
+
+- One-time / bootstrap infrastructure lives under `infra-setup/` (e.g.
+  `provision-*.sh`, hostname attach) and is invoked via npm scripts — not
+  one-off shell history. Ongoing runtime helpers (seed, smoke, parity) stay
+  under `scripts/`.
+- Genuinely simpler one-offs (login, single `secret put`, dashboard enablement)
+  are allowed **only if** they are recorded in `docs/provision.md` (or the
+  table above) as manual/semi-scripted steps.
+- Never leave a new resource, binding, hostname, or Access app undocumented.
+
+## Examples
+
+```text
+✅ Add infra-setup/provision-foo.sh + npm run provision:foo, then document
+   purpose and when to run it in docs/provision.md; refresh inventory if IDs change.
+
+❌ Run wrangler/API one-liners to create prod resources and commit wrangler.jsonc
+   with no doc/inventory update.
+
+❌ Paste the full bash script into docs/ — link the npm script and state outcomes.
+```

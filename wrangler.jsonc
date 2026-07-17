@@ -150,7 +150,7 @@
         {
           "binding": "DB",
           "database_name": "squad-me-production-db",
-          "database_id": "PROVISION_REQUIRED",
+          "database_id": "24a87010-5fbc-4b2d-87aa-ded2ac769473",
           "migrations_dir": "migrations"
         }
       ],

@@ -10,7 +10,7 @@ Production promote. Product canon:
 |---|---|---|---|
 | Local | `squad-me-local` (not deployed) | localhost | `npm run dev` |
 | Cloud Dev | `squad-me-dev-app` | `dev.squadme.app` | merge to `main` |
-| Production | `squad-me-production-app` | `squadme.app` | manual + approval |
+| Production | `squad-me-production-app` | `squadme.app` (Worker custom domain; see inventory) | manual + approval |
 
 Logical bindings are identical everywhere: `DB`, `MATCHES`, `JOBS`, `FILES`.
 Only resource IDs, hostnames, secrets, and sampling differ.
@@ -47,6 +47,7 @@ required. Remote bindings are opt-in only.
 
 ## Provision Cloud Dev
 
+One-time bootstrap scripts live in `infra-setup/` (npm entry points below).
 Requires `wrangler login` (or a Dev-scoped API token):
 
 ```bash
@@ -60,8 +61,15 @@ Access on Dev is live (`squad-me-dev` → `dev.squadme.app`). Re-run or extend
 with `npm run provision:access:dev` (needs Access-capable API token). Secrets
 remain manual (checklist in inventory).
 
-Production resources are provisioned once by an owner with the same naming
-pattern (`squad-me-production-*`) and never from the PR workflow.
+Production resources: `npm run provision:production` (owner-only; never from
+PR CI). First local ship of the coming-soon stub: `npm run deploy:production`,
+then attach apex if deploy reports API `100117` —
+`npm run attach:production:hostname` (or Dashboard DNS one-off; see
+`docs/provision.md`). Production hostname is public for the stub (no Access).
+GitHub Environments exist (`cloud-dev`, `production` with required reviewer
+`kunik`). Wire Dev deploy + Access smoke secrets with `npm run ci:wire-secrets`
+(see `docs/provision.md` §5). Production API token remains separate / unset
+until promote CI is enabled; local owner deploy of a Dev-tested SHA still works.
 
 ## CI/CD (GitHub Actions)
 
@@ -73,8 +81,14 @@ pattern (`squad-me-production-*`) and never from the PR workflow.
 
 GitHub Environments:
 
-- `cloud-dev` — Dev-scoped `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
-- `production` — Production-scoped token, **required reviewers**, no auto-deploy
+| Environment | Status |
+|---|---|
+| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID` set; Dev `CLOUDFLARE_API_TOKEN` + Access smoke secrets pending |
+| `production` | `CLOUDFLARE_ACCOUNT_ID` set; required reviewer `kunik`; Production token **not** set |
+
+Cloud Dev smoke sends `CF-Access-Client-Id` / `CF-Access-Client-Secret` when
+those environment secrets are present (`scripts/smoke-cloud-dev.ts`). Without
+them, Access returns 302 and the deploy job fails.
 
 Concurrency groups `cloud-dev` and `production` serialize deploys.
 

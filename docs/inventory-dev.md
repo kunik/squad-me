@@ -1,7 +1,7 @@
 # Cloud Dev inventory
 
 Generated: 2026-07-17T12:14:25Z  
-Updated: 2026-07-17T21:28:00Z (Access verified)
+Updated: 2026-07-17T21:40:00Z (GitHub cloud-dev env; Access smoke pending)
 
 | Resource | Name / value |
 |---|---|
@@ -16,17 +16,20 @@ Updated: 2026-07-17T21:28:00Z (Access verified)
 | DO binding | `MATCHES` → `MatchDurableObject` |
 | Access | **Live.** App `squad-me-dev` (`6cc17162-60ea-435a-8557-424ef2695e55`); policy `Allow Dev operators`; allow `taras.kunch@gmail.com`; host `dev.squadme.app` only |
 | Zero Trust team | `squad-me` → `squad-me.cloudflareaccess.com` |
+| Access CI smoke | **Pending.** Create with `npm run provision:access:smoke:dev` → token `squad-me-gha-smoke` + policy `Allow CI smoke`; wire `CF_ACCESS_CLIENT_*` into GitHub `cloud-dev` |
+| GitHub env | `cloud-dev` exists; `CLOUDFLARE_ACCOUNT_ID` set; `CLOUDFLARE_API_TOKEN` + Access smoke secrets **pending** |
 
 ## Manual follow-ups
 
 - [x] Attach custom domain `dev.squadme.app` (deploy created DNS + cert)
 - [x] Cloudflare Access application for `dev.squadme.app` (`npm run provision:access:dev` after ZT onboarding)
+- [ ] Access service token for GHA smoke (`npm run provision:access:smoke:dev`)
 - [ ] `wrangler secret put` for Dev identity/session/notification test keys (`--env dev`)
-- [ ] GitHub Environment `cloud-dev` secrets: `CLOUDFLARE_API_TOKEN` (Dev-scoped)
+- [ ] GitHub Environment `cloud-dev` secrets: `CLOUDFLARE_API_TOKEN` (Dev-scoped) + `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` via `npm run ci:wire-secrets`
 - [x] First deploy: `npm run deploy:dev` (smoke: `/api/health`, `/api/db-smoke`, `/api/match-do-ping` OK)
 
-## Production leftovers (not done)
+## Production (see `docs/inventory-production.md`)
 
-- Zone apex `squadme.app` is on Cloudflare but **no** production Worker / custom domain yet.
-- Production D1/R2/Queues still unprovisioned (`database_id: PROVISION_REQUIRED`).
-- `limits.cpu_ms` omitted on Free plan for both envs (parity); re-add when Workers Paid.
+Production `squad-me-production-*` resources exist; Worker uploaded. Apex
+`squadme.app` custom domain still blocked by conflicting DNS (`100117`).
+`limits.cpu_ms` omitted on Free plan for both envs (parity); re-add when Workers Paid.

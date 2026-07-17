@@ -69,4 +69,6 @@ jobs:
       - name: Cloud Dev smoke
         env:
           SMOKE_BASE_URL: https://dev.squadme.app
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
         run: npm run smoke:dev

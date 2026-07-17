@@ -17,8 +17,20 @@ be derived reliably from source code, documentation, or git history.
   `squad-me.cloudflareaccess.com`, app `squad-me-dev`, policy
   `Allow Dev operators` (`taras.kunch@gmail.com`); manage via
   `npm run provision:access:dev` with an Access-capable API token (Wrangler
-  OAuth lacks Access scopes). Still open: secrets, GitHub Environments.
-  Production apex/custom domain and `squad-me-production-*` not done.
+  OAuth lacks Access scopes). GitHub Environments `cloud-dev` + `production`
+  exist (`production` required reviewer `kunik`); both have
+  `CLOUDFLARE_ACCOUNT_ID`. Still open: Dev `CLOUDFLARE_API_TOKEN` + Access
+  smoke service token (`npm run provision:access:smoke:dev` then
+  `npm run ci:wire-secrets`); separate Production API token.
+- Production: `npm run provision:production` created `squad-me-production-*`
+  (D1 id in `wrangler.jsonc` / `docs/inventory-production.md`). Worker
+  `squad-me-production-app` uploaded; apex `squadme.app` attach fails with
+  API `100117` (leftover A/AAAA/CNAME). Fix: `npm run attach:production:hostname`
+  (token with Zone DNS Edit) or Dashboard DNS delete then redeploy. Production
+  stub is public (no Access). One-time bootstrap scripts live in `infra-setup/`
+  (`provision-*`, `attach-production-hostname`); runtime helpers stay in
+  `scripts/`. Infra rule: document every infra action; prefer those scripts;
+  one-offs must be recorded in `docs/provision.md`.
 - Client landing is a brand coming-soon stub (`src/client/App.tsx` +
   `styles.css`). Logo: `public/logo-full.svg` from KB
   `products/match-platform/design/completed/brand/`. Palette from
