@@ -19,6 +19,8 @@
     "seed:local": "tsx scripts/seed-dev.ts --local",
     "seed:dev": "tsx scripts/seed-dev.ts --env dev",
     "provision:dev": "bash scripts/provision-dev.sh",
+    "provision:access:dev": "bash scripts/provision-access-dev.sh",
+    "provision:production": "bash scripts/provision-production.sh",
     "smoke:dev": "tsx scripts/smoke-cloud-dev.ts",
     "deploy:dev": "npm run build:dev && wrangler deploy",
     "deploy:production": "npm run build:production && wrangler deploy",

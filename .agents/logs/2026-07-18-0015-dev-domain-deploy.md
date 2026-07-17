@@ -27,7 +27,6 @@ Confirmed zone `squadme.app` on account Taras, attached Worker custom domain
   `/api/match-do-ping`) OK
 
 ## Pending
-- [ ] Cloudflare Access for `dev.squadme.app`
+- [x] Cloudflare Access for `dev.squadme.app` (see `2026-07-18-0028-access-dev-live.md`)
 - [ ] Dev secrets + GitHub Environment `cloud-dev`
 - [ ] Production resources / apex custom domain
-- [ ] Unrelated dirty: coming-soon client stub (separate commit)

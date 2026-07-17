@@ -1,7 +1,7 @@
 # Cloud Dev inventory
 
 Generated: 2026-07-17T12:14:25Z  
-Updated: 2026-07-17T21:10:00Z (custom domain + first deploy)
+Updated: 2026-07-17T21:28:00Z (Access verified)
 
 | Resource | Name / value |
 |---|---|
@@ -14,12 +14,13 @@ Updated: 2026-07-17T21:10:00Z (custom domain + first deploy)
 | Queue | `squad-me-dev-jobs` |
 | DLQ | `squad-me-dev-jobs-dlq` |
 | DO binding | `MATCHES` → `MatchDurableObject` |
-| Access | Cloudflare Access required (configure in Zero Trust) |
+| Access | **Live.** App `squad-me-dev` (`6cc17162-60ea-435a-8557-424ef2695e55`); policy `Allow Dev operators`; allow `taras.kunch@gmail.com`; host `dev.squadme.app` only |
+| Zero Trust team | `squad-me` → `squad-me.cloudflareaccess.com` |
 
 ## Manual follow-ups
 
 - [x] Attach custom domain `dev.squadme.app` (deploy created DNS + cert)
-- [ ] Cloudflare Access application for `dev.squadme.app`
+- [x] Cloudflare Access application for `dev.squadme.app` (`npm run provision:access:dev` after ZT onboarding)
 - [ ] `wrangler secret put` for Dev identity/session/notification test keys (`--env dev`)
 - [ ] GitHub Environment `cloud-dev` secrets: `CLOUDFLARE_API_TOKEN` (Dev-scoped)
 - [x] First deploy: `npm run deploy:dev` (smoke: `/api/health`, `/api/db-smoke`, `/api/match-do-ping` OK)

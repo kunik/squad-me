@@ -13,8 +13,12 @@ be derived reliably from source code, documentation, or git history.
 - Cloud Dev provisioned + deployed: Worker `squad-me-dev-app`, custom domain
   `dev.squadme.app` attached (see `docs/inventory-dev.md`). Free plan: no
   `limits.cpu_ms` on `env.dev` or `env.production` (parity; re-add when
-  Workers Paid). Still open: Access on Dev, secrets, GitHub Environments.
-  Production apex/custom domain and `squad-me-production-*` resources not done.
+  Workers Paid). Access live on Dev: Zero Trust team `squad-me` →
+  `squad-me.cloudflareaccess.com`, app `squad-me-dev`, policy
+  `Allow Dev operators` (`taras.kunch@gmail.com`); manage via
+  `npm run provision:access:dev` with an Access-capable API token (Wrangler
+  OAuth lacks Access scopes). Still open: secrets, GitHub Environments.
+  Production apex/custom domain and `squad-me-production-*` not done.
 - Client landing is a brand coming-soon stub (`src/client/App.tsx` +
   `styles.css`). Logo: `public/logo-full.svg` from KB
   `products/match-platform/design/completed/brand/`. Palette from

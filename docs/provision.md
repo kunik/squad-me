@@ -27,7 +27,7 @@ Use `npx wrangler …` (local pinned CLI), not a global install.
 | D1 + R2 bucket + Queue/DLQ + migrations + `database_id` + inventory | **Script:** `npm run provision:dev` |
 | First Worker deploy + smoke | **Script:** `npm run deploy:dev` then `npm run smoke:dev` |
 | Zone DNS for `squadme.app` / `dev.squadme.app` | Zone already on account (see below). `npm run deploy:dev` attaches Worker custom domain `dev.squadme.app` |
-| Cloudflare Access on Dev | Manual (Zero Trust) until we add an API script |
+| Cloudflare Access on Dev | **Done** — app `squad-me-dev`; manage with `npm run provision:access:dev` |
 | Worker secrets | Semi-scripted: `npx wrangler secret put <NAME> --env dev` (you supply values) |
 | GitHub Environments + tokens | Manual in GitHub UI, or later via `gh` |
 | Production resources | Manual / one-off owner run (same naming); never from PR CI |
@@ -71,11 +71,39 @@ Custom domain `dev.squadme.app` is declared in `wrangler.jsonc`; deploy attaches
 it (Cloudflare creates DNS + certificate). Do not pre-create a conflicting
 CNAME for that hostname.
 
-### 3. Protect Dev (manual)
+### 3. Protect Dev (Access) — done
 
-1. Zero Trust → Access → Application for `dev.squadme.app`.
-2. Allow only your email / team; block anonymous internet access.
-3. Smoke from an allowed identity (Access session cookie).
+**Live:** self-hosted Access app `squad-me-dev` on `dev.squadme.app` only
+(not `*.dev.squadme.app`). Policy `Allow Dev operators` allows
+`taras.kunch@gmail.com`. Team domain: `squad-me.cloudflareaccess.com`.
+Anonymous requests get HTTP 302 → Access login (not a bare Worker 200).
+
+Verified: unauthenticated `GET https://dev.squadme.app/api/health` → `302` +
+`www-authenticate: Cloudflare-Access`; login page title includes app name
+`squad-me-dev`. Well-known metadata: `protected: true`.
+
+#### Manage / extend (script)
+
+Wrangler OAuth **cannot** manage Access. Use an API token:
+
+1. [API Tokens](https://dash.cloudflare.com/profile/api-tokens) → Create Token
+   with at least:
+   - **Access: Apps and Policies** — Edit
+   - **Access: Organizations, Identity Providers, and Groups** — Edit
+2. Run:
+
+```bash
+export CLOUDFLARE_API_TOKEN=...
+# optional: export ALLOW_EMAILS=taras.kunch@gmail.com,other@example.com
+npm run provision:access:dev
+```
+
+Idempotent. Dashboard:
+[Access applications](https://one.dash.cloudflare.com/2758c21b02e5c7efcfa745cb49948ace/access/apps).
+
+Add more operators: edit policy `Allow Dev operators` in the dashboard, or
+re-run with a broader `ALLOW_EMAILS` only after deleting/renaming the existing
+policy name (script does not merge emails into an existing policy).
 
 ### 4. Secrets (semi-scripted)
 
