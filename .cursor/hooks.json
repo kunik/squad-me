@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/pre-commit-log.sh",
+        "matcher": "git commit"
+      }
+    ]
+  }
+}
