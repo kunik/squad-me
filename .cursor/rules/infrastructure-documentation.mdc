@@ -39,6 +39,16 @@ docs.
   table above) as manual/semi-scripted steps.
 - Never leave a new resource, binding, hostname, or Access app undocumented.
 
+## Local Cloudflare API tokens (`.env.cloudflare`)
+
+- User stores tokens in **gitignored** `.env.cloudflare` (template:
+  `.env.cloudflare.example`). Scripts under `infra-setup/` load it via
+  `infra-setup/lib/common.sh` (`load_cloudflare_env` / `require_api_token`).
+- Agents **must** invoke those npm/scripts so the shell sources the file.
+  Agents must **not** `Read`, `cat`, or otherwise open `.env.cloudflare` to
+  extract or display token values. Prefer telling the user to fill the file
+  locally over asking them to paste a token into chat.
+
 ## Examples
 
 ```text

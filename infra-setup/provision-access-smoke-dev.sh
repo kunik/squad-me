@@ -5,16 +5,20 @@
 #   Access: Service Tokens Edit
 #
 # Usage:
-#   export CLOUDFLARE_API_TOKEN=...
+#   cp .env.cloudflare.example .env.cloudflare   # set CLOUDFLARE_API_TOKEN_ACCESS
 #   npm run provision:access:smoke:dev
 #
 # Prints client_id / client_secret once. Wire into GitHub cloud-dev:
 #   CF_ACCESS_CLIENT_ID, CF_ACCESS_CLIENT_SECRET
-# (or: npm run ci:wire-secrets after exporting those + CLOUDFLARE_API_TOKEN)
+# (or: npm run ci:wire-secrets after Access client pair is in the env / .env.cloudflare)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+# shellcheck source=lib/common.sh
+source "${ROOT}/infra-setup/lib/common.sh"
+
+require_api_token "Access smoke token (Access Apps/Policies Edit + Service Tokens Edit)" access
 
 ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-2758c21b02e5c7efcfa745cb49948ace}"
 APP_NAME="${ACCESS_APP_NAME:-squad-me-dev}"
@@ -23,14 +27,6 @@ TOKEN_NAME="${ACCESS_SMOKE_TOKEN_NAME:-squad-me-gha-smoke}"
 POLICY_NAME="${ACCESS_SMOKE_POLICY_NAME:-Allow CI smoke}"
 API="https://api.cloudflare.com/client/v4"
 INVENTORY="docs/inventory-dev.md"
-
-if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
-  echo "CLOUDFLARE_API_TOKEN is required (Wrangler OAuth lacks Access scopes)."
-  echo "Create a token: https://dash.cloudflare.com/profile/api-tokens"
-  echo "Scopes: Access: Apps and Policies Edit; Access: Service Tokens Edit"
-  echo "Then: export CLOUDFLARE_API_TOKEN=... && npm run provision:access:smoke:dev"
-  exit 1
-fi
 
 cf() {
   local method="$1" path="$2"

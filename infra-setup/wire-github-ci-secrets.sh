@@ -5,48 +5,27 @@
 # Prerequisites:
 #   - gh auth login
 #   - GitHub Environments cloud-dev / production already exist
-#   - export CLOUDFLARE_API_TOKEN=...   # Dev deploy scopes
+#   - CI deploy token in .env.cloudflare as CLOUDFLARE_API_TOKEN (or export)
 # Optional for Access smoke:
-#   - export CF_ACCESS_CLIENT_ID=... CF_ACCESS_CLIENT_SECRET=...
+#   - CF_ACCESS_CLIENT_ID / CF_ACCESS_CLIENT_SECRET in env or .env.cloudflare
 #
 # Usage:
-#   export CLOUDFLARE_API_TOKEN=...
-#   # optional: export CF_ACCESS_CLIENT_ID=... CF_ACCESS_CLIENT_SECRET=...
+#   # put CLOUDFLARE_API_TOKEN (squad-me-ci-dev) in .env.cloudflare
 #   npm run ci:wire-secrets
 set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+# shellcheck source=lib/common.sh
+source "${ROOT}/infra-setup/lib/common.sh"
+
+require_api_token "wiring GitHub cloud-dev secrets (CI deploy token)" any
 
 REPO="${GITHUB_REPOSITORY:-kunik/squad-me}"
 ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-2758c21b02e5c7efcfa745cb49948ace}"
 
 if ! command -v gh >/dev/null 2>&1; then
-  echo "gh CLI required" >&2
-  exit 1
-fi
-
-if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
-  echo "CLOUDFLARE_API_TOKEN is required."
-  echo ""
-  echo "Create a least-privilege Dev token in the Dashboard:"
-  echo "  https://dash.cloudflare.com/profile/api-tokens"
-  echo ""
-  echo "Recommended Create/Edit Token (name: squad-me-ci):"
-  echo "  Account Taras:"
-  echo "  - Workers Scripts → Edit"
-  echo "  - D1 → Edit"
-  echo "  - Workers R2 Storage → Edit"
-  echo "  - Queues → Edit"
-  echo "  - Account Settings → Read"
-  echo "  Zone squadme.app:"
-  echo "  - Workers Routes → Edit   # required for custom domain deploy"
-  echo "  Optional for Access smoke API bootstrap:"
-  echo "  - Access: Apps and Policies → Edit"
-  echo "  - Access: Service Tokens → Edit"
-  echo ""
-  echo "Prefill URL (permissions may need confirm in UI):"
-  echo "  https://dash.cloudflare.com/profile/api-tokens?permissionGroupKeys=%5B%7B%22key%22%3A%22workers_scripts%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22d1%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22workers_r2%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22queues%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22workers_routes%22%2C%22type%22%3A%22edit%22%7D%2C%7B%22key%22%3A%22account_settings%22%2C%22type%22%3A%22read%22%7D%5D&name=Squad%20Me%20Cloud%20Dev%20CI&accountId=${ACCOUNT_ID}"
-  echo ""
-  echo "Then: export CLOUDFLARE_API_TOKEN='...' && npm run ci:wire-secrets"
-  exit 1
+  die "gh CLI required"
 fi
 
 echo "==> Setting cloud-dev CLOUDFLARE_ACCOUNT_ID"
@@ -63,7 +42,7 @@ if [[ -n "${CF_ACCESS_CLIENT_ID:-}" && -n "${CF_ACCESS_CLIENT_SECRET:-}" ]]; the
   printf '%s' "${CF_ACCESS_CLIENT_ID}" | gh secret set CF_ACCESS_CLIENT_ID --repo "${REPO}" --env cloud-dev
   printf '%s' "${CF_ACCESS_CLIENT_SECRET}" | gh secret set CF_ACCESS_CLIENT_SECRET --repo "${REPO}" --env cloud-dev
 else
-  echo "==> Skipping Access smoke secrets (export CF_ACCESS_CLIENT_ID + CF_ACCESS_CLIENT_SECRET to set)"
+  echo "==> Skipping Access smoke secrets (set CF_ACCESS_CLIENT_ID + CF_ACCESS_CLIENT_SECRET in .env.cloudflare or env)"
 fi
 
 echo ""

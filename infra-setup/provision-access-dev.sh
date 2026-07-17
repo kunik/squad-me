@@ -8,13 +8,19 @@
 #   2. API token with Access write permissions (see docs/provision.md)
 #
 # Usage:
-#   export CLOUDFLARE_API_TOKEN=...
+#   cp .env.cloudflare.example .env.cloudflare   # set CLOUDFLARE_API_TOKEN_ACCESS
 #   # optional: TEAM_AUTH_DOMAIN=squad-me ALLOW_EMAILS=you@example.com,other@example.com
 #   npm run provision:access:dev
+#
+# Idempotent for existing org/app/policy. Does not print token values.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+# shellcheck source=lib/common.sh
+source "${ROOT}/infra-setup/lib/common.sh"
+
+require_api_token "Access provisioning (scopes: Access Apps/Policies Edit; Access Organizations Edit)" access
 
 ACCOUNT_ID="${CLOUDFLARE_ACCOUNT_ID:-2758c21b02e5c7efcfa745cb49948ace}"
 APP_NAME="${ACCESS_APP_NAME:-squad-me-dev}"
@@ -29,49 +35,44 @@ INVENTORY="docs/inventory-dev.md"
 
 export ACCOUNT_ID APP_NAME HOSTNAME TEAM_AUTH_DOMAIN TEAM_NAME ALLOW_EMAILS SESSION_DURATION POLICY_NAME INVENTORY
 
-if [[ -z "${CLOUDFLARE_API_TOKEN:-}" ]]; then
-  echo "CLOUDFLARE_API_TOKEN is required (Wrangler OAuth lacks Access scopes)."
-  echo "Create a token: https://dash.cloudflare.com/profile/api-tokens"
-  echo "Scopes: Access: Apps and Policies Edit; Access: Organizations, Identity Providers, and Groups Edit"
-  echo "Then: export CLOUDFLARE_API_TOKEN=... && npm run provision:access:dev"
-  exit 1
-fi
-
 cf() {
   local method="$1" path="$2"
   shift 2
+  # Token only in Authorization header — never echo CLOUDFLARE_API_TOKEN.
   curl -sS -X "$method" "${API}${path}" \
     -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
     -H "Content-Type: application/json" \
     "$@"
 }
 
-echo "==> Checking Zero Trust organization on account ${ACCOUNT_ID}"
+cf_ok() {
+  node -e "const j=JSON.parse(process.argv[1]); if(!j.success){console.error(JSON.stringify(j.errors||j,null,2)); process.exit(1)}" "$1"
+}
+
+log "Checking Zero Trust organization on account ${ACCOUNT_ID}"
 ORG_JSON="$(cf GET "/accounts/${ACCOUNT_ID}/access/organizations")"
 ORG_OK="$(node -e "const j=JSON.parse(process.argv[1]); process.stdout.write(j.success?'1':'0')" "$ORG_JSON")"
 if [[ "$ORG_OK" != "1" ]]; then
-  echo "    No org (or no Access permission). Attempting create auth_domain=${TEAM_AUTH_DOMAIN}…"
+  ok "No org (or no Access permission). Attempting create auth_domain=${TEAM_AUTH_DOMAIN}…"
   CREATE_ORG="$(
     TEAM_NAME="$TEAM_NAME" TEAM_AUTH_DOMAIN="$TEAM_AUTH_DOMAIN" \
     node -e "console.log(JSON.stringify({name:process.env.TEAM_NAME,auth_domain:process.env.TEAM_AUTH_DOMAIN+'.cloudflareaccess.com'}))" \
     | cf POST "/accounts/${ACCOUNT_ID}/access/organizations" --data @-
   )"
   if ! node -e "const j=JSON.parse(process.argv[1]); if(!j.success){console.error(JSON.stringify(j.errors||j,null,2)); process.exit(1)}" "$CREATE_ORG"; then
-    echo ""
-    echo "Blocked: Zero Trust organization must be created interactively."
-    echo "  Dashboard: https://one.dash.cloudflare.com/"
-    echo "  Or: https://dash.cloudflare.com/${ACCOUNT_ID}/zt-start"
-    echo "  Pick a team name (suggested: ${TEAM_AUTH_DOMAIN}), complete Free plan"
-    echo "  onboarding (payment details may be required even for Free), then re-run."
-    exit 2
+    die "Blocked: Zero Trust organization must be created interactively.
+  Dashboard: https://one.dash.cloudflare.com/
+  Or: https://dash.cloudflare.com/${ACCOUNT_ID}/zt-start
+  Pick a team name (suggested: ${TEAM_AUTH_DOMAIN}), complete Free plan
+  onboarding (payment details may be required even for Free), then re-run."
   fi
-  echo "    organization created"
+  ok "organization created"
 else
   AUTH_DOMAIN="$(node -e "const j=JSON.parse(process.argv[1]); process.stdout.write(j.result?.auth_domain||'')" "$ORG_JSON")"
-  echo "    exists (auth_domain=${AUTH_DOMAIN})"
+  ok "exists (auth_domain=${AUTH_DOMAIN})"
 fi
 
-echo "==> Ensuring One-time PIN identity provider"
+log "Ensuring One-time PIN identity provider"
 IDPS="$(cf GET "/accounts/${ACCOUNT_ID}/access/identity_providers")"
 HAS_OTP="$(node -e "
   const j=JSON.parse(process.argv[1]);
@@ -81,13 +82,13 @@ HAS_OTP="$(node -e "
 " "$IDPS")"
 if [[ "$HAS_OTP" != "1" ]]; then
   CREATE_IDP="$(cf POST "/accounts/${ACCOUNT_ID}/access/identity_providers" --data '{"name":"One-time PIN login","type":"onetimepin","config":{}}')"
-  node -e "const j=JSON.parse(process.argv[1]); if(!j.success){console.error(JSON.stringify(j.errors,null,2)); process.exit(1)}" "$CREATE_IDP"
-  echo "    created One-time PIN IdP"
+  cf_ok "$CREATE_IDP"
+  ok "created One-time PIN IdP"
 else
-  echo "    already present"
+  ok "already present"
 fi
 
-echo "==> Ensuring Access application ${APP_NAME} → ${HOSTNAME}"
+log "Ensuring Access application ${APP_NAME} → ${HOSTNAME}"
 APPS="$(cf GET "/accounts/${ACCOUNT_ID}/access/apps")"
 APP_ID="$(node -e "
   const j=JSON.parse(process.argv[1]);
@@ -120,14 +121,14 @@ if [[ -z "$APP_ID" ]]; then
     if(!j.success){ console.error(JSON.stringify(j.errors,null,2)); process.exit(1) }
     process.stdout.write(j.result.id);
   " "$CREATE_APP")"
-  echo "    created app id=${APP_ID}"
+  ok "created app id=${APP_ID}"
 else
-  echo "    already exists id=${APP_ID}"
+  ok "already exists id=${APP_ID}"
 fi
 
 export APP_ID
 
-echo "==> Ensuring Allow policy for: ${ALLOW_EMAILS}"
+log "Ensuring Allow policy for: ${ALLOW_EMAILS}"
 POLICIES="$(cf GET "/accounts/${ACCOUNT_ID}/access/apps/${APP_ID}/policies")"
 HAS_POLICY="$(node -e "
   const j=JSON.parse(process.argv[1]);
@@ -149,13 +150,13 @@ if [[ "$HAS_POLICY" != "1" ]]; then
       }));
     " | cf POST "/accounts/${ACCOUNT_ID}/access/apps/${APP_ID}/policies" --data @-
   )"
-  node -e "const j=JSON.parse(process.argv[1]); if(!j.success){console.error(JSON.stringify(j.errors,null,2)); process.exit(1)}" "$CREATE_POL"
-  echo "    created policy ${POLICY_NAME}"
+  cf_ok "$CREATE_POL"
+  ok "created policy ${POLICY_NAME}"
 else
-  echo "    policy already present (add more emails in Zero Trust → Access → Applications → ${APP_NAME})"
+  ok "policy already present (add emails in Zero Trust → Access → Applications → ${APP_NAME})"
 fi
 
-echo "==> Updating ${INVENTORY}"
+log "Updating ${INVENTORY}"
 node --input-type=module -e "
 import fs from 'node:fs';
 const path = process.env.INVENTORY;
