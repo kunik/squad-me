@@ -1,6 +1,6 @@
 ---
 name: compress
-description: Saves repository and knowledge-base work to separate compact session logs. Use when the user invokes /compress or /log, asks to save or log the session, or wants a handoff before ending significant work.
+description: Saves repository and knowledge-base work to separate compact session logs. Use when the user invokes /compress or /log, asks to save or log the session, wants a handoff before ending significant work, or when the commit skill requires a session log before committing.
 ---
 
 # Compress / Log
