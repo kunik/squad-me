@@ -130,10 +130,8 @@
       "observability": {
         "enabled": true,
         "head_sampling_rate": 1
-      },
-      "limits": {
-        "cpu_ms": 50
       }
+      // No limits.cpu_ms on Free plan (API 100328). Re-add when Workers Paid is enabled.
     },
     "production": {
       "name": "squad-me-production-app",
@@ -197,10 +195,8 @@
       "observability": {
         "enabled": true,
         "head_sampling_rate": 0.1
-      },
-      "limits": {
-        "cpu_ms": 50
       }
+      // No limits.cpu_ms on Free plan (API 100328). Re-add when Workers Paid is enabled.
     }
   }
 }

@@ -26,7 +26,7 @@ Use `npx wrangler …` (local pinned CLI), not a global install.
 | Enable R2 on the account | **Manual** — [R2 Overview](https://dash.cloudflare.com/?to=/:account/r2/overview) (purchase/enable if prompted) |
 | D1 + R2 bucket + Queue/DLQ + migrations + `database_id` + inventory | **Script:** `npm run provision:dev` |
 | First Worker deploy + smoke | **Script:** `npm run deploy:dev` then `npm run smoke:dev` |
-| Zone DNS for `squadme.app` / `dev.squadme.app` | Manual (registrar + Cloudflare zone), then deploy attaches custom domain |
+| Zone DNS for `squadme.app` / `dev.squadme.app` | Zone already on account (see below). `npm run deploy:dev` attaches Worker custom domain `dev.squadme.app` |
 | Cloudflare Access on Dev | Manual (Zero Trust) until we add an API script |
 | Worker secrets | Semi-scripted: `npx wrangler secret put <NAME> --env dev` (you supply values) |
 | GitHub Environments + tokens | Manual in GitHub UI, or later via `gh` |
@@ -39,8 +39,9 @@ Use `npx wrangler …` (local pinned CLI), not a global install.
 1. `npx wrangler login` — confirm with `npx wrangler whoami`.
 2. Enable **R2** on the account in the Dashboard. Until this is done,
    `wrangler r2 bucket create` fails with code `10042`.
-3. Ensure zone `squadme.app` is on this Cloudflare account (or will be), so
-   `dev.squadme.app` can become a Worker custom domain.
+3. Zone `squadme.app` is already on this account (active). Account also needs a
+   `workers.dev` subdomain before the first Worker deploy (created once; see Zone
+   facts below).
 
 ### 1. Provision resources (script)
 
@@ -66,8 +67,9 @@ npm run smoke:dev
 ```
 
 `deploy:dev` builds with `CLOUDFLARE_ENV=dev` and runs `wrangler deploy`.
-Custom domain `dev.squadme.app` is declared in `wrangler.jsonc`; first deploy
-attaches it when DNS/zone is ready.
+Custom domain `dev.squadme.app` is declared in `wrangler.jsonc`; deploy attaches
+it (Cloudflare creates DNS + certificate). Do not pre-create a conflicting
+CNAME for that hostname.
 
 ### 3. Protect Dev (manual)
 
@@ -112,10 +114,32 @@ Do **not** run until Cloud Dev deploy + smoke are green for a real commit.
 1. Create `squad-me-production-db`, `-files`, `-jobs`, `-jobs-dlq`.
 2. Put real `database_id` into `wrangler.jsonc` → `env.production`.
 3. Backup policy ready → `wrangler d1 migrations apply DB --remote --env production`.
-4. Custom domain `squadme.app`, TLS, security headers.
+4. Custom domain `squadme.app` (same zone; attach on first production deploy when
+   resources exist). Free-plan note: `limits.cpu_ms` omitted on both envs;
+   re-add when Workers Paid is enabled.
 5. `wrangler secret put … --env production`.
 6. GitHub Environment `production` with required reviewers.
 7. First ship only via **Deploy Production** workflow after Dev gate.
+
+## Zone facts (`squadme.app`)
+
+| Field | Value |
+|---|---|
+| Account | Taras (`2758c21b02e5c7efcfa745cb49948ace`) |
+| Zone ID | `c224b051f2d19f3900b68c0d69ffb3c6` |
+| Status | `active` (full setup; activated 2026-07-16) |
+| Cloudflare NS | `barbara.ns.cloudflare.com`, `miguel.ns.cloudflare.com` |
+| Public NS | Matches Cloudflare (registrar NS were Namecheap `dns*.registrar-servers.com`) |
+| Original registrar | Namecheap Inc. |
+| Plan | Free Website |
+| `workers.dev` account subdomain | `squad-me` → `*.squad-me.workers.dev` (required once; Dev Worker uses custom domain only, `workers_dev: false`) |
+
+Cloud Dev hostname: Worker custom domain `dev.squadme.app` on `squad-me-dev-app`
+(attached by `wrangler deploy`). Production apex `squadme.app` is **not** attached
+yet (no production Worker / resources).
+
+Dashboard: [Workers & Pages](https://dash.cloudflare.com/2758c21b02e5c7efcfa745cb49948ace/workers-and-pages) ·
+[DNS for squadme.app](https://dash.cloudflare.com/2758c21b02e5c7efcfa745cb49948ace/squadme.app/dns/records)
 
 ## Isolation rules
 
@@ -132,5 +156,7 @@ Do **not** run until Cloud Dev deploy + smoke are green for a real commit.
 | `command not found: wrangler` | Use `npx wrangler` or npm scripts |
 | R2 API `10042` | Enable R2 in Dashboard, re-run `npm run provision:dev` |
 | `PROVISION_REQUIRED` in parity `--strict` | Provision did not finish; re-run script |
-| Custom domain pending | Zone/DNS not on this account yet; deploy Worker first, attach domain when DNS is ready |
+| Custom domain pending | Confirm zone active + no conflicting CNAME; re-run `npm run deploy:dev` |
+| CPU limits Free plan `100328` | Remove `limits.cpu_ms` (Dev already omits it) or enable Workers Paid |
+| Missing `workers.dev` subdomain `10063` | Open Workers & Pages once, or `PUT /accounts/:id/workers/subdomain` with `{"subdomain":"…"}` |
 | Smoke 403 from browser | Cloudflare Access blocking; use allowed identity |

@@ -54,8 +54,9 @@ npm run provision:dev
 ```
 
 Creates D1 / R2 / Queue / DLQ, writes `database_id` into `wrangler.jsonc`,
-applies migrations, and writes `docs/inventory-dev.md`. Then complete Access,
-custom domain, and secrets manually (checklist in the inventory file).
+applies migrations, and writes `docs/inventory-dev.md`. Custom domain
+`dev.squadme.app` attaches on `npm run deploy:dev` (zone already active).
+Still manual: Access and secrets (checklist in the inventory file).
 
 Production resources are provisioned once by an owner with the same naming
 pattern (`squad-me-production-*`) and never from the PR workflow.
