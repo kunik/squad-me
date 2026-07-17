@@ -18,6 +18,31 @@ Environments: `dev`, `production` (no preview/staging).
 Account in use: **Taras** (`2758c21b02e5c7efcfa745cb49948ace`).
 Use `npx wrangler …` (local pinned CLI), not a global install.
 
+## Local API tokens (`.env.cloudflare`)
+
+Dashboard API scripts (Access, apex DNS attach, wiring GitHub secrets) read
+tokens from a **gitignored** file at the repo root — not from chat and not by
+agents opening the file.
+
+```bash
+cp .env.cloudflare.example .env.cloudflare
+# edit .env.cloudflare locally (never commit)
+```
+
+| Variable | Used for |
+|---|---|
+| `CLOUDFLARE_API_TOKEN_DNS` | `npm run attach:production:hostname` (Zone DNS Edit + Workers Scripts Edit) |
+| `CLOUDFLARE_API_TOKEN_ACCESS` | `npm run provision:access:dev` / `provision:access:smoke:dev` |
+| `CLOUDFLARE_API_TOKEN` | Fallback for the above; also `npm run ci:wire-secrets` (CI deploy token) |
+| `CLOUDFLARE_ACCOUNT_ID` | Optional override (public default is already in docs) |
+
+`infra-setup/lib/common.sh` loads `.env.cloudflare` when present (does not print
+values). Shell-exported env still wins over the file. Keep token scopes
+separated: Access-only token ≠ CI deploy token ≠ DNS attach token.
+
+**Agent rule:** run `npm run …` / infra scripts so the file is sourced; do **not**
+Read/cat `.env.cloudflare` to extract secrets.
+
 ## One-time infra setup (`infra-setup/`)
 
 Bootstrap scripts that create or attach Cloudflare resources live in
@@ -30,8 +55,8 @@ Ongoing helpers (seed, smoke, parity) stay in `scripts/`.
 | `npm run provision:production` | `infra-setup/provision.sh production` | Same shared bootstrap for Production |
 | `npm run provision:access:dev` | `infra-setup/provision-access-dev.sh` | Access app for `dev.squadme.app` (Access API token; separate auth surface) |
 | `npm run provision:access:smoke:dev` | `infra-setup/provision-access-smoke-dev.sh` | Access service token + Service Auth policy for GHA/local smoke |
-| `npm run attach:production:hostname` | `infra-setup/attach-production-hostname.sh` | Clear conflicting apex DNS + attach `squadme.app` (needs Zone DNS Edit token) |
-| `npm run ci:wire-secrets` | `infra-setup/wire-github-ci-secrets.sh` | Set `cloud-dev` GitHub secrets from exported tokens (not production deploy token) |
+| `npm run attach:production:hostname` | `infra-setup/attach-production-hostname.sh` | Clear conflicting apex DNS + attach `squadme.app` (needs `CLOUDFLARE_API_TOKEN_DNS` in `.env.cloudflare`) |
+| `npm run ci:wire-secrets` | `infra-setup/wire-github-ci-secrets.sh` | Set `cloud-dev` GitHub secrets from `.env.cloudflare` / env (not production deploy token) |
 
 ## What is scripted vs manual
 
@@ -41,7 +66,7 @@ Ongoing helpers (seed, smoke, parity) stay in `scripts/`.
 | Enable R2 on the account | **Manual** — [R2 Overview](https://dash.cloudflare.com/?to=/:account/r2/overview) (purchase/enable if prompted) |
 | D1 + R2 bucket + Queue/DLQ + migrations + `database_id` + inventory | **Script:** `npm run provision:dev` / `npm run provision:production` |
 | First Worker deploy + smoke | **Script:** `npm run deploy:dev` then `npm run smoke:dev`; Production: `npm run deploy:production` |
-| Zone DNS / Worker custom domains | Zone already on account (see below). Dev: `npm run deploy:dev` attaches `dev.squadme.app`. Production apex: see § Production (conflicting DNS → `npm run attach:production:hostname`) |
+| Zone DNS / Worker custom domains | Zone already on account (see below). Dev: `npm run deploy:dev` attaches `dev.squadme.app`. Production apex: attached; recover conflicts with `npm run attach:production:hostname` + DNS token in `.env.cloudflare` |
 | Cloudflare Access on Dev | **Done** — app `squad-me-dev`; manage with `npm run provision:access:dev` |
 | Worker secrets | Semi-scripted: `npx wrangler secret put <NAME> --env dev\|production` (you supply values) |
 | GitHub Environments + tokens | Environments exist; wire Dev token via `npm run ci:wire-secrets` (see §5) |
@@ -108,7 +133,7 @@ Wrangler OAuth **cannot** manage Access. Use an API token:
 2. Run:
 
 ```bash
-export CLOUDFLARE_API_TOKEN=...
+# .env.cloudflare → CLOUDFLARE_API_TOKEN_ACCESS=...  (Access scopes)
 # optional: export ALLOW_EMAILS=taras.kunch@gmail.com,other@example.com
 npm run provision:access:dev
 ```
@@ -126,11 +151,11 @@ Unauthenticated `npm run smoke:dev` gets **302** from Access. GitHub Actions
 must use an Access service token:
 
 ```bash
-export CLOUDFLARE_API_TOKEN=...   # Access: Apps and Policies Edit + Service Tokens Edit
+# .env.cloudflare → CLOUDFLARE_API_TOKEN_ACCESS=...  (Apps/Policies + Service Tokens Edit)
 npm run provision:access:smoke:dev
 # save CF_ACCESS_CLIENT_ID / CF_ACCESS_CLIENT_SECRET (secret shown once)
-export CF_ACCESS_CLIENT_ID=... CF_ACCESS_CLIENT_SECRET=...
-npm run smoke:dev                 # local verify
+# optional: put the pair in .env.cloudflare for local smoke / ci:wire-secrets
+npm run smoke:dev                 # local verify (with CF_ACCESS_* in env)
 ```
 
 Creates token `squad-me-gha-smoke` and policy `Allow CI smoke` (`non_identity`)
@@ -155,7 +180,7 @@ GitHub Environments on `kunik/squad-me` (**created** via `gh`):
 
 | Environment | Secrets | Protection |
 |---|---|---|
-| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID` (**set**); `CLOUDFLARE_API_TOKEN` (`squad-me-ci` — **set**; may need Zone/Access scope edits); `CF_ACCESS_CLIENT_*` (**pending**) | none |
+| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci`), `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET` (**all set**; Deploy Cloud Dev green) | none |
 | `production` | `CLOUDFLARE_ACCOUNT_ID` (**set**); `CLOUDFLARE_API_TOKEN` (Production — **not set**; separate token) | **required reviewer:** `kunik` |
 
 Wrangler OAuth **cannot** create Account API tokens or Access resources. Dev
@@ -254,12 +279,14 @@ still be uploaded successfully.
 Prefer the script (needs a DNS-capable API token):
 
 ```bash
-export CLOUDFLARE_API_TOKEN=...   # Zone DNS Edit + Workers Scripts Edit
+# .env.cloudflare → CLOUDFLARE_API_TOKEN_DNS=...  (Zone DNS Edit + Workers Scripts Edit)
+# Recommended token name: squad-me-dns (do not reuse Access-only or CI tokens)
 npm run attach:production:hostname
 ```
 
 Clears conflicting A/AAAA/CNAME for exact name `squadme.app` (keeps TXT/MX),
-then attaches the Worker custom domain via the Cloudflare API.
+then attaches the Worker custom domain via the Cloudflare API. Loads tokens from
+`.env.cloudflare` automatically.
 
 **One-off alternative (documented):** [DNS for squadme.app](https://dash.cloudflare.com/2758c21b02e5c7efcfa745cb49948ace/squadme.app/dns/records)
 → delete A/AAAA/CNAME for exact name `squadme.app` (keep SPF TXT / MX) →
@@ -296,8 +323,11 @@ owner can deploy locally as above.
 | `workers.dev` account subdomain | `squad-me` → `*.squad-me.workers.dev` (required once; Dev Worker uses custom domain only, `workers_dev: false`) |
 
 Cloud Dev hostname: Worker custom domain `dev.squadme.app` on `squad-me-dev-app`
-(attached). Production Worker `squad-me-production-app` is uploaded; apex
-`squadme.app` attach depends on clearing conflicting DNS (see § Production).
+(attached). Production Worker `squad-me-production-app` has custom domain
+`squadme.app` attached (verified 2026-07-18: `/api/health` →
+`environment=production`). If attach regresses with API **100117**, put a DNS
+token in `.env.cloudflare` and re-run `npm run attach:production:hostname`
+(see § Production step 3).
 
 Dashboard: [Workers & Pages](https://dash.cloudflare.com/2758c21b02e5c7efcfa745cb49948ace/workers-and-pages) ·
 [DNS for squadme.app](https://dash.cloudflare.com/2758c21b02e5c7efcfa745cb49948ace/squadme.app/dns/records)

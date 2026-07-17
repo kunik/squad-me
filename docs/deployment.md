@@ -62,14 +62,15 @@ with `npm run provision:access:dev` (needs Access-capable API token). Secrets
 remain manual (checklist in inventory).
 
 Production resources: `npm run provision:production` (owner-only; never from
-PR CI). First local ship of the coming-soon stub: `npm run deploy:production`,
-then attach apex if deploy reports API `100117` —
-`npm run attach:production:hostname` (or Dashboard DNS one-off; see
+PR CI). Apex `squadme.app` is attached to `squad-me-production-app`. If deploy
+reports API `100117` again, put `CLOUDFLARE_API_TOKEN_DNS` in `.env.cloudflare`
+and run `npm run attach:production:hostname` (or Dashboard DNS one-off; see
 `docs/provision.md`). Production hostname is public for the stub (no Access).
 GitHub Environments exist (`cloud-dev`, `production` with required reviewer
 `kunik`). Wire Dev deploy + Access smoke secrets with `npm run ci:wire-secrets`
-(see `docs/provision.md` §5). Production API token remains separate / unset
-until promote CI is enabled; local owner deploy of a Dev-tested SHA still works.
+(tokens from `.env.cloudflare`; see `docs/provision.md`). Production API token
+remains separate / unset until promote CI is enabled; local owner deploy of a
+Dev-tested SHA still works.
 
 ## CI/CD (GitHub Actions)
 
@@ -83,7 +84,7 @@ GitHub Environments:
 
 | Environment | Status |
 |---|---|
-| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (`squad-me-ci`) set; Access smoke `CF_ACCESS_CLIENT_*` pending; token must include Zone Workers Routes Edit |
+| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci`), `CF_ACCESS_CLIENT_*` set; Deploy Cloud Dev green (Access smoke) |
 | `production` | `CLOUDFLARE_ACCOUNT_ID` set; required reviewer `kunik`; Production token **not** set |
 
 Cloud Dev smoke sends `CF-Access-Client-Id` / `CF-Access-Client-Secret` when
