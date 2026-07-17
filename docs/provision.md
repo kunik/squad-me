@@ -26,10 +26,10 @@ Ongoing helpers (seed, smoke, parity) stay in `scripts/`.
 
 | npm script | Script | Why |
 |---|---|---|
-| `npm run provision:dev` | `infra-setup/provision.sh dev` | Create Dev D1/R2/queues, write `database_id`, migrate, inventory |
-| `npm run provision:access:dev` | `infra-setup/provision-access-dev.sh` | Create/update Access app for `dev.squadme.app` (needs Access API token) |
+| `npm run provision:dev` | `infra-setup/provision.sh dev` | Shared bootstrap: Dev D1/R2/queues, `database_id`, migrate, inventory rows |
+| `npm run provision:production` | `infra-setup/provision.sh production` | Same shared bootstrap for Production |
+| `npm run provision:access:dev` | `infra-setup/provision-access-dev.sh` | Access app for `dev.squadme.app` (Access API token; separate auth surface) |
 | `npm run provision:access:smoke:dev` | `infra-setup/provision-access-smoke-dev.sh` | Access service token + Service Auth policy for GHA/local smoke |
-| `npm run provision:production` | `infra-setup/provision.sh production` | Same bootstrap for Production resources |
 | `npm run attach:production:hostname` | `infra-setup/attach-production-hostname.sh` | Clear conflicting apex DNS + attach `squadme.app` (needs Zone DNS Edit token) |
 | `npm run ci:wire-secrets` | `infra-setup/wire-github-ci-secrets.sh` | Set `cloud-dev` GitHub secrets from exported tokens (not production deploy token) |
 
@@ -155,30 +155,54 @@ GitHub Environments on `kunik/squad-me` (**created** via `gh`):
 
 | Environment | Secrets | Protection |
 |---|---|---|
-| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID` (**set**); `CLOUDFLARE_API_TOKEN` (Dev — **pending**); `CF_ACCESS_CLIENT_ID` / `CF_ACCESS_CLIENT_SECRET` (**pending**) | none |
+| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID` (**set**); `CLOUDFLARE_API_TOKEN` (`squad-me-ci` — **set**; may need Zone/Access scope edits); `CF_ACCESS_CLIENT_*` (**pending**) | none |
 | `production` | `CLOUDFLARE_ACCOUNT_ID` (**set**); `CLOUDFLARE_API_TOKEN` (Production — **not set**; separate token) | **required reviewer:** `kunik` |
 
-Wrangler OAuth **cannot** create Account API tokens or Access resources. Create
-the Dev deploy token in the Dashboard, then wire:
+Wrangler OAuth **cannot** create Account API tokens or Access resources. Dev
+deploy token lives in Environment `cloud-dev` (not repo-level secrets).
 
-```bash
-export CLOUDFLARE_API_TOKEN=...          # Dev deploy scopes below
-# optional after provision:access:smoke:dev:
-export CF_ACCESS_CLIENT_ID=... CF_ACCESS_CLIENT_SECRET=...
-npm run ci:wire-secrets
-```
+**Dev token `squad-me-ci` — required permissions**
 
-**Dev token permissions** (Account **Taras** only; name `Squad Me Cloud Dev CI`):
+Account **Taras**:
 
 - Workers Scripts — Edit
 - D1 — Edit
 - Workers R2 Storage — Edit
 - Queues — Edit
-- Workers Routes — Edit
-- Account Settings — Read
+- Account Settings — Read (optional but helpful)
 
-[Create Token](https://dash.cloudflare.com/profile/api-tokens) (Custom token).
-Do **not** reuse this token for Production; create a separate Production-scoped
+Zone **squadme.app** (required for `wrangler deploy` with custom domains):
+
+- Workers Routes — Edit
+
+Without Zone → Workers Routes → Edit, deploy fails with auth `10000` on
+`/zones/.../workers/routes` (seen in GHA after token was first wired).
+
+For Access smoke bootstrap (API), also add:
+
+- Access: Apps and Policies — Edit
+- Access: Service Tokens — Edit
+
+Or create the service token in Zero Trust UI and only wire GitHub secrets.
+
+User → User Details → Read removes the wrangler “Unable to retrieve email” warning.
+
+[API Tokens](https://dash.cloudflare.com/profile/api-tokens) → edit `squad-me-ci`
+→ add missing scopes → (value unchanged if only permissions change).
+
+**Wire Access smoke secrets** (after token has Access scopes):
+
+```bash
+printf '%s' "$(gh auth token)" | gh secret set TEMP_GH_TOKEN --repo kunik/squad-me --env cloud-dev
+gh workflow run "Provision Access smoke secrets" --repo kunik/squad-me
+# wait for green, then:
+gh secret delete TEMP_GH_TOKEN --repo kunik/squad-me --env cloud-dev
+```
+
+Local alternative: `npm run provision:access:smoke:dev` then `npm run ci:wire-secrets`
+with `CF_ACCESS_CLIENT_*` exported.
+
+Do **not** reuse `squad-me-ci` for Production; create a separate Production-scoped
 token when enabling `deploy-production.yml`.
 
 Workflows:
@@ -186,6 +210,7 @@ Workflows:
 - `.github/workflows/ci.yml` — PR gate, no deploy
 - `.github/workflows/deploy-dev.yml` — merge to `main` (smoke uses Access service token secrets)
 - `.github/workflows/deploy-production.yml` — `workflow_dispatch` only
+- `.github/workflows/provision-access-smoke.yml` — one-shot Access smoke secret bootstrap
 
 ## Production — owner order
 
@@ -296,5 +321,6 @@ Dashboard: [Workers & Pages](https://dash.cloudflare.com/2758c21b02e5c7efcfa745c
 | Apex custom domain `100117` (Production) | Conflicting A/AAAA/CNAME on `squadme.app`. Run `npm run attach:production:hostname` (DNS-capable token) or delete those records in Dashboard DNS, then `npm run deploy:production` |
 | CPU limits Free plan `100328` | Omit `limits.cpu_ms` (both envs) or enable Workers Paid |
 | Missing `workers.dev` subdomain `10063` | Open Workers & Pages once, or `PUT /accounts/:id/workers/subdomain` with `{"subdomain":"…"}` |
-| Smoke 302/403 on Dev | Access blocking; browser: allowed email. CI/local automation: `CF_ACCESS_CLIENT_ID` + `CF_ACCESS_CLIENT_SECRET` (`npm run provision:access:smoke:dev`) |
+| Smoke 302/403 on Dev | Access blocking; browser: allowed email. CI/local automation: `CF_ACCESS_CLIENT_ID` + `CF_ACCESS_CLIENT_SECRET` (`provision-access-smoke.yml` or `npm run provision:access:smoke:dev`) |
+| GHA deploy auth `10000` on `/zones/.../workers/routes` | Edit `squad-me-ci`: Zone `squadme.app` → **Workers Routes → Edit** (Account-level Workers Routes is not enough) |
 | Apex returns 522 before attach | Proxied leftover DNS with dead origin; clear conflicts and attach Worker domain |

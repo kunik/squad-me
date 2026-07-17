@@ -1,0 +1,153 @@
+# One-shot: create Access service token + Service Auth policy for Cloud Dev smoke,
+# then write CF_ACCESS_CLIENT_ID / CF_ACCESS_CLIENT_SECRET to environment cloud-dev.
+#
+# Requires cloud-dev secrets:
+#   CLOUDFLARE_API_TOKEN  — must include Access: Apps and Policies Edit +
+#                           Access: Service Tokens Edit (in addition to deploy scopes)
+#   CLOUDFLARE_ACCOUNT_ID
+#   TEMP_GH_TOKEN         — short-lived `gh auth token` with secrets write; delete after run
+#
+# Trigger: workflow_dispatch only.
+name: Provision Access smoke secrets
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: provision-access-smoke
+  cancel-in-progress: false
+
+jobs:
+  provision:
+    name: Create Access service token → cloud-dev secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: cloud-dev
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create service token + policy; wire GitHub secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TEMP_GH_TOKEN: ${{ secrets.TEMP_GH_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TEMP_GH_TOKEN:-}" ]; then
+            echo "TEMP_GH_TOKEN missing on cloud-dev."
+            echo "Locally: printf '%s' \"\$(gh auth token)\" | gh secret set TEMP_GH_TOKEN --env cloud-dev"
+            echo "Re-run this workflow, then: gh secret delete TEMP_GH_TOKEN --env cloud-dev"
+            exit 1
+          fi
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID required on cloud-dev" >&2
+            exit 1
+          fi
+
+          ACCOUNT_ID="$CLOUDFLARE_ACCOUNT_ID"
+          APP_NAME="squad-me-dev"
+          HOSTNAME="dev.squadme.app"
+          TOKEN_NAME="squad-me-gha-smoke"
+          POLICY_NAME="Allow CI smoke"
+          API="https://api.cloudflare.com/client/v4"
+
+          cf() {
+            local method="$1" path="$2"
+            shift 2
+            curl -sS -X "$method" "${API}${path}" \
+              -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "$@"
+          }
+
+          APPS="$(cf GET "/accounts/${ACCOUNT_ID}/access/apps")"
+          APP_ID="$(node -e "
+            const j=JSON.parse(process.argv[1]);
+            if(!j.success){ console.error(JSON.stringify(j.errors||j,null,2)); process.exit(1) }
+            const hit=(j.result||[]).find(a => a.name===process.argv[2] || a.domain===process.argv[3]);
+            if(!hit){ console.error('Access app not found'); process.exit(1) }
+            process.stdout.write(hit.id);
+          " "$APPS" "$APP_NAME" "$HOSTNAME")"
+          echo "Access app id present"
+
+          TOKENS="$(cf GET "/accounts/${ACCOUNT_ID}/access/service_tokens")"
+          EXISTING="$(node -e "
+            const j=JSON.parse(process.argv[1]);
+            if(!j.success){ console.error(JSON.stringify(j.errors||j,null,2)); process.exit(1) }
+            const hit=(j.result||[]).find(t => t.name===process.argv[2]);
+            if(!hit){ process.stdout.write(''); process.exit(0) }
+            process.stdout.write([hit.id, hit.client_id||''].join('\\n'));
+          " "$TOKENS" "$TOKEN_NAME")"
+
+          CLIENT_ID=""
+          CLIENT_SECRET=""
+          TOKEN_UUID=""
+
+          if [ -n "$EXISTING" ]; then
+            TOKEN_UUID="$(echo "$EXISTING" | sed -n '1p')"
+            CLIENT_ID="$(echo "$EXISTING" | sed -n '2p')"
+            echo "Service token already exists; secret cannot be re-fetched."
+            echo "Delete Zero Trust → Service credentials → ${TOKEN_NAME}, then re-run."
+            exit 2
+          fi
+
+          CREATE="$(cf POST "/accounts/${ACCOUNT_ID}/access/service_tokens" \
+            --data "{\"name\":\"${TOKEN_NAME}\",\"duration\":\"8760h\"}")"
+          PARSE="$(node -e "
+            const j=JSON.parse(process.argv[1]);
+            if(!j.success){ console.error(JSON.stringify(j.errors||j,null,2)); process.exit(1) }
+            const r=j.result;
+            process.stdout.write([r.id,r.client_id,r.client_secret].join('\\n'));
+          " "$CREATE")"
+          TOKEN_UUID="$(echo "$PARSE" | sed -n '1p')"
+          CLIENT_ID="$(echo "$PARSE" | sed -n '2p')"
+          CLIENT_SECRET="$(echo "$PARSE" | sed -n '3p')"
+          echo "Service token created"
+
+          POLICIES="$(cf GET "/accounts/${ACCOUNT_ID}/access/apps/${APP_ID}/policies")"
+          HAS_POLICY="$(node -e "
+            const j=JSON.parse(process.argv[1]);
+            if(!j.success){ console.error(JSON.stringify(j.errors||j,null,2)); process.exit(1) }
+            process.stdout.write((j.result||[]).some(p=>p.name===process.argv[2])?'1':'0');
+          " "$POLICIES" "$POLICY_NAME")"
+
+          if [ "$HAS_POLICY" != "1" ]; then
+            CREATE_POL="$(
+              POLICY_NAME="$POLICY_NAME" TOKEN_UUID="$TOKEN_UUID" \
+              node -e "
+                console.log(JSON.stringify({
+                  name: process.env.POLICY_NAME,
+                  decision: 'non_identity',
+                  precedence: 2,
+                  include: [{ service_token: { token_id: process.env.TOKEN_UUID } }],
+                }));
+              " | cf POST "/accounts/${ACCOUNT_ID}/access/apps/${APP_ID}/policies" --data @-
+            )"
+            if ! node -e "const j=JSON.parse(process.argv[1]); if(!j.success) process.exit(1)" "$CREATE_POL"; then
+              CREATE_POL="$(
+                POLICY_NAME="$POLICY_NAME" TOKEN_UUID="$TOKEN_UUID" \
+                node -e "
+                  console.log(JSON.stringify({
+                    name: process.env.POLICY_NAME,
+                    decision: 'non_identity',
+                    precedence: 2,
+                    include: [{ service_token: { token_uuid: process.env.TOKEN_UUID } }],
+                  }));
+                " | cf POST "/accounts/${ACCOUNT_ID}/access/apps/${APP_ID}/policies" --data @-
+              )"
+            fi
+            node -e "const j=JSON.parse(process.argv[1]); if(!j.success){console.error(JSON.stringify(j.errors||j,null,2)); process.exit(1)}" "$CREATE_POL"
+            echo "Service Auth policy created"
+          else
+            echo "Service Auth policy already present"
+          fi
+
+          export GH_TOKEN="$TEMP_GH_TOKEN"
+          printf '%s' "$CLIENT_ID" | gh secret set CF_ACCESS_CLIENT_ID --repo "$GH_REPO" --env cloud-dev
+          printf '%s' "$CLIENT_SECRET" | gh secret set CF_ACCESS_CLIENT_SECRET --repo "$GH_REPO" --env cloud-dev
+          echo "cloud-dev Access smoke secrets set (names only):"
+          gh secret list --repo "$GH_REPO" --env cloud-dev
+          echo "Done. Delete TEMP_GH_TOKEN: gh secret delete TEMP_GH_TOKEN --env cloud-dev"

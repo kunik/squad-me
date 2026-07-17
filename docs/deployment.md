@@ -83,7 +83,7 @@ GitHub Environments:
 
 | Environment | Status |
 |---|---|
-| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID` set; Dev `CLOUDFLARE_API_TOKEN` + Access smoke secrets pending |
+| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN` (`squad-me-ci`) set; Access smoke `CF_ACCESS_CLIENT_*` pending; token must include Zone Workers Routes Edit |
 | `production` | `CLOUDFLARE_ACCOUNT_ID` set; required reviewer `kunik`; Production token **not** set |
 
 Cloud Dev smoke sends `CF-Access-Client-Id` / `CF-Access-Client-Secret` when
