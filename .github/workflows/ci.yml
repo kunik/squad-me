@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint · typecheck · unit · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Parity shape
+        run: npm run parity:check
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit / concurrency (vitest-pool-workers)
+        run: npm test
+
+      - name: Apply local D1 migrations
+        run: npm run migrations:local
+
+      - name: Build (local top-level / inner-loop config)
+        run: npm run build
+
+      - name: Secret scan (basic)
+        run: |
+          if git grep -nE 'CLOUDFLARE_API_TOKEN=|BEGIN (RSA |OPENSSH )?PRIVATE KEY' -- \
+            ':!*.md' ':!.dev.vars.example'; then
+            echo "Potential secret material committed" >&2
+            exit 1
+          fi

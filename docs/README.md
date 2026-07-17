@@ -1,7 +1,10 @@
 # Project Documentation
 
-Use this directory for durable project knowledge. Add focused documents as the
-project evolves and keep this index linked to them.
+Durable project knowledge for the `squad-me` repository. Product specs live in
+the Obsidian knowledge base under `products/match-platform/`.
 
 - `regression.md` — known and fixed regressions
-- `testing.md` — test strategy, commands, locations, and conventions
+- `testing.md` — local vs Cloud Dev test strategy and commands
+- `deployment.md` — build-once artifact, Wrangler envs, Dev/Prod deploy flow
+- `provision.md` — Cloudflare resource bootstrap checklist
+- `inventory-dev.md` — generated Cloud Dev resource inventory (after provision)

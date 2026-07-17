@@ -1,0 +1,6 @@
+# Copy to .dev.vars (gitignored). Local secrets only — never commit real values.
+# Cloud Dev / Production secrets use: wrangler secret put <NAME> --env <env>
+
+SESSION_SIGNING_KEY=local-dev-only-change-me
+IDENTITY_PROVIDER_SECRET=local-test-mode
+NOTIFICATION_SINK_MODE=log

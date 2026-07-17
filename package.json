@@ -1,0 +1,48 @@
+{
+  "name": "squad-me",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:remote-debug": "echo 'Enable remote bindings only in wrangler.jsonc for the binding you need, then re-run npm run dev' && exit 1",
+    "build": "vite build",
+    "build:dev": "CLOUDFLARE_ENV=dev vite build",
+    "build:production": "CLOUDFLARE_ENV=production vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.worker.json && tsc --noEmit -p tsconfig.test.json",
+    "lint": "echo 'lint: add ESLint when frontend modules land'",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "parity:check": "node scripts/parity-check.mjs",
+    "migrations:local": "wrangler d1 migrations apply DB --local --env dev",
+    "seed:local": "tsx scripts/seed-dev.ts --local",
+    "seed:dev": "tsx scripts/seed-dev.ts --env dev",
+    "provision:dev": "bash scripts/provision-dev.sh",
+    "smoke:dev": "tsx scripts/smoke-cloud-dev.ts",
+    "deploy:dev": "npm run build:dev && wrangler deploy",
+    "deploy:production": "npm run build:production && wrangler deploy",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.18.6",
+    "@cloudflare/vite-plugin": "^1.45.1",
+    "@cloudflare/workers-types": "^5.20260717.1",
+    "@playwright/test": "^1.54.1",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.7.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.5",
+    "vitest": "^4.1.0",
+    "wrangler": "^4.112.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

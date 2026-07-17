@@ -1,0 +1,206 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Top-level config is for local inner-loop only (vite dev without CLOUDFLARE_ENV).
+  // Cloud deploys MUST select env.dev or env.production via CLOUDFLARE_ENV at build time.
+  // Do not deploy the top-level Worker name to Cloudflare.
+  "name": "squad-me-local",
+  "compatibility_date": "2026-07-16",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "./src/worker/index.ts",
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "vars": {
+    "ENVIRONMENT": "local",
+    "APP_HOSTNAME": "localhost"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "squad-me-local-db",
+      "migrations_dir": "migrations"
+      // No remote: true — local SQLite simulation by default.
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FILES",
+      "bucket_name": "squad-me-local-files"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "JOBS",
+        "queue": "squad-me-local-jobs"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "squad-me-local-jobs",
+        "max_retries": 3,
+        "dead_letter_queue": "squad-me-local-jobs-dlq"
+      }
+    ]
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MATCHES",
+        "class_name": "MatchDurableObject"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["MatchDurableObject"]
+    }
+  ],
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "env": {
+    "dev": {
+      "name": "squad-me-dev-app",
+      "workers_dev": false,
+      "routes": [
+        {
+          "pattern": "dev.squadme.app",
+          "custom_domain": true
+        }
+      ],
+      "vars": {
+        "ENVIRONMENT": "dev",
+        "APP_HOSTNAME": "dev.squadme.app"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          // Replace after: npm run provision:dev
+          "database_name": "squad-me-dev-db",
+          "database_id": "bab98e7b-8cbc-423a-aa34-4643f22a1f85",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "FILES",
+          "bucket_name": "squad-me-dev-files"
+        }
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "JOBS",
+            "queue": "squad-me-dev-jobs"
+          }
+        ],
+        "consumers": [
+          {
+            "queue": "squad-me-dev-jobs",
+            "max_retries": 3,
+            "dead_letter_queue": "squad-me-dev-jobs-dlq"
+          }
+        ]
+      },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "MATCHES",
+            "class_name": "MatchDurableObject"
+          }
+        ]
+      },
+      "migrations": [
+        {
+          "tag": "v1",
+          "new_sqlite_classes": ["MatchDurableObject"]
+        }
+      ],
+      "triggers": {
+        "crons": ["*/15 * * * *"]
+      },
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 1
+      },
+      "limits": {
+        "cpu_ms": 50
+      }
+    },
+    "production": {
+      "name": "squad-me-production-app",
+      "workers_dev": false,
+      "routes": [
+        {
+          "pattern": "squadme.app",
+          "custom_domain": true
+        }
+      ],
+      "vars": {
+        "ENVIRONMENT": "production",
+        "APP_HOSTNAME": "squadme.app"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "squad-me-production-db",
+          "database_id": "PROVISION_REQUIRED",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "FILES",
+          "bucket_name": "squad-me-production-files"
+        }
+      ],
+      "queues": {
+        "producers": [
+          {
+            "binding": "JOBS",
+            "queue": "squad-me-production-jobs"
+          }
+        ],
+        "consumers": [
+          {
+            "queue": "squad-me-production-jobs",
+            "max_retries": 3,
+            "dead_letter_queue": "squad-me-production-jobs-dlq"
+          }
+        ]
+      },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "MATCHES",
+            "class_name": "MatchDurableObject"
+          }
+        ]
+      },
+      "migrations": [
+        {
+          "tag": "v1",
+          "new_sqlite_classes": ["MatchDurableObject"]
+        }
+      ],
+      "triggers": {
+        "crons": ["*/15 * * * *"]
+      },
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 0.1
+      },
+      "limits": {
+        "cpu_ms": 50
+      }
+    }
+  }
+}
