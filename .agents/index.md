@@ -16,7 +16,7 @@ When a request matches a skill, read its `SKILL.md` before acting.
 | update-project-docs | `.agents/skills/update-project-docs/` | Keep durable project documentation current |
 | update-regression | `.agents/skills/update-regression/` | Record discovered and fixed regressions |
 | update-tests | `.agents/skills/update-tests/` | Align tests with behavior changes |
-| compress / log | `.agents/skills/compress/` | Save compact session context |
+| compress / log | `.agents/skills/compress/` | Save repository and knowledge-base work to separate session logs |
 | resume | `.agents/skills/resume/` | Restore context from session logs |
 | skill-builder | `.agents/skills/skill-builder/` | Create portable Agent Skills |
 
