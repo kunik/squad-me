@@ -19,18 +19,21 @@ be derived reliably from source code, documentation, or git history.
   `npm run provision:access:dev` with an Access-capable API token (Wrangler
   OAuth lacks Access scopes). GitHub Environments `cloud-dev` + `production`
   exist (`production` required reviewer `kunik`); both have
-  `CLOUDFLARE_ACCOUNT_ID`. Still open: Dev `CLOUDFLARE_API_TOKEN` + Access
-  smoke service token (`npm run provision:access:smoke:dev` then
-  `npm run ci:wire-secrets`); separate Production API token.
+  `CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_API_TOKEN`. Dashboard names:
+  Dev `squad-me-ci-dev`, Prod `squad-me-ci-prod` (rename alone does not
+  change the secret string). `cloud-dev` also has `CF_ACCESS_CLIENT_*`.
+- Local Cloudflare API tokens: gitignored `.env.cloudflare` (template
+  `.env.cloudflare.example`). Keys: `CLOUDFLARE_API_TOKEN_DNS`,
+  `CLOUDFLARE_API_TOKEN_ACCESS`, fallback `CLOUDFLARE_API_TOKEN`. Scripts in
+  `infra-setup/` load via `lib/common.sh`. Agents must run npm scripts — never
+  Read/cat `.env.cloudflare`. Keep Access / CI / DNS tokens separate.
 - Production: `npm run provision:production` created `squad-me-production-*`
   (D1 id in `wrangler.jsonc` / `docs/inventory-production.md`). Worker
-  `squad-me-production-app` uploaded; apex `squadme.app` attach fails with
-  API `100117` (leftover A/AAAA/CNAME). Fix: `npm run attach:production:hostname`
-  (token with Zone DNS Edit) or Dashboard DNS delete then redeploy. Production
-  stub is public (no Access). One-time bootstrap scripts live in `infra-setup/`
-  (`provision-*`, `attach-production-hostname`); runtime helpers stay in
-  `scripts/`. Infra rule: document every infra action; prefer those scripts;
-  one-offs must be recorded in `docs/provision.md`.
+  `squad-me-production-app` + apex `squadme.app` attached (health OK). Recover
+  DNS conflicts with `CLOUDFLARE_API_TOKEN_DNS` in `.env.cloudflare` then
+  `npm run attach:production:hostname`. Production stub is public (no Access).
+  One-time bootstrap in `infra-setup/`; runtime helpers in `scripts/`. Infra
+  rule: document every infra action; prefer those scripts.
 - Client landing is a brand coming-soon stub (`src/client/App.tsx` +
   `styles.css`). Logo: `public/logo-full.svg` from KB
   `products/match-platform/design/completed/brand/`. Palette from

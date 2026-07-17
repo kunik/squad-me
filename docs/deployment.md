@@ -84,8 +84,8 @@ GitHub Environments:
 
 | Environment | Status |
 |---|---|
-| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci`), `CF_ACCESS_CLIENT_*` set; Deploy Cloud Dev green (Access smoke) |
-| `production` | `CLOUDFLARE_ACCOUNT_ID` set; required reviewer `kunik`; Production token **not** set |
+| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci-dev`), `CF_ACCESS_CLIENT_*` set; Deploy Cloud Dev green (Access smoke) |
+| `production` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci-prod`) set; required reviewer `kunik` |
 
 Cloud Dev smoke sends `CF-Access-Client-Id` / `CF-Access-Client-Secret` when
 those environment secrets are present (`scripts/smoke-cloud-dev.ts`). Without

@@ -180,13 +180,13 @@ GitHub Environments on `kunik/squad-me` (**created** via `gh`):
 
 | Environment | Secrets | Protection |
 |---|---|---|
-| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci`), `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET` (**all set**; Deploy Cloud Dev green) | none |
-| `production` | `CLOUDFLARE_ACCOUNT_ID` (**set**); `CLOUDFLARE_API_TOKEN` (Production — **not set**; separate token) | **required reviewer:** `kunik` |
+| `cloud-dev` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci-dev`), `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET` (**all set**; Deploy Cloud Dev green) | none |
+| `production` | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (`squad-me-ci-prod`) (**both set**) | **required reviewer:** `kunik` |
 
 Wrangler OAuth **cannot** create Account API tokens or Access resources. Dev
 deploy token lives in Environment `cloud-dev` (not repo-level secrets).
 
-**Dev token `squad-me-ci` — required permissions**
+**Dev token `squad-me-ci-dev` — required permissions**
 
 Account **Taras**:
 
@@ -212,8 +212,9 @@ Or create the service token in Zero Trust UI and only wire GitHub secrets.
 
 User → User Details → Read removes the wrangler “Unable to retrieve email” warning.
 
-[API Tokens](https://dash.cloudflare.com/profile/api-tokens) → edit `squad-me-ci`
-→ add missing scopes → (value unchanged if only permissions change).
+[API Tokens](https://dash.cloudflare.com/profile/api-tokens) → edit `squad-me-ci-dev`
+→ add missing scopes → (value unchanged if only permissions/rename; regenerating
+creates a new secret string that must be re-wired to GitHub).
 
 **Wire Access smoke secrets** (after token has Access scopes):
 
@@ -227,8 +228,9 @@ gh secret delete TEMP_GH_TOKEN --repo kunik/squad-me --env cloud-dev
 Local alternative: `npm run provision:access:smoke:dev` then `npm run ci:wire-secrets`
 with `CF_ACCESS_CLIENT_*` exported.
 
-Do **not** reuse `squad-me-ci` for Production; create a separate Production-scoped
-token when enabling `deploy-production.yml`.
+Do **not** reuse `squad-me-ci-dev` for Production; use separate Production-scoped
+token `squad-me-ci-prod` in Environment `production` (already wired for
+`deploy-production.yml`).
 
 Workflows:
 
@@ -286,7 +288,8 @@ npm run attach:production:hostname
 
 Clears conflicting A/AAAA/CNAME for exact name `squadme.app` (keeps TXT/MX),
 then attaches the Worker custom domain via the Cloudflare API. Loads tokens from
-`.env.cloudflare` automatically.
+`.env.cloudflare` automatically. Dry-run (list planned deletes only):
+`ATTACH_DRY_RUN=1 npm run attach:production:hostname`.
 
 **One-off alternative (documented):** [DNS for squadme.app](https://dash.cloudflare.com/2758c21b02e5c7efcfa745cb49948ace/squadme.app/dns/records)
 → delete A/AAAA/CNAME for exact name `squadme.app` (keep SPF TXT / MX) →
@@ -349,8 +352,10 @@ Dashboard: [Workers & Pages](https://dash.cloudflare.com/2758c21b02e5c7efcfa745c
 | `PROVISION_REQUIRED` in parity `--strict` | Provision did not finish; re-run script |
 | Custom domain pending (Dev) | Confirm zone active + no conflicting CNAME; re-run `npm run deploy:dev` |
 | Apex custom domain `100117` (Production) | Conflicting A/AAAA/CNAME on `squadme.app`. Run `npm run attach:production:hostname` (DNS-capable token) or delete those records in Dashboard DNS, then `npm run deploy:production` |
+| Apex DNS delete `1043` / AAAA `100::` | Cloudflare-managed read-only record (Workers already owns the apex). Attach script skips it and verifies Workers domain + `https://squadme.app/api/health`. Not a failure if the domain is already attached. |
+| Attach script when apex already live | Idempotent: skip 1043, confirm Workers custom domain mapping, HTTPS health. Use `ATTACH_DRY_RUN=1` to list planned deletes without mutating. |
 | CPU limits Free plan `100328` | Omit `limits.cpu_ms` (both envs) or enable Workers Paid |
 | Missing `workers.dev` subdomain `10063` | Open Workers & Pages once, or `PUT /accounts/:id/workers/subdomain` with `{"subdomain":"…"}` |
 | Smoke 302/403 on Dev | Access blocking; browser: allowed email. CI/local automation: `CF_ACCESS_CLIENT_ID` + `CF_ACCESS_CLIENT_SECRET` (`provision-access-smoke.yml` or `npm run provision:access:smoke:dev`) |
-| GHA deploy auth `10000` on `/zones/.../workers/routes` | Edit `squad-me-ci`: Zone `squadme.app` → **Workers Routes → Edit** (Account-level Workers Routes is not enough) |
+| GHA deploy auth `10000` on `/zones/.../workers/routes` | Edit `squad-me-ci-dev`: Zone `squadme.app` → **Workers Routes → Edit** (Account-level Workers Routes is not enough) |
 | Apex returns 522 before attach | Proxied leftover DNS with dead origin; clear conflicts and attach Worker domain |
