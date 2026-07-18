@@ -35,8 +35,10 @@ be derived reliably from source code, documentation, or git history.
   `npm run attach:production:hostname`. Production stub is public (no Access).
   One-time bootstrap in `scripts/infra-setup/`; runtime helpers in `scripts/`.
   Infra rule: document every infra action; prefer those scripts.
-- Client landing is a brand coming-soon stub (`src/client/App.tsx` +
-  `styles.css`). Logo: `public/logo-full.svg` from KB
+- Client unauth home (`/`): atmospheric public surface + header (logo,
+  UA/EN, Увійти) + brand hero + login CTA; `/login` is a placeholder until
+  IdP is chosen (`react-router-dom`). Logo: `public/logo-full.svg` from KB
   `products/match-platform/design/completed/brand/`. Palette from
   `specs/brand-brief.md` / `design/principles.md` (dark neutral + tactical
   orange `#E8823C`). Landing font Inter (same as brand guide; not Barlow).
+  No public match listing — invite-link only.

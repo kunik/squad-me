@@ -307,9 +307,9 @@ during a deploy window: `ATTACH_SKIP_HEALTH=1 npm run attach:production:hostname
 → delete A/AAAA/CNAME for exact name `squadme.app` (keep SPF TXT / MX) →
 `npm run deploy:production`.
 
-Verify: `https://squadme.app` serves the coming-soon stub;
+Verify: `https://squadme.app` serves the unauthenticated home page;
 `https://squadme.app/api/health` → `environment=production`. Production is
-**public** for the stub (no Access). Do not weaken Access on Dev.
+**public** for the landing surface (no Access). Do not weaken Access on Dev.
 
 ### 4. Secrets + GitHub (still open)
 
