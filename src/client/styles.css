@@ -75,20 +75,14 @@ button {
 
 .public-surface__grid {
   position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(
-      color-mix(in oklch, var(--color-text) 6%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      90deg,
-      color-mix(in oklch, var(--color-text) 6%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, black 20%, transparent 75%);
-  animation: grid-drift 28s linear infinite;
+  inset: -8%;
+  /* Flat-top honeycomb; avoid rgba() in the data URI — `)` breaks CSS url() parsing */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='41.569' viewBox='0 0 72 41.569'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.1' stroke-width='0.35' stroke-linejoin='miter'%3E%3Cpolygon points='48,20.785 36,41.569 12,41.569 0,20.785 12,0 36,0'/%3E%3Cpolygon points='84,41.569 72,62.354 48,62.354 36,41.569 48,20.785 72,20.785'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 288px 166.275px;
+  background-position: center;
+  mask-image: radial-gradient(ellipse 65% 55% at 50% 45%, #000 20%, transparent 75%);
+  transform-origin: center;
+  animation: hex-breathe 48s ease-in-out infinite;
   pointer-events: none;
 }
 
@@ -317,12 +311,13 @@ button {
   }
 }
 
-@keyframes grid-drift {
-  from {
-    background-position: 0 0, 0 0;
+@keyframes hex-breathe {
+  0%,
+  100% {
+    transform: scale(0.975);
   }
-  to {
-    background-position: 48px 48px, 48px 48px;
+  50% {
+    transform: scale(1.025);
   }
 }
 

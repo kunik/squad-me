@@ -41,4 +41,7 @@ be derived reliably from source code, documentation, or git history.
   `products/match-platform/design/completed/brand/`. Palette from
   `specs/brand-brief.md` / `design/principles.md` (dark neutral + tactical
   orange `#E8823C`). Landing font Inter (same as brand guide; not Barlow).
-  No public match listing — invite-link only.
+  Atmosphere layer: flat-top honeycomb SVG (not square grid), large cells
+  (`background-size` ~288×166), hairline strokes, slow `hex-breathe` scale
+  ±2.5% over 48s; see KB `design/principles.md` § atmosphere. No public
+  match listing — invite-link only.
