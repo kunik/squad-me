@@ -32,6 +32,9 @@ export const messages = {
     loginRegisterPrompt: "Немає акаунту?",
     loginRegisterLink: "Зареєструватися",
 
+    loginNoticePhoneChanged: "Номер телефону змінено. Увійдіть за новим номером",
+    loginNoticePasswordChanged: "Пароль змінено. Увійдіть з новим паролем",
+
     // Register wizard
     registerTitle: "Реєстрація",
     registerIntro: "Вкажіть номер телефону для реєстрації",
@@ -177,6 +180,7 @@ export const messages = {
     profileLinkedIRegister: "Я реєструю",
     profileLinkedRegisterMe: "Мене реєструють",
     profileChangePassword: "Змінити пароль",
+    profileChangePhone: "Змінити номер телефону",
     profileDelete: "Видалити профіль",
     profileDeleting: "Видаляємо…",
     profileDeleteTitle: "Видалити акаунт і профіль?",
@@ -222,10 +226,19 @@ export const messages = {
     forgotSendCode: "Надіслати код",
     forgotSubmit: "Змінити пароль",
     forgotSubmitting: "Оновлюємо…",
-    forgotSuccessTitle: "Пароль оновлено",
-    forgotSuccessBody: "Тепер увійдіть з новим паролем.",
-    forgotBackToLogin: "До входу",
     forgotResetWarning: "Новий пароль замінить попередній, а інші активні сесії буде завершено.",
+
+    // Change phone wizard (authenticated)
+    changePhoneTitle: "Змінити номер телефону",
+    changePhoneConfirmHint:
+      "Підтвердіть поточний номер і пароль. Якщо втратили телефон — зробіть це, поки ще залогінені на іншому пристрої.",
+    changePhoneNewHint: "Вкажіть новий номер — надішлемо код підтвердження",
+    changePhoneCurrentMaskedPrefix: "Поточний номер:",
+    changePhoneCurrentLabel: "Поточний номер телефону",
+    changePhoneNewTitle: "Новий номер",
+    changePhoneNewLabel: "Новий номер телефону",
+    changePhoneSubmitting: "Оновлюємо номер…",
+    changePhoneBackToProfile: "До профілю",
 
     // Shared OTP step
     otpStepTitle: "Підтвердження номера",
@@ -238,9 +251,9 @@ export const messages = {
     otpResendWaitSuffix: "с",
 
     // Auth error mapping (server error codes → UA text)
-    authErrorInvalidPhone: "Невірний номер телефону",
+    authErrorInvalidPhone: "Неправильний номер телефону",
     authErrorInvalidRequest: "Некоректний запит",
-    authErrorInvalidCode: "Невірний код",
+    authErrorInvalidCode: "Неправильний код",
     authErrorLocked: "Забагато спроб. Запросіть новий код.",
     authErrorExpired: "Код застарів. Запросіть новий.",
     authErrorNoChallenge: "Немає активного запиту коду. Запросіть новий.",
@@ -249,7 +262,7 @@ export const messages = {
     authErrorInvalidProof: "Підтвердження застаріло. Почніть знову.",
     authErrorPhoneRegistered:
       "Цей номер уже зареєстровано. Увійдіть або відновіть пароль.",
-    authErrorInvalidCredentials: "Невірний номер телефону або пароль",
+    authErrorInvalidCredentials: "Неправильний номер телефону або пароль",
     authErrorTurnstileFailed:
       "Перевірку не пройдено. Оновіть сторінку і спробуйте ще раз.",
     authErrorTurnstileMisconfigured:
@@ -262,7 +275,7 @@ export const messages = {
     profileErrorNameUa: "Ім’я та прізвище — лише українські літери, пробіл або дефіс",
     profileErrorNameEn: "Ім’я та прізвище англійською — лише латинські літери, пробіл або дефіс",
     profileErrorDivisionRequired: "Оберіть дивізіон для кожної увімкненої дисципліни",
-    authErrorInvalidEmail: "Невірна електронна пошта",
+    authErrorInvalidEmail: "Неправильна електронна пошта",
     authErrorEmailAlreadyUsed: "Ця електронна пошта вже використовується",
     authErrorUnauthenticated: "Увійдіть, щоб продовжити",
     authErrorOriginNotAllowed: "Запит відхилено з міркувань безпеки",
@@ -306,6 +319,9 @@ export const messages = {
     loginForgotLink: "Forgot password?",
     loginRegisterPrompt: "Don't have an account?",
     loginRegisterLink: "Register",
+
+    loginNoticePhoneChanged: "Phone number changed. Sign in with your new number.",
+    loginNoticePasswordChanged: "Password changed. Sign in with your new password.",
 
     registerTitle: "Register",
     registerIntro: "Enter your phone number to register",
@@ -450,6 +466,7 @@ export const messages = {
     profileLinkedIRegister: "I register",
     profileLinkedRegisterMe: "Others register me",
     profileChangePassword: "Change password",
+    profileChangePhone: "Change phone number",
     profileDelete: "Delete profile",
     profileDeleting: "Deleting…",
     profileDeleteTitle: "Delete your account and profile?",
@@ -493,11 +510,19 @@ export const messages = {
     forgotSendCode: "Send code",
     forgotSubmit: "Change password",
     forgotSubmitting: "Updating…",
-    forgotSuccessTitle: "Password updated",
-    forgotSuccessBody: "Now log in with your new password.",
-    forgotBackToLogin: "Back to log in",
     forgotResetWarning:
       "The new password will replace the old one and sign out other active sessions.",
+
+    changePhoneTitle: "Change phone number",
+    changePhoneConfirmHint:
+      "Confirm your current number and password. If you lost your phone, do this while still signed in on another device.",
+    changePhoneNewHint: "Enter the new number — we'll send a verification code",
+    changePhoneCurrentMaskedPrefix: "Current number:",
+    changePhoneCurrentLabel: "Current phone number",
+    changePhoneNewTitle: "New number",
+    changePhoneNewLabel: "New phone number",
+    changePhoneSubmitting: "Updating number…",
+    changePhoneBackToProfile: "Back to profile",
 
     otpStepTitle: "Verify your number",
     otpLabel: "Verification code",

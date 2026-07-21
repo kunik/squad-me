@@ -4,18 +4,19 @@ import type { Env } from "../env";
  * Test-only schema bootstrap. `@cloudflare/vitest-pool-workers` does not
  * auto-apply `migrations/*.sql` (see `npm run migrations:local`, a separate
  * CI step) — mirrors the cumulative shape of `migrations/0002_identity.sql`
- * through `migrations/0010_disciplines_prompt_dismissal.sql` (i.e. `profiles`
+ * through `migrations/0011_reauth_proofs.sql` (i.e. `profiles`
  * already has `club` + nullable `first_name_ua`/`last_name_ua`/`gender`/
  * `birth_date` + `profile_completed_at`, and `accounts` already has
  * `profile_prompt_dismissed_at` + `disciplines_prompt_dismissed_at` +
- * `email_prompt_dismissed_at`, and Account /
- * Profile tombstone columns are present — this helper
+ * `email_prompt_dismissed_at`, Account / Profile tombstone columns, and
+ * `reauth_proofs` — this helper
  * builds the *current* schema directly rather than replaying each
- * migration's history).
+ * migration's history). Mirrors through `migrations/0011_reauth_proofs.sql`.
  *
  * Keep in sync with migrations, especially:
  * - `profiles.account_id` is nullable (`ON DELETE SET NULL`) after 0009
  * - `phone_proofs.account_id` is nullable (set on change_phone consume)
+ * - `reauth_proofs` from 0011 (step-up proofs for phone/change)
  *
  * `assertIdentitySchemaAligned` below is a light guard against column drift.
  */
@@ -77,6 +78,17 @@ const STATEMENTS = [
     consumed_at TEXT
   )`,
   `CREATE INDEX IF NOT EXISTS idx_phone_proofs_expires ON phone_proofs (expires_at)`,
+  `CREATE TABLE IF NOT EXISTS reauth_proofs (
+    id TEXT PRIMARY KEY NOT NULL,
+    account_id TEXT NOT NULL REFERENCES accounts(id),
+    purpose TEXT NOT NULL,
+    proof_hash TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    expires_at TEXT NOT NULL,
+    consumed_at TEXT
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_reauth_proofs_expires ON reauth_proofs (expires_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_reauth_proofs_account ON reauth_proofs (account_id)`,
   `CREATE TABLE IF NOT EXISTS auth_rate_limits (
     scope TEXT NOT NULL,
     subject TEXT NOT NULL,
@@ -153,6 +165,7 @@ const RESET_STATEMENTS = [
   "DELETE FROM account_telegram_links",
   "DELETE FROM auth_rate_limits",
   "DELETE FROM phone_proofs",
+  "DELETE FROM reauth_proofs",
   "DELETE FROM auth_challenges",
   "DELETE FROM sessions",
   "DELETE FROM profiles",

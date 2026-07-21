@@ -128,3 +128,44 @@ Record each distinct bug with reproducible behavior and its test coverage.
 
 **Expected:** Edit opens the profile section editor. Hint Skip / logo / avatar menu remain usable.
 **Actual:** Fixed `.app-top-chrome` kept default `pointer-events` on its full pin box, so empty gutters beside the centered hint (and the hint slot itself) intercepted clicks meant for the Edit button underneath.
+
+## AUTH-003 · Profile black screen after phone change (`useBlocker` crash)
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/hooks/useUnsavedDiscard.ts`, `src/client/hooks/useNavigationBlocker.ts`, `src/client/main.tsx` (`BrowserRouter`)
+**Coverage:** `src/client/hooks/useNavigationBlocker.test.ts` — navigator patch defers push/replace/go and allows one proceed retry. Manual: complete `/change-phone` → redirected to `/login` with phone-changed hint (no console `useBlocker must be used within a data router`).
+
+### Steps to reproduce
+1. Sign in locally and open `/change-phone`.
+2. Complete the flow until the phone is updated.
+3. Confirm redirect to `/login` with the success hint (not a dedicated done step or `/profile`).
+
+**Expected:** Login page with the phone-changed hint; no `useBlocker` crash when navigating onward.
+**Actual (before fix):** `ProfilePage` called `useBlocker` from `useUnsavedDiscard`, which requires a data router; `main.tsx` intentionally keeps `BrowserRouter` to avoid AUTH-002 Navigate loops. React threw on mount → blank/black screen.
+
+## AUTH-004 · Phone-change success lost login notice
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/pages/ChangePhonePage.tsx`, `src/client/App.tsx` (`RequireAuth`), `src/client/lib/authNotice.ts`
+**Coverage:** `src/client/lib/authNotice.test.ts` — notice-over-`next=` redirect preference and one-shot consume
+
+### Steps to reproduce
+1. Sign in locally and complete `/change-phone` until the new number is saved.
+2. Observe the post-success redirect while still on `/change-phone` before any explicit login navigation.
+
+**Expected:** `/login?notice=phone_changed` with the phone-changed hint banner.
+**Actual:** `setAccount(null)` while still on `/change-phone` made `RequireAuth` redirect to `/login?next=%2Fchange-phone` first, so the intended notice URL never ran and the hint did not appear.
+
+## AUTH-005 · Notifications Save left email onboarding open
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/pages/ProfilePage.tsx` (`handleNotificationsSaved`), `src/client/components/NotificationChannelsForm.tsx`, `computeOnboardingStep`
+**Coverage:** `src/worker/identity/routes.test.ts` — `AUTH-005` password reset preserves `email_prompt_dismissed_at` / `accounts.email` and `onboardingStep: null` after re-login. Manual: on `/profile` with `onboardingStep === "email"`, press Save without entering email (SMS default) → banner clears; after forgot-password → login, email hint does not return.
+
+### Steps to reproduce
+1. Sign in and advance onboarding to the email/notifications step (`onboardingStep === "email"`).
+2. On «Сповіщення», leave SMS as the default channel, do not enter an email, and press Save (not Skip).
+3. Sign out or complete forgot-password, then sign in again.
+
+**Expected:** Save completes the email onboarding step (same as Skip or saving an email). `onboardingStep` is `null` before and after password reset; `POST /api/auth/password/reset` does not clear `email_prompt_dismissed_at` or `accounts.email`.
+**Actual:** Save exited edit mode but never called `dismissEmailPrompt` when no email was persisted, so `email_prompt_dismissed_at` stayed `NULL` and `accounts.email` stayed `NULL`. Password reset was unrelated (it only updates password hash / sessions); re-login still showed the email onboarding hint because the step had never been marked done.

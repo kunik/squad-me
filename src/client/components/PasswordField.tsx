@@ -4,6 +4,7 @@ import { FieldLabel, type FieldHintContent } from "./FieldHint";
 
 type PasswordFieldProps = {
   id?: string;
+  name?: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
@@ -17,6 +18,7 @@ type PasswordFieldProps = {
 
 export function PasswordField({
   id,
+  name = "password",
   label,
   value,
   onChange,
@@ -37,6 +39,7 @@ export function PasswordField({
       <span className="auth-form__password">
         <input
           id={inputId}
+          name={name}
           className="auth-form__input auth-form__input--password"
           type={visible ? "text" : "password"}
           autoComplete={autoComplete}

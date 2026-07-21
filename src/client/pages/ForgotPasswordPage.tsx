@@ -7,17 +7,19 @@ import { HintPanel } from "../components/HintPanel";
 import { FieldLabel } from "../components/FieldHint";
 import { TurnstileWidget } from "../components/TurnstileWidget";
 import { useLocale } from "../locale";
-import { passwordReset } from "../lib/authApi";
+import { useAuth } from "../auth";
+import { logout, passwordReset } from "../lib/authApi";
+import { loginPathWithNotice } from "../lib/authNotice";
 import { translateAuthError } from "../lib/authErrors";
 import { clearOtpProof, saveOtpProof } from "../lib/otpProofStorage";
 import { useProofWizard } from "../hooks/useProofWizard";
 
 export function ForgotPasswordPage() {
   const { t } = useLocale();
+  const { setAccount } = useAuth();
   const navigate = useNavigate();
   const wizard = useProofWizard({ purpose: "password_reset", t });
   const [newPassword, setNewPassword] = useState("");
-  const [done, setDone] = useState(false);
 
   async function handlePasswordSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -37,7 +39,9 @@ export function ForgotPasswordPage() {
         return;
       }
       wizard.clearProof();
-      setDone(true);
+      await logout().catch(() => undefined);
+      setAccount(null);
+      navigate(loginPathWithNotice("password_changed"), { replace: true });
     } finally {
       wizard.setSubmitting(false);
     }
@@ -47,33 +51,21 @@ export function ForgotPasswordPage() {
     <>
       <PublicChrome
         hint={
-          !done ? (
-            <HintPanel
-              progress={`${t.flowStep} ${
-                wizard.step === "phone" ? 1 : wizard.step === "otp" ? 2 : 3
-              } ${t.flowStepOf} 3`}
-            >
-              {wizard.step === "phone"
-                ? t.forgotIntro
-                : wizard.step === "otp"
-                  ? t.otpSentNotice
-                  : t.forgotResetWarning}
-            </HintPanel>
-          ) : undefined
+          <HintPanel
+            progress={`${t.flowStep} ${
+              wizard.step === "phone" ? 1 : wizard.step === "otp" ? 2 : 3
+            } ${t.flowStepOf} 3`}
+          >
+            {wizard.step === "phone"
+              ? t.forgotIntro
+              : wizard.step === "otp"
+                ? t.otpSentNotice
+                : t.forgotResetWarning}
+          </HintPanel>
         }
       />
       <main className="auth-page">
-        {done ? (
-          <>
-            <h1 className="auth-page__title">{t.forgotSuccessTitle}</h1>
-            <p className="auth-page__hint">{t.forgotSuccessBody}</p>
-            <Link to="/login" className="btn btn--primary auth-form__submit">
-              {t.forgotBackToLogin}
-            </Link>
-          </>
-        ) : (
-          <>
-            {wizard.step === "phone" && (
+        {wizard.step === "phone" && (
               <>
                 <h1 className="auth-page__title">{t.forgotTitle}</h1>
                 <form className="auth-form" onSubmit={wizard.handlePhoneSubmit}>
@@ -178,8 +170,6 @@ export function ForgotPasswordPage() {
                 </button>
               </>
             )}
-          </>
-        )}
 
         <Link to="/" className="btn btn--ghost auth-page__back">
           {t.backHome}

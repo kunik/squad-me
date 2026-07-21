@@ -4,11 +4,13 @@ import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
+import { ChangePhonePage } from "./pages/ChangePhonePage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { PublicAtmosphere } from "./components/PublicAtmosphere";
 import { useAuth } from "./auth";
 import { useLocale } from "./locale";
 import { safeNextPath } from "./lib/authApi";
+import { buildRequireAuthLoginRedirect } from "./lib/authNotice";
 
 /**
  * Pages reachable while signed in with onboarding still pending: public
@@ -20,6 +22,7 @@ const ONBOARDING_GUARD_EXEMPT_PATHS = new Set([
   "/login",
   "/register",
   "/forgot-password",
+  "/change-phone",
   "/profile",
   "/onboarding",
   "/complete-profile",
@@ -73,9 +76,12 @@ function RequireAuth({ children }: { children: ReactNode }) {
     return null;
   }
   if (!account) {
-    const next = `${location.pathname}${location.search}`;
-    const qs = next && next !== "/" ? `?next=${encodeURIComponent(next)}` : "";
-    return <Navigate to={`/login${qs}`} replace />;
+    return (
+      <Navigate
+        to={buildRequireAuthLoginRedirect(location.pathname, location.search)}
+        replace
+      />
+    );
   }
   return <>{children}</>;
 }
@@ -115,10 +121,14 @@ export function App() {
           />
           <Route
             path="/forgot-password"
+            element={<ForgotPasswordPage />}
+          />
+          <Route
+            path="/change-phone"
             element={
-              <RequireGuest>
-                <ForgotPasswordPage />
-              </RequireGuest>
+              <RequireAuth>
+                <ChangePhonePage />
+              </RequireAuth>
             }
           />
           <Route

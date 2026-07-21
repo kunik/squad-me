@@ -1,21 +1,44 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { PublicChrome } from "../components/PublicChrome";
+import { HintPanel } from "../components/HintPanel";
 import { PasswordField } from "../components/PasswordField";
 import { useAuth } from "../auth";
 import { useLocale } from "../locale";
 import { login, safeNextPath } from "../lib/authApi";
+import {
+  AUTH_LOGIN_NOTICE_PARAM,
+  parseAuthLoginNotice,
+  type AuthLoginNotice,
+} from "../lib/authNotice";
+import { PROFILE_PATH } from "../lib/profileMenu";
 import { translateAuthError } from "../lib/authErrors";
+
+function loginNoticeMessage(notice: AuthLoginNotice, t: ReturnType<typeof useLocale>["t"]): string {
+  return notice === "phone_changed" ? t.loginNoticePhoneChanged : t.loginNoticePasswordChanged;
+}
 
 export function LoginPage() {
   const { t } = useLocale();
   const { refresh } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [loginNotice, setLoginNotice] = useState<AuthLoginNotice | null>(null);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const parsed = parseAuthLoginNotice(searchParams.get(AUTH_LOGIN_NOTICE_PARAM));
+    if (!parsed) {
+      return;
+    }
+    setLoginNotice(parsed);
+    const next = new URLSearchParams(searchParams);
+    next.delete(AUTH_LOGIN_NOTICE_PARAM);
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -29,7 +52,7 @@ export function LoginPage() {
       }
       const onboardingStep = await refresh();
       if (onboardingStep) {
-        navigate("/profile", { replace: true });
+        navigate(PROFILE_PATH, { replace: true });
         return;
       }
       navigate(safeNextPath(searchParams.get("next")), { replace: true });
@@ -42,7 +65,13 @@ export function LoginPage() {
 
   return (
     <>
-      <PublicChrome />
+      <PublicChrome
+        hint={
+          loginNotice ? (
+            <HintPanel>{loginNoticeMessage(loginNotice, t)}</HintPanel>
+          ) : undefined
+        }
+      />
       <main className="auth-page">
         <h1 className="auth-page__title">{t.loginTitle}</h1>
         <form className="auth-form" onSubmit={handleSubmit}>

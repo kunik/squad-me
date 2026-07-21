@@ -285,9 +285,28 @@ export function ProfilePage() {
     setNotificationsDirty(false);
     setEditingNotifications(false);
     setEmailError(null);
-    if (needsEmailStep) {
-      await refresh();
+    if (!needsEmailStep) {
+      return;
     }
+    // SMS-only Save (no accounts.email) must stamp dismissal like Skip —
+    // otherwise onboardingStep stays "email" across logout/password reset.
+    if (!account.email?.trim()) {
+      setBannerError(null);
+      setSkipping(true);
+      try {
+        const result = await dismissEmailPrompt();
+        if (!result.ok) {
+          setBannerError(translateAuthError(result.error, t));
+          return;
+        }
+      } catch {
+        setBannerError(t.authErrorNetwork);
+        return;
+      } finally {
+        setSkipping(false);
+      }
+    }
+    await reloadAfterStep();
   }
 
   function requestCancelNotifications() {
@@ -634,6 +653,9 @@ export function ProfilePage() {
                 <h2 id="profile-actions-heading" className="profile-page__section-title">
                   {t.profileMenuActions}
                 </h2>
+                <Link className="btn btn--ghost" to="/change-phone">
+                  {t.profileChangePhone}
+                </Link>
                 <Link className="btn btn--ghost" to="/forgot-password">
                   {t.profileChangePassword}
                 </Link>

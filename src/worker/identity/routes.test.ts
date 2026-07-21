@@ -308,6 +308,61 @@ describe("identity routes", () => {
     expect(loginWithNew.status).toBe(200);
   });
 
+  it("AUTH-005: password reset preserves completed email onboarding (dismiss stamps and email)", async () => {
+    const phone = "+380671230022";
+    const proof = await getProof(phone, "register");
+    const registerRes = await call("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ proofToken: proof, password: "onboard-preserve-1", nickname: "Shooter" }),
+    });
+    const cookie = extractCookie(registerRes.headers);
+
+    await call("/api/auth/account/profile-prompt/dismiss", { method: "POST", cookie });
+    await call("/api/auth/account/disciplines-prompt/dismiss", { method: "POST", cookie });
+    const emailDismissed = await call("/api/auth/account/email-prompt/dismiss", {
+      method: "POST",
+      cookie,
+    });
+    expect(emailDismissed.status).toBe(200);
+
+    const meBeforeReset = await call("/api/auth/me", { cookie });
+    expect(meBeforeReset.body).toMatchObject({ onboardingStep: null });
+
+    const accountBefore = await testAppEnv.DB.prepare(
+      `SELECT email, email_prompt_dismissed_at FROM accounts WHERE phone_e164 = ?`,
+    )
+      .bind(phone)
+      .first<{ email: string | null; email_prompt_dismissed_at: string | null }>();
+    expect(accountBefore?.email_prompt_dismissed_at).toBeTruthy();
+
+    const resetProof = await getProofDetails(phone, "password_reset");
+    const resetRes = await call("/api/auth/password/reset", {
+      method: "POST",
+      body: JSON.stringify({
+        proofToken: resetProof.proofToken,
+        newPassword: "onboard-preserve-2",
+      }),
+    });
+    expect(resetRes.status).toBe(200);
+
+    const accountAfterReset = await testAppEnv.DB.prepare(
+      `SELECT email, email_prompt_dismissed_at FROM accounts WHERE phone_e164 = ?`,
+    )
+      .bind(phone)
+      .first<{ email: string | null; email_prompt_dismissed_at: string | null }>();
+    expect(accountAfterReset).toEqual(accountBefore);
+
+    const loginRes = await call("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ phone, password: "onboard-preserve-2" }),
+    });
+    expect(loginRes.status).toBe(200);
+    const loginCookie = extractCookie(loginRes.headers);
+
+    const meAfterLogin = await call("/api/auth/me", { cookie: loginCookie });
+    expect(meAfterLogin.body).toMatchObject({ onboardingStep: null });
+  });
+
   it("password_reset OTP for an unknown phone remints a register proof (soft handoff)", async () => {
     const phone = "+380671230014";
     const details = await getProofDetails(phone, "password_reset");
@@ -340,19 +395,20 @@ describe("identity routes", () => {
     });
   });
 
-  it("phone change requires auth, updates the phone, and revokes other sessions", async () => {
+  it("phone change requires auth, reauth proof + OTP proof, updates phone, and revokes other sessions", async () => {
     const phone = "+380671230005";
     const newPhone = "+380671230006";
+    const password = "device-password-1";
     const registerProof = await getProof(phone, "register");
     const registerRes = await call("/api/auth/register", {
       method: "POST",
-      body: JSON.stringify({ proofToken: registerProof, password: "device-password-1" , nickname: "Shooter"}),
+      body: JSON.stringify({ proofToken: registerProof, password, nickname: "Shooter"}),
     });
     const sessionA = extractCookie(registerRes.headers);
 
     const loginRes = await call("/api/auth/login", {
       method: "POST",
-      body: JSON.stringify({ phone, password: "device-password-1" }),
+      body: JSON.stringify({ phone, password }),
     });
     const sessionB = extractCookie(loginRes.headers);
 
@@ -362,14 +418,75 @@ describe("identity routes", () => {
     });
     expect(unauthStart.status).toBe(401);
 
+    const unauthReauth = await call("/api/auth/reauth", {
+      method: "POST",
+      body: JSON.stringify({ phone, password, purpose: "change_phone" }),
+    });
+    expect(unauthReauth.status).toBe(401);
+
+    const reauthWrong = await call("/api/auth/reauth", {
+      method: "POST",
+      body: JSON.stringify({ phone, password: "nope-wrong-password", purpose: "change_phone" }),
+      cookie: sessionA,
+    });
+    expect(reauthWrong.status).toBe(401);
+    expect(reauthWrong.body).toMatchObject({ error: "invalid_credentials" });
+
+    const reauthOk = await call("/api/auth/reauth", {
+      method: "POST",
+      body: JSON.stringify({ phone, password, purpose: "change_phone" }),
+      cookie: sessionA,
+    });
+    expect(reauthOk.status).toBe(200);
+    const reauthProofToken = (reauthOk.body as { reauthProofToken: string }).reauthProofToken;
+    expect(typeof reauthProofToken).toBe("string");
+
     const proof = await getProof(newPhone, "change_phone", sessionA);
-    const changeRes = await call("/api/auth/phone/change", {
+
+    const missingReauth = await call("/api/auth/phone/change", {
       method: "POST",
       body: JSON.stringify({ proofToken: proof }),
       cookie: sessionA,
     });
+    expect(missingReauth.status).toBe(400);
+    expect(missingReauth.body).toMatchObject({ error: "invalid_request" });
+
+    const badReauth = await call("/api/auth/phone/change", {
+      method: "POST",
+      body: JSON.stringify({
+        proofToken: proof,
+        reauthProofToken: "not-a-real-reauth-proof",
+      }),
+      cookie: sessionA,
+    });
+    expect(badReauth.status).toBe(400);
+    expect(badReauth.body).toMatchObject({ error: "invalid_or_expired_proof" });
+
+    // Fresh reauth — previous bad attempt must not have consumed the good token... 
+    // but bad token was different; good token still unused. Use it.
+    const changeRes = await call("/api/auth/phone/change", {
+      method: "POST",
+      body: JSON.stringify({
+        proofToken: proof,
+        reauthProofToken,
+      }),
+      cookie: sessionA,
+    });
     expect(changeRes.status).toBe(200);
     expect(changeRes.body).toMatchObject({ phoneE164: newPhone });
+
+    // Reauth proof is single-use.
+    const proof2 = await getProof("+380671230007", "change_phone", sessionA);
+    const reusedReauth = await call("/api/auth/phone/change", {
+      method: "POST",
+      body: JSON.stringify({
+        proofToken: proof2,
+        reauthProofToken,
+      }),
+      cookie: sessionA,
+    });
+    expect(reusedReauth.status).toBe(400);
+    expect(reusedReauth.body).toMatchObject({ error: "invalid_or_expired_proof" });
 
     const sessionAStillValid = await loadAuthContext(
       testAppEnv,
@@ -1310,6 +1427,7 @@ describe("identity routes", () => {
       "account_telegram_links",
       "push_subscriptions",
       "phone_proofs",
+      "reauth_proofs",
       "auth_challenges",
     ]) {
       const row = await testAppEnv.DB.prepare(`SELECT COUNT(*) AS n FROM ${table}`).first<{

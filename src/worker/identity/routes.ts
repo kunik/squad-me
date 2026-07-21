@@ -27,6 +27,11 @@ import {
   type OtpPurpose,
 } from "./otp";
 import {
+  consumeReauthProof,
+  isReauthPurpose,
+  issueReauthProof,
+} from "./reauth";
+import {
   checkLoginLockout,
   clearLoginFailures,
   recordLoginFailure,
@@ -484,12 +489,30 @@ async function handlePhoneChange(request: Request, env: Env): Promise<Response> 
   const gated = await requireAuth(request, env);
   if (!gated.ok) return gated.response;
 
-  const body = await readJsonBody<{ proofToken?: string }>(request);
-  if (!body || typeof body.proofToken !== "string") {
+  const body = await readJsonBody<{
+    proofToken?: string;
+    reauthProofToken?: string;
+  }>(request);
+  if (
+    !body ||
+    typeof body.proofToken !== "string" ||
+    typeof body.reauthProofToken !== "string"
+  ) {
     return errorResponse("invalid_request", 400);
   }
 
-  // Set phone_proofs.account_id on consume when the authenticated account is known.
+  // Step-up proof from /reauth must be consumed before the new-phone OTP proof
+  // so a bad reauth does not burn a paid OTP verification.
+  const reauthOk = await consumeReauthProof(
+    env,
+    body.reauthProofToken,
+    "change_phone",
+    gated.auth.account.id,
+  );
+  if (!reauthOk) {
+    return errorResponse("invalid_or_expired_proof", 400);
+  }
+
   const proof = await consumePhoneProof(env, body.proofToken, "change_phone", {
     accountId: gated.auth.account.id,
   });
@@ -514,6 +537,69 @@ async function handlePhoneChange(request: Request, env: Env): Promise<Response> 
   await revokeAllOtherSessions(env, gated.auth.account.id, gated.auth.session.id);
 
   return json({ ok: true, phoneE164: proof.phoneE164 });
+}
+
+/**
+ * Authenticated step-up: phone+password vs session account → short-lived
+ * single-use reauth proof (no new session). Purpose scopes the proof to a
+ * later action (currently only change_phone).
+ */
+async function handleReauth(request: Request, env: Env): Promise<Response> {
+  const gated = await requireAuth(request, env);
+  if (!gated.ok) return gated.response;
+
+  const body = await readJsonBody<{
+    phone?: string;
+    password?: string;
+    purpose?: string;
+  }>(request);
+  if (
+    !body ||
+    typeof body.phone !== "string" ||
+    typeof body.password !== "string" ||
+    !isReauthPurpose(body.purpose)
+  ) {
+    return errorResponse("invalid_request", 400);
+  }
+
+  const identity = await verifyCurrentPhoneAndPassword(
+    gated.auth.account,
+    body.phone,
+    body.password,
+  );
+  if (!identity.ok) {
+    return errorResponse(identity.error, identity.status);
+  }
+
+  const issued = await issueReauthProof(env, gated.auth.account.id, body.purpose);
+  return json({
+    ok: true,
+    reauthProofToken: issued.reauthProofToken,
+    expiresAt: issued.expiresAt,
+  });
+}
+
+/** Shared step-up check for reauth (login-equivalent verify, no new session). */
+async function verifyCurrentPhoneAndPassword(
+  account: AccountRow,
+  rawPhone: string,
+  password: string,
+): Promise<{ ok: true } | { ok: false; error: string; status: number }> {
+  let phoneE164: string;
+  try {
+    phoneE164 = normalizePhoneToE164(rawPhone);
+  } catch {
+    return { ok: false, error: "invalid_credentials", status: 401 };
+  }
+  if (phoneE164 !== account.phone_e164) {
+    await verifyPassword(password, await getDummyHash());
+    return { ok: false, error: "invalid_credentials", status: 401 };
+  }
+  const passwordOk = await verifyPassword(password, account.password_hash);
+  if (!passwordOk) {
+    return { ok: false, error: "invalid_credentials", status: 401 };
+  }
+  return { ok: true };
 }
 
 async function handleProfileGet(request: Request, env: Env): Promise<Response> {
@@ -633,6 +719,7 @@ async function handleAccountDelete(request: Request, env: Env): Promise<Response
     env.DB.prepare(
       `DELETE FROM phone_proofs WHERE account_id = ? OR phone_e164 = ?`,
     ).bind(accountId, phone),
+    env.DB.prepare(`DELETE FROM reauth_proofs WHERE account_id = ?`).bind(accountId),
     env.DB.prepare(`DELETE FROM auth_challenges WHERE phone_e164 = ?`).bind(
       deletedChallengePhone,
     ),
@@ -680,6 +767,7 @@ const ROUTES: Record<string, Record<string, RouteHandler>> = {
   "/api/auth/phone/otp/verify": { POST: handleOtpVerify },
   "/api/auth/register": { POST: handleRegister },
   "/api/auth/login": { POST: handleLogin },
+  "/api/auth/reauth": { POST: handleReauth },
   "/api/auth/logout": { POST: handleLogout },
   "/api/auth/me": { GET: handleMe },
   "/api/auth/password/reset": { POST: handlePasswordReset },

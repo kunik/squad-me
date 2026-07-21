@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useBlocker } from "react-router-dom";
+import { useNavigationBlocker } from "./useNavigationBlocker";
 
 export type ProfileNavSection = "profile" | "matches" | "linked";
 
@@ -33,7 +33,7 @@ export function useUnsavedDiscard(handlers: UnsavedDiscardHandlers) {
   const [notificationsDirty, setNotificationsDirty] = useState(false);
 
   const dirty = profileDirty || divisionsDirty || notificationsDirty;
-  const blocker = useBlocker(dirty);
+  const blocker = useNavigationBlocker(dirty);
 
   useEffect(() => {
     if (blocker.state === "blocked") {

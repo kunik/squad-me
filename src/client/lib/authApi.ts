@@ -153,6 +153,15 @@ export function login(
   return postJson("/api/auth/login", { phone, password });
 }
 
+/** Authenticated step-up: phone + password → short-lived reauth proof (no new session). */
+export function reauth(
+  phone: string,
+  password: string,
+  purpose: "change_phone" = "change_phone",
+): Promise<AuthApiResult<{ ok: true; reauthProofToken: string; expiresAt: string }>> {
+  return postJson("/api/auth/reauth", { phone, password, purpose });
+}
+
 export function logout(): Promise<AuthApiResult<{ ok: true }>> {
   return postJson("/api/auth/logout", {});
 }
@@ -170,8 +179,9 @@ export function passwordReset(
 
 export function phoneChange(
   proofToken: string,
+  reauthProofToken: string,
 ): Promise<AuthApiResult<{ ok: true; phoneE164: string }>> {
-  return postJson("/api/auth/phone/change", { proofToken });
+  return postJson("/api/auth/phone/change", { proofToken, reauthProofToken });
 }
 
 export type OnboardingStep = "profile" | "disciplines" | "email";
@@ -228,10 +238,36 @@ export function dismissEmailPrompt(): Promise<AuthApiResult<{ ok: true }>> {
   return postJson("/api/auth/account/email-prompt/dismiss", {});
 }
 
-/** Only ever redirect within the app — never follow an attacker-controlled absolute/`//` URL. */
+/**
+ * Post-auth “home” for signed-in users who are not mid-onboarding («Мої матчі»).
+ * Pending onboarding still uses `/profile` via `postAuthLandingPath` / OnboardingGuard.
+ */
+export const AUTHENTICATED_HOME_PATH = "/matches";
+
+/**
+ * Guest-facing auth entry paths. Using these as `?next=` after sign-in would
+ * bounce through RequireGuest forever (Navigate to the same guest route).
+ * `/` is also unsafe: authed HomeRoute always redirects away from it (AUTH-002).
+ */
+const UNSAFE_NEXT_PATHS = new Set([
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+]);
+
+/**
+ * Only ever redirect within the app — never follow an attacker-controlled
+ * absolute/`//` URL. Missing, guest-entry, or unsafe `next` → authenticated
+ * home (matches).
+ */
 export function safeNextPath(next: string | null): string {
   if (!next || !next.startsWith("/") || next.startsWith("//")) {
-    return "/";
+    return AUTHENTICATED_HOME_PATH;
+  }
+  const pathOnly = next.split(/[?#]/, 1)[0] || next;
+  if (UNSAFE_NEXT_PATHS.has(pathOnly)) {
+    return AUTHENTICATED_HOME_PATH;
   }
   return next;
 }

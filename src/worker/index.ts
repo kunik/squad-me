@@ -2,6 +2,7 @@ import { MatchDurableObject } from "./match-do";
 import type { Env } from "./env";
 import { routeIdentityRequest } from "./identity/routes";
 import { sweepExpiredOtp } from "./identity/otp";
+import { sweepExpiredReauthProofs } from "./identity/reauth";
 import { sweepExpiredSessions } from "./identity/session";
 
 export { MatchDurableObject };
@@ -74,12 +75,13 @@ export default {
     _ctx: ExecutionContext,
   ) {
     // Outbox retry / retention / safety sweeps — idempotent handlers only.
-    const [otpSweep, sessionSweep] = await Promise.all([
+    const [otpSweep, reauthSweep, sessionSweep] = await Promise.all([
       sweepExpiredOtp(env),
+      sweepExpiredReauthProofs(env),
       sweepExpiredSessions(env),
     ]);
     console.log(
-      `[cron] sweep expired auth_challenges=${otpSweep.challenges} phone_proofs=${otpSweep.proofs} sessions=${sessionSweep}`,
+      `[cron] sweep expired auth_challenges=${otpSweep.challenges} phone_proofs=${otpSweep.proofs} reauth_proofs=${reauthSweep} sessions=${sessionSweep}`,
     );
   },
 };
