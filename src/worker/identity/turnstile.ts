@@ -4,14 +4,17 @@ import type { Env } from "../env";
  * Pluggable Turnstile verification hook for `POST /api/auth/phone/otp/start`.
  * `otp/start` triggers a real SMS/Gateway spend per call, so it must be
  * behind Turnstile before public launch (see docs/plans/auth-registration-plan.md
- * and docs/provision.md). Real site/secret keys are a manual follow-up —
- * this hook lets that wiring land with zero code changes.
+ * and docs/provision.md).
  */
 export interface TurnstileVerifier {
   verify(token: string | null, remoteIp: string): Promise<boolean>;
 }
 
-/** Used automatically when no secret key is configured (local/dev/tests). */
+/**
+ * Local/test bypass only. Selected when `OTP_SINK_MODE=log` (fake OTP — no
+ * provider spend). Live Gateway/Twilio mode without a secret fails closed
+ * instead of using this (see {@link getTurnstileVerifier}).
+ */
 export class NoopTurnstileVerifier implements TurnstileVerifier {
   async verify(_token: string | null, _remoteIp: string): Promise<boolean> {
     return true;
@@ -46,9 +49,35 @@ export class CloudflareTurnstileVerifier implements TurnstileVerifier {
   }
 }
 
-export function getTurnstileVerifier(env: Env): TurnstileVerifier {
-  if (env.TURNSTILE_SECRET_KEY && env.TURNSTILE_SECRET_KEY.length > 0) {
-    return new CloudflareTurnstileVerifier(env.TURNSTILE_SECRET_KEY);
+/** True when the intentional local/test Turnstile bypass is allowed. */
+export function allowsNoopTurnstile(env: Env): boolean {
+  return env.OTP_SINK_MODE === "log";
+}
+
+/**
+ * Thrown when live OTP is configured (`OTP_SINK_MODE` not `log`) but
+ * `TURNSTILE_SECRET_KEY` is missing — refuse rather than spend on SMS/Gateway.
+ */
+export class TurnstileMisconfiguredError extends Error {
+  constructor() {
+    super(
+      "TURNSTILE_SECRET_KEY is required when OTP_SINK_MODE is not log (live OTP)",
+    );
+    this.name = "TurnstileMisconfiguredError";
   }
-  return new NoopTurnstileVerifier();
+}
+
+/**
+ * Returns a verifier, or throws {@link TurnstileMisconfiguredError} when live
+ * OTP would run without siteverify.
+ */
+export function getTurnstileVerifier(env: Env): TurnstileVerifier {
+  const secret = env.TURNSTILE_SECRET_KEY?.trim();
+  if (secret) {
+    return new CloudflareTurnstileVerifier(secret);
+  }
+  if (allowsNoopTurnstile(env)) {
+    return new NoopTurnstileVerifier();
+  }
+  throw new TurnstileMisconfiguredError();
 }

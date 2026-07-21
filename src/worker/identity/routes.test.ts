@@ -1399,6 +1399,32 @@ describe("identity routes", () => {
     }
   });
 
+  it("refuses otp/start when live OTP has no Turnstile secret (fail closed)", async () => {
+    const liveEnv = testEnv(testAppEnv, {
+      OTP_SINK_MODE: undefined,
+      TELEGRAM_GATEWAY_TOKEN: "would-spend-if-called",
+      TURNSTILE_SECRET_KEY: undefined,
+    });
+    const fetchSpy = vi.spyOn(globalThis, "fetch");
+    try {
+      const req = request("/api/auth/phone/otp/start", {
+        method: "POST",
+        body: JSON.stringify({
+          phone: "+380671230099",
+          purpose: "register",
+          turnstileToken: "any",
+        }),
+      });
+      const res = await routeIdentityRequest(req, liveEnv, "/api/auth/phone/otp/start");
+      expect(res?.status).toBe(503);
+      const body = await res!.json();
+      expect(body).toMatchObject({ error: "turnstile_misconfigured" });
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
+
   it("rejects state-changing auth requests with a disallowed Origin", async () => {
     const res = await call("/api/auth/login", {
       method: "POST",

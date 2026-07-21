@@ -19,6 +19,17 @@ function withLocale(child: ReturnType<typeof createElement>) {
   return renderToStaticMarkup(createElement(LocaleProvider, null, child));
 }
 
+function radioInputForValue(markup: string, value: string): string {
+  const marker = `value="${value}"`;
+  const valueIdx = markup.indexOf(marker);
+  expect(valueIdx).toBeGreaterThan(-1);
+  const inputIdx = markup.lastIndexOf("<input", valueIdx);
+  expect(inputIdx).toBeGreaterThan(-1);
+  const endIdx = markup.indexOf(">", valueIdx);
+  expect(endIdx).toBeGreaterThan(valueIdx);
+  return markup.slice(inputIdx, endIdx + 1);
+}
+
 describe("normal profile management controls", () => {
   it("uses the same Profile Edit/Save/Cancel controls without an onboarding footer", () => {
     const markup = withLocale(
@@ -35,27 +46,62 @@ describe("normal profile management controls", () => {
     expect(markup).not.toContain("Пропустити");
   });
 
-  it("renders email field with Save/Cancel (no OTP or Telegram yet)", () => {
+  it("renders notification channel radios with Save/Cancel and connect affordances", () => {
     const markup = withLocale(
       createElement(NotificationChannelsForm, {
         submitting: false,
         serverError: null,
         initialEmail: "shooter@example.test",
+        phoneE164: "+380501112233",
         onSaveEmail: () => true,
         onCancel: () => undefined,
       }),
     );
 
     expect(markup).toContain("Електронна пошта");
+    expect(markup).toContain("Telegram-бот");
+    expect(markup).toContain("SMS");
     expect(markup).toContain("shooter@example.test");
+    expect(markup).toContain("+380501112233");
+    expect(markup).toContain('type="radio"');
+    expect(markup).toContain("Підключити");
+    expect(markup).toContain("icon-verified.png");
+    expect(markup).toContain("icon-cancel.png");
     expect(markup).toContain("Зберегти зміни");
     expect(markup).toContain("Скасувати");
-    expect(markup).not.toContain("Telegram-бот");
-    expect(markup).not.toContain("Надіслати код верифікації");
+    expect(markup).not.toContain("Надіслати код");
     expect(markup).not.toContain("Пропустити");
+
+    // Disconnected Email/Telegram radios stay disabled; SMS (auth phone) is selectable.
+    expect(radioInputForValue(markup, "email")).toContain("disabled");
+    expect(radioInputForValue(markup, "telegram")).toContain("disabled");
+    expect(radioInputForValue(markup, "sms")).not.toContain("disabled");
+    expect(radioInputForValue(markup, "sms")).toContain("checked");
   });
 
-  it("renders notification channels summary without edit chevrons or Save", () => {
+  it("falls back summary preference to the first connected channel", () => {
+    const markup = withLocale(
+      createElement(NotificationChannelsSummary, {
+        email: "shooter@example.test",
+        phoneE164: "+380501112233",
+        preferredChannel: "email",
+      }),
+    );
+
+    // Email is never fake-connected; SMS is preferred instead.
+    const emailRow = markup.slice(
+      markup.indexOf("Електронна пошта") - 120,
+      markup.indexOf("Електронна пошта") + 80,
+    );
+    const smsRow = markup.slice(
+      markup.indexOf(">SMS<") - 120,
+      markup.indexOf(">SMS<") + 80,
+    );
+    expect(emailRow).not.toContain("is-selected");
+    expect(smsRow).toContain("is-selected");
+  });
+
+  it("renders notification channels summary with three channel rows", () => {
     const markup = withLocale(
       createElement(NotificationChannelsSummary, {
         email: "shooter@example.test",
@@ -64,13 +110,14 @@ describe("normal profile management controls", () => {
     );
 
     expect(markup).toContain("Електронна пошта");
-    expect(markup).toContain("shooter@example.test");
+    expect(markup).toContain("Telegram-бот");
     expect(markup).toContain("SMS");
+    expect(markup).toContain("shooter@example.test");
     expect(markup).toContain("+380501112233");
-    expect(markup).not.toContain("Telegram-бот");
+    expect(markup).toContain("icon-verified.png");
     expect(markup).not.toContain("profile-form__chevron");
     expect(markup).not.toContain("Зберегти зміни");
-    expect(markup).not.toContain("Надіслати код верифікації");
+    expect(markup).not.toContain("Надіслати код");
   });
 });
 

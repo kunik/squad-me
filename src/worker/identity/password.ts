@@ -3,9 +3,9 @@ import { scryptAsync } from "@noble/hashes/scrypt.js";
 /**
  * scrypt params per docs/plans/auth-registration-plan.md Phase 1.
  * N=2^15 keeps peak memory ~32 MiB (128 * r * N bytes) — well under noble's
- * default 1 GiB `maxmem` guard. A CPU-time benchmark on deployed Workers
- * (not available in this sandbox) is a pending follow-up before raising
- * traffic; see the session log.
+ * default 1 GiB `maxmem` guard. Local wall-clock sample:
+ * `npm run bench:scrypt`. Confirm CPU time on deployed Workers before raising
+ * traffic or changing N; see docs/provision.md.
  */
 const SCRYPT_N = 2 ** 15;
 const SCRYPT_R = 8;

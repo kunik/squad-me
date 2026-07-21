@@ -123,8 +123,10 @@ sending it. Tests recover the code from the log line (see
 `startAndCaptureCode` / `getProof` helpers in the identity test files) via a
 `console.log` spy — never wire real `TELEGRAM_GATEWAY_TOKEN` /
 `TWILIO_ACCOUNT_SID` credentials into `.dev.vars` or CI.
-Turnstile keys are also unset in tests, selecting the intentional no-op
-verifier; no test calls Cloudflare siteverify.
+Turnstile keys are also unset in tests with `OTP_SINK_MODE=log`, selecting the
+intentional Noop verifier; no test calls Cloudflare siteverify. Live mode
+without a Turnstile secret refuses `otp/start` (`turnstile_misconfigured`) —
+covered by an identity route test.
 
 ## Client unit tests vs worker test tsconfig
 

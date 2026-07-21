@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AppDialog } from "../components/AppDialog";
 import { PublicChrome } from "../components/PublicChrome";
 import { ProfileForm } from "../components/ProfileForm";
@@ -351,8 +351,13 @@ export function ProfilePage() {
     setDeleteDialogOpen(false);
   }
 
-  if (!authLoading && !account) {
-    return <Navigate to="/login?next=/profile" replace />;
+  if (authLoading || !account) {
+    return (
+      <>
+        <PublicChrome />
+        <main className="profile-page" />
+      </>
+    );
   }
 
   const onboardingHint = onboardingStep ? (
@@ -374,15 +379,6 @@ export function ProfilePage() {
             : t.emailOnboardingHint)}
     </HintPanel>
   ) : undefined;
-
-  if (authLoading || !account) {
-    return (
-      <>
-        <PublicChrome />
-        <main className="profile-page" />
-      </>
-    );
-  }
 
   return (
     <>
@@ -612,6 +608,7 @@ export function ProfilePage() {
                       {editingNotifications ? (
                         <NotificationChannelsForm
                           initialEmail={account.email}
+                          phoneE164={account.phoneE164}
                           submitting={submitting}
                           serverError={emailError}
                           onSaveEmail={persistAccountEmail}

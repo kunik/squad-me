@@ -1,5 +1,10 @@
 import type { Messages } from "../i18n";
 
+/**
+ * Server auth `error` codes → i18n keys. Status codes for the same catalog live
+ * in `src/worker/identity/authHttp.ts` (`AUTH_ERROR_STATUS` / `authError`).
+ * Keep new codes in both places when adding client-visible failures.
+ */
 const ERROR_KEY_MAP: Record<string, keyof Messages> = {
   invalid_phone: "authErrorInvalidPhone",
   invalid_request: "authErrorInvalidRequest",
@@ -13,9 +18,12 @@ const ERROR_KEY_MAP: Record<string, keyof Messages> = {
   phone_already_registered: "authErrorPhoneRegistered",
   invalid_credentials: "authErrorInvalidCredentials",
   turnstile_failed: "authErrorTurnstileFailed",
+  turnstile_misconfigured: "authErrorTurnstileMisconfigured",
   invalid_profile: "authErrorInvalidProfile",
   invalid_email: "authErrorInvalidEmail",
   email_already_used: "authErrorEmailAlreadyUsed",
+  unauthenticated: "authErrorUnauthenticated",
+  origin_not_allowed: "authErrorOriginNotAllowed",
   network_error: "authErrorNetwork",
 };
 

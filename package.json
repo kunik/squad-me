@@ -26,6 +26,7 @@
     "infra:doctor": "bash scripts/infra-setup/doctor.sh",
     "ci:wire-secrets": "bash scripts/infra-setup/wire-github-ci-secrets.sh",
     "smoke:dev": "tsx scripts/smoke-cloud-dev.ts",
+    "bench:scrypt": "tsx scripts/bench-scrypt.ts",
     "deploy:dev": "npm run build:dev && wrangler deploy",
     "deploy:production": "npm run build:production && wrangler deploy",
     "cf-typegen": "wrangler types"

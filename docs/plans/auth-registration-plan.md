@@ -1,13 +1,15 @@
 # План: реєстрація / аутентифікація
 
-**Статус:** Phase 1–4 реалізовано (`src/worker/identity/`) + Phase 5 stub-таблиці;
+**Статус:** Phase 1–4 реалізовано (`src/worker/identity/` + client auth UI) + Phase 5 stub-таблиці;
 покрито тестами (`npm test`). **Не зроблено** (потребує ручних дій
-власника): Phase 0 (реальні акаунти Telegram Gateway / Twilio Verify /
-Turnstile — див. `docs/provision.md` § "Identity / auth secrets"), реальний
-CPU-time бенчмарк scrypt-параметрів на задеплоєних Workers, і, як наслідок,
-живий OTP-канал (локально/CI — лише fake-провайдер, `OTP_SINK_MODE=log`) та
-Turnstile-перевірка на `otp/start` (widget + server-side siteverify вже
-підключені; без налаштованих ключів local/dev використовує documented bypass).
+власника): Phase 0 secrets/alerts (реальні акаунти Twilio Verify /
+Turnstile widget keys — див. `docs/provision.md` § "Identity / auth secrets";
+Telegram Gateway уже live), і підтверджений CPU-time бенчмарк scrypt на
+задеплоєних Workers (`npm run bench:scrypt` дає локальний Node sample).
+Живий OTP у Dev/Prod: `OTP_SINK_MODE` відсутній → Telegram Gateway (+ Twilio
+fallback коли credentials є); без `TURNSTILE_SECRET_KEY` у цьому режимі
+`otp/start` **fail-closed** (`turnstile_misconfigured`). Локально/CI —
+лише fake-провайдер (`OTP_SINK_MODE=log`) + Noop Turnstile.
 Реєстраційний wizard збирає `nickname` на кроці пароля і передає його в
 `POST /api/auth/register` (additive field; worker одразу робить sectional
 nickname upsert). Post-auth onboarding (profile → disciplines → email) —
@@ -25,7 +27,12 @@ server-driven через `onboardingStep` на `/profile`. UI сповіщень
 | **OTP** | Telegram Gateway → Twilio Verify — **лише** verify номера |
 | **Passwordless phone-only** | не в v1 |
 
-У репо consumer auth ще немає ([LoginPage.tsx](../../src/client/pages/LoginPage.tsx) — placeholder; D1 лише [0001_init.sql](../../migrations/0001_init.sql); Worker — flat router у [src/worker/index.ts](../../src/worker/index.ts)).
+У репо consumer auth **є**: Login / Register / Forgot password / Profile
+([`LoginPage.tsx`](../../src/client/pages/LoginPage.tsx) та сусідні сторінки),
+сесії через `squad_session`, D1 міграції `0002_identity.sql` …
+`0010_disciplines_prompt_dismissal.sql`, Worker identity router у
+[`src/worker/identity/routes.ts`](../../src/worker/identity/routes.ts)
+(підключений з [`index.ts`](../../src/worker/index.ts)).
 
 ```mermaid
 sequenceDiagram
@@ -147,9 +154,14 @@ Rate limits login (per-account **і** per-IP lockout, не лише один з 
 ### Phase 5 — Notify hooks (light)
 
 Stub `account_telegram_links` / `push_subscriptions` tables remain for future
-APIs. **UI «Мої сповіщення»** на `/profile` зараз спрощено до **email + Save**
-(SMS показаний як verified phone з auth; Telegram / email-OTP UI приховані
-доки немає backend). Email: `POST /api/auth/account/email` (collection).
+APIs. **UI «Мої сповіщення»** на `/profile`: три **radio**-ряди (Email /
+Telegram Bot / SMS) — вибір активного каналу окремо від статусу
+підключення; radio **disabled**, поки канал disconnected; клік на
+disconnected-іконку розгортає connect-панель. Якщо preference вказує на
+непідключений канал — fallback на перший connected (зазвичай SMS).
+Email: `POST /api/auth/account/email` (collection); OTP confirm — stub.
+Telegram connect — UI shell / stub. SMS — `phoneE164` з auth як connected.
+Preference radio поки **не** персиститься на бекенді (дефолт SMS).
 Деталі продукту — Obsidian `products/match-platform/specs/notifications.md`.
 
 ## Profile при реєстрації (додано 2026-07-18, скориговано 2026-07-19)
@@ -337,9 +349,9 @@ login/register/forgot-password, `/profile` і legacy alias-ів). Login післ
 `Club`/`selected_club_id` (`club` вище — лише тимчасовий вільнотекстовий
 плейсхолдер) — належить майбутній фічі форми реєстрації на матч. Email OTP
 confirm, Telegram Bot linking API і Web Push / SMS notify preferences —
-окремий трек (UI «Мої сповіщення» зараз email-only; live лишається collection
-`Account.email`). URL-кроки для pre-auth phone/OTP/password (option 1) —
-поза scope цього зміни.
+окремий трек (UI «Мої сповіщення» — radio-ряди + connect shells; live
+лишається collection `Account.email` + SMS phone з auth). URL-кроки для
+pre-auth phone/OTP/password (option 1) — поза scope цього зміни.
 
 **Дисципліни профілю (додано 2026-07-20; onboarding-крок 2026-07-21):** на
 `/profile` дивізіони — окрема секція з власним Edit/Save/Cancel

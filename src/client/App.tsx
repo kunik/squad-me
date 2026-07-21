@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useSearchParams } from "react-router-dom";
 import type { ReactNode } from "react";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
@@ -8,6 +8,7 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { PublicAtmosphere } from "./components/PublicAtmosphere";
 import { useAuth } from "./auth";
 import { useLocale } from "./locale";
+import { safeNextPath } from "./lib/authApi";
 
 /**
  * Pages reachable while signed in with onboarding still pending: public
@@ -46,6 +47,39 @@ function OnboardingGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+/** Guests only — signed-in visitors go to onboarding `/profile` or `?next=` / home. */
+function RequireGuest({ children }: { children: ReactNode }) {
+  const { account, onboardingStep, loading } = useAuth();
+  const [searchParams] = useSearchParams();
+
+  if (loading) {
+    return null;
+  }
+  if (account) {
+    if (onboardingStep !== null) {
+      return <Navigate to="/profile" replace />;
+    }
+    return <Navigate to={safeNextPath(searchParams.get("next"))} replace />;
+  }
+  return <>{children}</>;
+}
+
+/** Signed-in only — guests are sent to login with a safe `?next=` return path. */
+function RequireAuth({ children }: { children: ReactNode }) {
+  const { account, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return null;
+  }
+  if (!account) {
+    const next = `${location.pathname}${location.search}`;
+    const qs = next && next !== "/" ? `?next=${encodeURIComponent(next)}` : "";
+    return <Navigate to={`/login${qs}`} replace />;
+  }
+  return <>{children}</>;
+}
+
 export function App() {
   const { refreshError, refresh } = useAuth();
   const { t } = useLocale();
@@ -63,10 +97,38 @@ export function App() {
       <OnboardingGuard>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          <Route
+            path="/login"
+            element={
+              <RequireGuest>
+                <LoginPage />
+              </RequireGuest>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <RequireGuest>
+                <RegisterPage />
+              </RequireGuest>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <RequireGuest>
+                <ForgotPasswordPage />
+              </RequireGuest>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <ProfilePage />
+              </RequireAuth>
+            }
+          />
           {/* Legacy aliases — profile owns post-auth onboarding + editing */}
           <Route path="/onboarding" element={<Navigate to="/profile" replace />} />
           <Route path="/complete-profile" element={<Navigate to="/profile" replace />} />

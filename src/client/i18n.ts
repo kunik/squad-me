@@ -165,7 +165,7 @@ export const messages = {
     disciplinesOnboardingHint:
       "Додайте свій дивізіон та фактор потужності — вибір за замовчуванням для наступних реєстрацій.",
     emailOnboardingHint:
-      "Оберіть канал сповіщень. Ми надсилатимемо інформацію про зміни на матчах",
+      "Оберіть канал сповіщень — спочатку підключіть його. Ми надсилатимемо інформацію про зміни на матчах",
     profileMenuLabel: "Розділи профілю",
     profileMenuSettings: "Налаштування",
     profileMenuMatches: "Мої матчі",
@@ -201,25 +201,20 @@ export const messages = {
     // Notification channels — under profile Settings («Мої сповіщення»)
     commChannelsTitle: "Мої сповіщення",
     commChannelsEmailLabel: "Електронна пошта",
-    commChannelsSendCode: "Надіслати код верифікації",
-    commChannelsSendingCode: "Надсилаємо…",
-    commChannelsCodeLabel: "Код підтвердження",
-    commChannelsConfirm: "Підтвердити",
-    commChannelsEmailCodeSentHint:
-      "Адресу {email} збережено. Підтвердження кодом ще не підключено — крок нижче показує майбутній UX.",
-    commChannelsEmailVerifyUnavailable:
-      "Підтвердження email ще не доступне — адресу збережено. OTP-верифікація з’явиться пізніше.",
     commChannelsEmailRequired: "Вкажіть електронну пошту.",
     commChannelsTelegramLabel: "Telegram-бот",
-    commChannelsTelegramHint:
-      "Підключіть Telegram-бота, щоб отримувати сповіщення в месенджері.",
-    commChannelsTelegramConnect: "Підключити Telegram",
-    commChannelsTelegramUnavailable:
-      "Підключення Telegram-бота ще не реалізовано — скоро з’явиться.",
     commChannelsSmsLabel: "SMS",
-    commChannelsSmsHint:
-      "Номер уже підтверджено під час реєстрації. SMS-сповіщення використовуватимуть цей номер.",
-    commChannelsVerified: "Підтверджено",
+    commChannelsConnected: "Підключено",
+    commChannelsDisconnected: "Не підключено",
+    commChannelsConnect: "Підключити",
+    commChannelsPreferred: "Обраний канал",
+    commChannelsSendCode: "Надіслати код",
+    commChannelsConfirmCode: "Підтвердити код",
+    commChannelsEmailCodeLabel: "Код з листа",
+    commChannelsEmailVerifyUnavailable:
+      "Підтвердження email поки недоступне — код ще не надсилається.",
+    commChannelsTelegramConnect: "Підключити Telegram",
+    commChannelsTelegramUnavailable: "Підключення Telegram поки недоступне.",
 
     // Forgot password wizard
     forgotTitle: "Відновлення пароля",
@@ -257,6 +252,8 @@ export const messages = {
     authErrorInvalidCredentials: "Невірний номер телефону або пароль",
     authErrorTurnstileFailed:
       "Перевірку не пройдено. Оновіть сторінку і спробуйте ще раз.",
+    authErrorTurnstileMisconfigured:
+      "Надсилання коду тимчасово недоступне. Спробуйте пізніше.",
     authErrorInvalidProfile: "Перевірте правильність введених даних анкети",
     profileErrorNicknameRequired: "Вкажіть псевдонім",
     profileErrorNicknameCharset:
@@ -267,6 +264,8 @@ export const messages = {
     profileErrorDivisionRequired: "Оберіть дивізіон для кожної увімкненої дисципліни",
     authErrorInvalidEmail: "Невірна електронна пошта",
     authErrorEmailAlreadyUsed: "Ця електронна пошта вже використовується",
+    authErrorUnauthenticated: "Увійдіть, щоб продовжити",
+    authErrorOriginNotAllowed: "Запит відхилено з міркувань безпеки",
     authErrorGeneric: "Щось пішло не так. Спробуйте ще раз.",
     authErrorNetwork: "Немає зв’язку із сервером. Перевірте мережу й повторіть спробу.",
     authErrorTurnstileUnavailable:
@@ -439,7 +438,7 @@ export const messages = {
     disciplinesOnboardingHint:
       "Add your division and power factor — defaults for future match registrations.",
     emailOnboardingHint:
-      "Choose a notification channel. We’ll send you updates about match changes.",
+      "Choose a notification channel — connect it before you can select it. We’ll send you updates about match changes.",
     profileMenuLabel: "Profile sections",
     profileMenuSettings: "Settings",
     profileMenuMatches: "My matches",
@@ -474,24 +473,20 @@ export const messages = {
 
     commChannelsTitle: "My notifications",
     commChannelsEmailLabel: "Email",
-    commChannelsSendCode: "Send verification code",
-    commChannelsSendingCode: "Sending…",
-    commChannelsCodeLabel: "Verification code",
-    commChannelsConfirm: "Confirm",
-    commChannelsEmailCodeSentHint:
-      "Address {email} was saved. Code confirmation is not wired yet — the step below shows the upcoming UX.",
-    commChannelsEmailVerifyUnavailable:
-      "Email verification is not available yet — your address was saved. OTP verification will arrive later.",
     commChannelsEmailRequired: "Enter an email address.",
-    commChannelsTelegramLabel: "Telegram bot",
-    commChannelsTelegramHint: "Connect the Telegram bot to receive notifications in the messenger.",
-    commChannelsTelegramConnect: "Connect Telegram",
-    commChannelsTelegramUnavailable:
-      "Telegram bot linking is not implemented yet — coming soon.",
+    commChannelsTelegramLabel: "Telegram Bot",
     commChannelsSmsLabel: "SMS",
-    commChannelsSmsHint:
-      "Your number was already verified during sign-up. SMS notifications will use this number.",
-    commChannelsVerified: "Verified",
+    commChannelsConnected: "Connected",
+    commChannelsDisconnected: "Disconnected",
+    commChannelsConnect: "Connect",
+    commChannelsPreferred: "Preferred channel",
+    commChannelsSendCode: "Send code",
+    commChannelsConfirmCode: "Confirm code",
+    commChannelsEmailCodeLabel: "Code from email",
+    commChannelsEmailVerifyUnavailable:
+      "Email verification is not available yet — codes are not sent.",
+    commChannelsTelegramConnect: "Connect Telegram",
+    commChannelsTelegramUnavailable: "Telegram linking is not available yet.",
 
     forgotTitle: "Reset password",
     forgotIntro: "Enter your phone number — we'll send a code to reset it",
@@ -526,6 +521,7 @@ export const messages = {
       "This number is already registered. Log in or reset your password.",
     authErrorInvalidCredentials: "Invalid phone number or password",
     authErrorTurnstileFailed: "Verification check failed. Refresh and try again.",
+    authErrorTurnstileMisconfigured: "Sending a code is temporarily unavailable. Try again later.",
     authErrorInvalidProfile: "Check the details you entered",
     profileErrorNicknameRequired: "Enter a nickname",
     profileErrorNicknameCharset:
@@ -536,6 +532,8 @@ export const messages = {
     profileErrorDivisionRequired: "Choose a division for each enabled discipline",
     authErrorInvalidEmail: "Invalid email address",
     authErrorEmailAlreadyUsed: "This email is already in use",
+    authErrorUnauthenticated: "Sign in to continue",
+    authErrorOriginNotAllowed: "Request blocked for security reasons",
     authErrorGeneric: "Something went wrong. Try again.",
     authErrorNetwork: "Could not reach the server. Check your connection and try again.",
     authErrorTurnstileUnavailable:

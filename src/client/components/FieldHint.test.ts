@@ -25,7 +25,7 @@ describe("FieldHint structured content", () => {
 
   it("renders plain string hints without a rules line", () => {
     const markup = renderToStaticMarkup(
-      createElement(FieldLabel, { hint: "For determining category." }, "Gender"),
+      createElement(FieldLabel, { hint: "For determining category.", children: "Gender" }),
     );
 
     expect(markup).toContain("For determining category.");

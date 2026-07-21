@@ -23,6 +23,7 @@ README and those docs in the **same** change (see
 | `npm run seed:local` | `seed-dev.ts --local` | Synthetic seed against local D1 (Dev env). Never production |
 | `npm run seed:dev` | `seed-dev.ts --env dev` | Synthetic seed against remote Cloud Dev D1. Never production |
 | `npm run smoke:dev` | `smoke-cloud-dev.ts` | Hit `https://dev.squadme.app` health (and expand as features land). Needs Access service-token headers for non-browser runs |
+| `npm run bench:scrypt` | `bench-scrypt.ts` | Local wall-clock sample of identity scrypt (`N=2^15,r=8,p=1`). Guidance in `docs/provision.md`; does not replace a deployed Workers CPU check |
 
 ## Infra bootstrap
 

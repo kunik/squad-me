@@ -5,6 +5,25 @@ be derived reliably from source code, documentation, or git history.
 
 <!-- Add entries below. -->
 
+## ⚠ Before first identity/OTP deploy (Dev or Prod)
+
+Deploy agents **must** remind the owner and configure these **before** shipping
+auth OTP code that can hit live providers (see also `docs/deployment.md` §
+"Before first identity/OTP deploy" and `docs/provision.md` § "Identity / auth
+secrets"):
+
+- [ ] **Cloudflare Turnstile** — create widget; set `TURNSTILE_SITE_KEY` +
+  `TURNSTILE_SECRET_KEY`. Without the secret, live `otp/start` fail-closes with
+  `turnstile_misconfigured` (503) and does not call Gateway — keys are still
+  required for real OTP to work.
+- [ ] **Twilio Verify** (Gateway fallback) — Account SID + Auth Token + Verify
+  Service SID; still **Pending** in provision.
+- [ ] **Budget alerts** — Telegram Gateway + Twilio spend/usage triggers before
+  public OTP traffic.
+- Context: `TELEGRAM_GATEWAY_TOKEN` may already be live; `OTP_SINK_MODE` is
+  **absent** in Dev/Prod → real Gateway as soon as this code deploys. Do **not**
+  set `OTP_SINK_MODE` there. Local/CI keeps `OTP_SINK_MODE=log`.
+
 - Cloudflare account Taras (`2758c21b02e5c7efcfa745cb49948ace`); use
   `npx wrangler`. Full infra steps: `docs/provision.md`.
 - Zone `squadme.app` on account: ID `c224b051f2d19f3900b68c0d69ffb3c6`,
@@ -62,12 +81,11 @@ be derived reliably from source code, documentation, or git history.
 - Auth/registration (`docs/plans/auth-registration-plan.md`) Phase 1–4 +
   Phase 5 stubs implemented in `src/worker/identity/` (password/session/
   phone/OTP/rate-limit/turnstile/routes) + `/login`, `/register`,
-  `/forgot-password` UI. **Real OTP/Turnstile not live** — only the fake
-  provider (`OTP_SINK_MODE=log`) is exercised anywhere (tests/local dev);
-  Telegram Gateway/Twilio/Turnstile accounts + secrets are pending manual
-  owner action (`docs/provision.md` § "Identity / auth secrets"). scrypt
-  params (`N=2^15,r=8,p=1`) are the plan's starting point, unbenchmarked on
-  real Workers CPU time.
+  `/forgot-password` UI. Live OTP is **code-ready but not operator-ready**:
+  Gateway token may already be set; Turnstile + Twilio Verify + budget alerts
+  still pending (checklist at top of this file). Local/CI: fake OTP only
+  (`OTP_SINK_MODE=log`). scrypt: `npm run bench:scrypt` for local sample;
+  confirm on Workers before raising traffic.
 - Avatar chrome (2026-07-21): profile avatar uses diagonal `--avatar-frame`
   (accent TL → muted BR); header user-menu avatar uses thin `--panel-border`
   like content panels. User-menu trigger is a square circle (`2.75rem`), not a

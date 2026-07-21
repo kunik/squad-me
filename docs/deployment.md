@@ -74,6 +74,23 @@ Access smoke secrets with `npm run ci:wire-secrets` (tokens from
 `.env.cloudflare`; see `docs/provision.md`). Production API token
 (`squad-me-ci-prod`) is on Environment `production`.
 
+## Before first identity/OTP deploy
+
+**Gate — do not merge/deploy auth OTP to Cloud Dev or Production until this is
+done** (or the owner explicitly accepts fail-closed OTP / no Twilio fallback).
+Full steps and secret status: `docs/provision.md` § "Identity / auth secrets".
+Agent-facing checklist also in `.agents/notes.md`.
+
+| Check | Why |
+|---|---|
+| **Turnstile** widget + `TURNSTILE_SITE_KEY` + `TURNSTILE_SECRET_KEY` on the target env | Live mode (`OTP_SINK_MODE` absent) **refuses** `otp/start` with `turnstile_misconfigured` without the secret — no Gateway spend, but OTP is broken until keys exist |
+| **Twilio Verify** trio (`TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_VERIFY_SERVICE_SID`) | Gateway fallback still **Pending**; code selects Twilio only when all three are set |
+| **Budget alerts** on Telegram Gateway + Twilio | No in-app spend cap — enable provider usage triggers before public OTP |
+| Confirm `OTP_SINK_MODE` stays **unset** in Dev/Prod | Absence selects real Gateway; `TELEGRAM_GATEWAY_TOKEN` may already be live |
+
+Local/CI keep `OTP_SINK_MODE=log` (fake OTP + Noop Turnstile). Do not create
+or paste secrets in chat — use `wrangler secret put` / owner dashboards.
+
 ## CI/CD (GitHub Actions)
 
 | Workflow | When | Deploys? |

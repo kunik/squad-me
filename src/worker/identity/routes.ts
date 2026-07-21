@@ -1,6 +1,14 @@
 import type { Env } from "../env";
 import { isValidEmailShape, isValidNickname, NICKNAME_MAX_LENGTH } from "../../shared/profileValidation";
-import { errorResponse, isOriginAllowed, json, readJsonBody, requireAuth } from "./authHttp";
+import {
+  AUTH_ERROR_STATUS,
+  authError,
+  errorResponse,
+  isOriginAllowed,
+  json,
+  readJsonBody,
+  requireAuth,
+} from "./authHttp";
 import {
   computeOnboardingStep,
   dismissPrompt,
@@ -36,7 +44,7 @@ import {
   type AccountRow,
   type CreatedSession,
 } from "./session";
-import { getTurnstileVerifier } from "./turnstile";
+import { getTurnstileVerifier, TurnstileMisconfiguredError } from "./turnstile";
 import { profileView } from "./profile";
 
 export type { OnboardingStep };
@@ -86,10 +94,19 @@ async function handleOtpStart(request: Request, env: Env): Promise<Response> {
   }
 
   const clientIp = getClientIp(request);
-  const turnstile = getTurnstileVerifier(env);
-  const turnstileOk = await turnstile.verify(body.turnstileToken ?? null, clientIp);
+  let turnstileOk: boolean;
+  try {
+    const turnstile = getTurnstileVerifier(env);
+    turnstileOk = await turnstile.verify(body.turnstileToken ?? null, clientIp);
+  } catch (err) {
+    if (err instanceof TurnstileMisconfiguredError) {
+      console.error("[auth] otp/start refused: TURNSTILE_SECRET_KEY missing in live OTP mode");
+      return authError("turnstile_misconfigured");
+    }
+    throw err;
+  }
   if (!turnstileOk) {
-    return errorResponse("turnstile_failed", 400);
+    return authError("turnstile_failed");
   }
 
   const ipHash = await hashIp(clientIp, env.SESSION_SIGNING_KEY);
@@ -103,9 +120,8 @@ async function handleOtpStart(request: Request, env: Env): Promise<Response> {
     console.log(
       `[auth] otp/start rate_limited phone=${maskPhone(phoneE164)} purpose=${body.purpose} reason=${result.reason}`,
     );
-    return errorResponse(
+    return authError(
       "rate_limited",
-      429,
       { reason: result.reason },
       { "Retry-After": String(result.retryAfterSeconds) },
     );
@@ -147,7 +163,10 @@ async function handleOtpVerify(request: Request, env: Env): Promise<Response> {
   });
 
   if (!result.ok) {
-    const status = result.error === "locked" ? 423 : 400;
+    const status =
+      result.error in AUTH_ERROR_STATUS
+        ? AUTH_ERROR_STATUS[result.error as keyof typeof AUTH_ERROR_STATUS]
+        : 400;
     console.log(
       `[auth] otp/verify failed phone=${maskPhone(phoneE164)} purpose=${body.purpose} error=${result.error}`,
     );
@@ -347,12 +366,9 @@ async function handleLogin(request: Request, env: Env): Promise<Response> {
 
   const ipLock = await checkLoginLockout(env, "login_ip", ipHash);
   if (ipLock.locked) {
-    return errorResponse(
-      "rate_limited",
-      429,
-      undefined,
-      { "Retry-After": String(ipLock.retryAfterSeconds) },
-    );
+    return authError("rate_limited", undefined, {
+      "Retry-After": String(ipLock.retryAfterSeconds),
+    });
   }
 
   const account = await env.DB.prepare(
@@ -369,12 +385,9 @@ async function handleLogin(request: Request, env: Env): Promise<Response> {
 
   const accountLock = await checkLoginLockout(env, "login_account", account.id);
   if (accountLock.locked) {
-    return errorResponse(
-      "rate_limited",
-      429,
-      undefined,
-      { "Retry-After": String(accountLock.retryAfterSeconds) },
-    );
+    return authError("rate_limited", undefined, {
+      "Retry-After": String(accountLock.retryAfterSeconds),
+    });
   }
 
   const passwordOk = await verifyPassword(body.password, account.password_hash);
@@ -693,10 +706,10 @@ export async function routeIdentityRequest(
   }
   const handler = methods[request.method];
   if (!handler) {
-    return errorResponse("method_not_allowed", 405);
+    return authError("method_not_allowed");
   }
   if (STATE_CHANGING_METHODS.has(request.method) && !isOriginAllowed(request, env)) {
-    return errorResponse("origin_not_allowed", 403);
+    return authError("origin_not_allowed");
   }
   return handler(request, env);
 }

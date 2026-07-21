@@ -27,7 +27,8 @@ Updated: 2026-07-17T22:10:03Z (Access smoke token)
 - [x] GitHub Environment `cloud-dev`: `CLOUDFLARE_API_TOKEN` (`squad-me-ci-dev`) + `CLOUDFLARE_ACCOUNT_ID`
 - [x] `squad-me-ci-dev` Zone Workers Routes + Access scopes (GHA deploy + smoke bootstrap)
 - [x] Access service token for GHA smoke (`provision-access-smoke.yml`)
-- [ ] `wrangler secret put` for Dev identity/session/notification test keys (`--env dev`)
+- [ ] `wrangler secret put` for Dev identity keys still pending: Turnstile site+secret, Twilio Verify trio (Gateway + session already set). See `docs/provision.md` § Identity / auth secrets
+- [ ] Budget alerts: Telegram Gateway + Twilio usage triggers (checklist in provision)
 - [x] First deploy: `npm run deploy:dev` (smoke: `/api/health`, `/api/db-smoke`, `/api/match-do-ping` OK)
 - [x] GHA Deploy Cloud Dev green (migrate · deploy · Access smoke)
 

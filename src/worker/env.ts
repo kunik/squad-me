@@ -23,7 +23,13 @@ export type Env = {
   TWILIO_ACCOUNT_SID?: string;
   TWILIO_AUTH_TOKEN?: string;
   TWILIO_VERIFY_SERVICE_SID?: string;
-  /** Cloudflare Turnstile on `otp/start`; unset → dev-bypass no-op verifier. */
+  /**
+   * Cloudflare Turnstile on `otp/start`. Required whenever `OTP_SINK_MODE` is
+   * not `log` (live Gateway/Twilio). Missing secret in live mode → otp/start
+   * refuses with `turnstile_misconfigured` (fail closed). Noop only when
+   * `OTP_SINK_MODE=log`.
+   */
   TURNSTILE_SECRET_KEY?: string;
+  /** Public widget key returned by `GET /api/auth/config` (safe to expose). */
   TURNSTILE_SITE_KEY?: string;
 };
