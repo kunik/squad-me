@@ -143,6 +143,20 @@ Record each distinct bug with reproducible behavior and its test coverage.
 **Expected:** Edit opens the profile section editor. Hint Skip / logo / avatar menu remain usable.
 **Actual:** Fixed `.app-top-chrome` kept default `pointer-events` on its full pin box, so empty gutters beside the centered hint (and the hint slot itself) intercepted clicks meant for the Edit button underneath.
 
+## PROFILE-008 · Male gender saved as empty when birth date missing
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/lib/profileFormValidation.ts` (`genderBirthForClientSave`), `ProfileSummary` view
+**Coverage:** `src/client/components/ProfileControls.test.ts` — `PROFILE-008` persists `male` and `female` independently of birth date; empty gender still fills male only when a birth date is present. Manual: on `/profile` edit, leave «Чоловіча» selected, clear birth date, Save — view mode shows «Чоловіча», not «—».
+
+### Steps to reproduce
+1. Open `/profile`, edit personal details.
+2. Leave gender on «Чоловіча» (UI default) and clear the birth date (or never set one).
+3. Save, then view the section.
+
+**Expected:** Summary shows «Чоловіча» (same as the selected radio). Gender and birth date are independently optional.
+**Actual:** `genderBirthForClientSave` stripped `male` when birth date was empty (to avoid persisting the UI default) while still allowing `female`, so the API stored `gender: null` and the summary rendered «—».
+
 ## AUTH-003 · Profile black screen after phone change (`useBlocker` crash)
 
 **Status:** Fixed (uncommitted working tree)

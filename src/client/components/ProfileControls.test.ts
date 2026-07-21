@@ -211,6 +211,9 @@ describe("collapsible membership / discipline chevrons", () => {
     expect(profileMarkup).toContain("Шевченко");
     expect(divisionsMarkup).not.toContain("profile-form__chevron");
     expect(divisionsMarkup).toContain("profile-form__toggle-body");
+    expect(divisionsMarkup).toContain("is-enabled");
+    expect(divisionsMarkup).toContain("profile-form__discipline-meta");
+    expect(divisionsMarkup).toContain(" - ");
   });
 });
 
@@ -287,8 +290,8 @@ describe("gender default", () => {
     expect(radioInputBeforeLabel(markup, "Чоловіча")).not.toContain("checked");
   });
 
-  it("does not force gender from the UI male default when birth date is empty", () => {
-    expect(genderBirthForClientSave("male", "")).toEqual({ gender: "", birthDate: "" });
+  it("PROFILE-008 persists male and female independently of birth date", () => {
+    expect(genderBirthForClientSave("male", "")).toEqual({ gender: "male", birthDate: "" });
     expect(genderBirthForClientSave("female", "")).toEqual({ gender: "female", birthDate: "" });
     expect(genderBirthForClientSave("male", "1990-05-15")).toEqual({
       gender: "male",
@@ -298,6 +301,7 @@ describe("gender default", () => {
       gender: "male",
       birthDate: "1990-05-15",
     });
+    expect(genderBirthForClientSave("", "")).toEqual({ gender: "", birthDate: "" });
   });
 });
 

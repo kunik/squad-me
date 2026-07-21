@@ -185,7 +185,9 @@ function MembershipSummary({
 }) {
   const { t } = useLocale();
   return (
-    <fieldset className="profile-form__block profile-form__toggle-block">
+    <fieldset
+      className={`profile-form__block profile-form__toggle-block${checked ? " is-enabled" : ""}`}
+    >
       <div className="profile-form__status-row">
         <span>{label}</span>
         <strong>{checked ? t.profileSummaryYes : t.profileSummaryNo}</strong>
@@ -217,17 +219,21 @@ function DisciplineSummary({
       : empty;
 
   return (
-    <fieldset className="profile-form__block profile-form__toggle-block">
+    <fieldset
+      className={`profile-form__block profile-form__toggle-block${enabled ? " is-enabled" : ""}`}
+    >
       <div className="profile-form__status-row">
         <span>{label}</span>
         <strong>{enabled ? t.profileSummaryYes : t.profileSummaryNo}</strong>
       </div>
       {enabled && (
         <div className="profile-form__toggle-body">
-          <div className="profile-form__row">
-            <ReadonlyField label={t.profileDivisionLabel} value={division} />
-            <ReadonlyField label={t.profilePowerFactorLabel} value={powerFactor} />
-          </div>
+          <p
+            className="profile-form__readonly-value profile-form__discipline-meta"
+            aria-label={`${t.profileDivisionLabel}: ${division}. ${t.profilePowerFactorLabel}: ${powerFactor}`}
+          >
+            {division} - {powerFactor}
+          </p>
         </div>
       )}
     </fieldset>

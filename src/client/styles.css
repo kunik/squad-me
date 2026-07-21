@@ -715,8 +715,8 @@ a.user-menu__item {
 
 .auth-form__label {
   font-size: 0.8125rem;
-  font-weight: 600;
-  color: color-mix(in oklch, var(--color-text) 78%, var(--color-muted));
+  font-weight: 500;
+  color: var(--color-muted);
 }
 
 .auth-form__label-row {
@@ -1362,6 +1362,12 @@ select.auth-form__input option {
   transform: rotate(225deg);
 }
 
+/* Toggle titles (membership / disciplines) — one tier above nested field labels */
+.profile-form__toggle-block > .profile-form__checkbox {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
 .profile-form__status-row {
   display: flex;
   align-items: center;
@@ -1370,10 +1376,19 @@ select.auth-form__input option {
   font-size: 0.9375rem;
 }
 
+.profile-form__status-row > span {
+  font-weight: 600;
+}
+
 .profile-form__status-row strong {
   margin-left: auto;
   color: color-mix(in oklch, var(--color-text) 78%, var(--color-muted));
   font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.profile-form__toggle-block.is-enabled > .profile-form__status-row strong {
+  color: var(--color-accent-hex);
 }
 
 .profile-form__radio input,
@@ -2029,7 +2044,15 @@ select.auth-form__input option {
   background: transparent;
   color: var(--color-text);
   font-size: 0.9375rem;
+  font-weight: 600;
   word-break: break-word;
+}
+
+.profile-form__discipline-meta {
+  color: color-mix(in oklch, var(--color-text) 70%, var(--color-muted));
+  font-size: 0.875rem;
+  font-weight: 500;
+  min-height: 2.25rem;
 }
 
 .profile-form__checkbox--readonly {

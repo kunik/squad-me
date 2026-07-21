@@ -21,20 +21,20 @@ export function initialGender(value: Gender | null | undefined | ""): Gender {
 }
 
 /**
- * Resolve gender/birthDate for client validate+submit. Gender and birth date
- * are independently optional. The form may show DEFAULT_GENDER when unset; that
- * UI default alone must not persist when birth date is empty.
+ * Resolve gender/birthDate for client validate+submit. Both are independently
+ * optional. Explicit `male` / `female` always persist; empty gender only fills
+ * {@link DEFAULT_GENDER} when a birth date is present.
  */
 export function genderBirthForClientSave(
   gender: Gender | "",
   birthDate: string,
 ): { gender: Gender | ""; birthDate: string } {
   const birth = birthDate.trim();
-  if (!birth) {
-    if (gender === "female") return { gender: "female", birthDate: "" };
-    return { gender: "", birthDate: "" };
+  if (gender === "male" || gender === "female") {
+    return { gender, birthDate: birth };
   }
-  return { gender: gender || DEFAULT_GENDER, birthDate: birth };
+  if (birth) return { gender: DEFAULT_GENDER, birthDate: birth };
+  return { gender: "", birthDate: "" };
 }
 
 export function isValidNickname(value: string): boolean {

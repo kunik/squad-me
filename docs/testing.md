@@ -47,7 +47,8 @@ Runs in GitHub Actions `ci.yml` on every PR. **No deployment.**
   hint slot hosting `HintPanel` / «панель підказки»),
   `src/client/components/HintPanel.test.ts` (shared hint panel + optional Skip),
   `src/client/components/ProfileControls.test.ts` (no onboarding-only Skip
-  inside forms),   `src/client/lib/profileNavigation.test.ts` (`PROFILE-001`
+  inside forms; `PROFILE-008` male/female persist independently of birth date),
+  `src/client/lib/profileNavigation.test.ts` (`PROFILE-001`
   anchors/scroll-spy including `scrollY = 0` → «Особисті дані»; `PROFILE-002`
   step-advance anchors `my-divisions` then `my-notifications` + window-only
   scroll offset so Skip/Save menu navigation cannot clip PublicHeader via
