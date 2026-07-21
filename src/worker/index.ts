@@ -1,10 +1,20 @@
 import { MatchDurableObject } from "./match-do";
 import type { Env } from "./env";
+import { routeIdentityRequest } from "./identity/routes";
+import { sweepExpiredOtp } from "./identity/otp";
+import { sweepExpiredSessions } from "./identity/session";
 
 export { MatchDurableObject };
 
 async function handleApi(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
+
+  if (url.pathname.startsWith("/api/auth/") || url.pathname === "/api/profile") {
+    const identityResponse = await routeIdentityRequest(request, env, url.pathname);
+    if (identityResponse) {
+      return identityResponse;
+    }
+  }
 
   if (url.pathname === "/api/health") {
     return Response.json({
@@ -60,9 +70,16 @@ export default {
 
   async scheduled(
     _controller: ScheduledController,
-    _env: Env,
+    env: Env,
     _ctx: ExecutionContext,
   ) {
     // Outbox retry / retention / safety sweeps — idempotent handlers only.
+    const [otpSweep, sessionSweep] = await Promise.all([
+      sweepExpiredOtp(env),
+      sweepExpiredSessions(env),
+    ]);
+    console.log(
+      `[cron] sweep expired auth_challenges=${otpSweep.challenges} phone_proofs=${otpSweep.proofs} sessions=${sessionSweep}`,
+    );
   },
 };

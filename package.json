@@ -15,7 +15,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "parity:check": "node scripts/parity-check.mjs",
-    "migrations:local": "wrangler d1 migrations apply DB --local --env dev",
+    "migrations:local": "wrangler d1 migrations apply DB --local",
     "seed:local": "tsx scripts/seed-dev.ts --local",
     "seed:dev": "tsx scripts/seed-dev.ts --env dev",
     "provision:dev": "bash scripts/infra-setup/provision.sh dev",
@@ -31,6 +31,7 @@
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
+    "@noble/hashes": "^2.2.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.18.1"

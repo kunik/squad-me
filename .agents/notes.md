@@ -36,12 +36,62 @@ be derived reliably from source code, documentation, or git history.
   One-time bootstrap in `scripts/infra-setup/`; runtime helpers in `scripts/`.
   Infra rule: document every infra action; prefer those scripts.
 - Client unauth home (`/`): atmospheric public surface + header (logo,
-  UA/EN, Увійти) + brand hero + login CTA; `/login` is a placeholder until
-  IdP is chosen (`react-router-dom`). Logo: `public/logo-full.svg` from KB
+  UA/EN, session-aware Log in/Log out) + brand hero + login CTA
+  (`react-router-dom`). Logo: `public/logo-full.svg` from KB
   `products/match-platform/design/completed/brand/`. Palette from
   `specs/brand-brief.md` / `design/principles.md` (dark neutral + tactical
   orange `#E8823C`). Landing font Inter (same as brand guide; not Barlow).
   Atmosphere layer: flat-top honeycomb SVG (not square grid), large cells
-  (`background-size` ~288×166), hairline strokes, slow `hex-breathe` scale
-  ±2.5% over 48s; see KB `design/principles.md` § atmosphere. No public
+  (`background-size` ~288×166), hairline strokes, static (no animation);
+  shared via `PublicAtmosphere` / `.public-surface` on all routes. App Shell
+  «панель підказки»: `PublicChrome` → fixed `.app-top-chrome` (header +
+  optional narrow top-attached `HintPanel` in `.app-top-chrome__hint` —
+  same `--panel-bg` / border / shadow as content panels; top-flush rectangle
+  with real `--panel-radius` on bottom corners; between logo/avatar via
+  `--chrome-side-gutter` (tighter with icon-only `logo-mark` <640px; Skip
+  stacks under hint <420px); slide-down enter; in-flow spacer mirrors pin
+  height — sticky cannot pin while `.public-surface` has `overflow: hidden`)
+  — fed by `/register`, `/forgot-password`, `/profile` onboarding; future
+  match-reserve. See KB `design/principles.md` § панель підказки. No public
   match listing — invite-link only.
+- Post-auth onboarding (`GET /api/auth/me` `onboardingStep`): **profile →
+  disciplines → email → null** (2026-07-21). Disciplines step = HintPanel +
+  auto-edit «Мої дивізіони»; flag `accounts.disciplines_prompt_dismissed_at`
+  (Skip or `section: "disciplines"` save). Revises earlier “divisions never
+  onboarding” note. See `docs/plans/auth-registration-plan.md`.
+- Auth/registration (`docs/plans/auth-registration-plan.md`) Phase 1–4 +
+  Phase 5 stubs implemented in `src/worker/identity/` (password/session/
+  phone/OTP/rate-limit/turnstile/routes) + `/login`, `/register`,
+  `/forgot-password` UI. **Real OTP/Turnstile not live** — only the fake
+  provider (`OTP_SINK_MODE=log`) is exercised anywhere (tests/local dev);
+  Telegram Gateway/Twilio/Turnstile accounts + secrets are pending manual
+  owner action (`docs/provision.md` § "Identity / auth secrets"). scrypt
+  params (`N=2^15,r=8,p=1`) are the plan's starting point, unbenchmarked on
+  real Workers CPU time.
+- Avatar chrome (2026-07-21): profile avatar uses diagonal `--avatar-frame`
+  (accent TL → muted BR); header user-menu avatar uses thin `--panel-border`
+  like content panels. User-menu trigger is a square circle (`2.75rem`), not a
+  tall pill, so hover wash stays round.
+- Profile collapsible blocks (2026-07-21): expand/collapse chevron («пташка»)
+  for blocks like FPSU membership / carbine (discipline) enables is **edit-mode
+  only**. View/read-only hides the chevron; nested content still shows when the
+  block is enabled. Edit form (`ProfileForm`) keeps the chevron; summary view
+  (`ProfileSummary`) does not. Related membership/discipline copy below.
+- Profile membership & discipline UX (2026-07-21):
+  - Labels: «членство ФПСУ» / «членство IPSC (МКПС)» (not «Я член …»); IPSC
+    number «Членський номер» (not «Номер члена IPSC»). EN: UPSF / IPSC (MKPS)
+    membership; Membership number.
+  - Name-language: drop per-field captions «Ім'я та прізвище (українською/
+    англійською)». One full-width `.profile-form__info-note` above the
+    first+last name row (shared for both fields): FPSU — enter UA names as in
+    official documents; IPSC — enter EN names as in foreign travel documents.
+    Visual: accent-tinted panel + “i” cue — quieter than errors, stronger than
+    plain captions.
+  - Placeholders: FPSU Іван / Франко / Калуш / ССК Барвінок; IPSC John / Smith /
+    UA-12345 (city Калуш is UPSF-only).
+  - FieldHint purpose tooltips: FPSU name → official UPSF competitions; region →
+    national + oblast championships; city → city championships; club → official
+    UPSF matches. IPSC name → IPSC Level III; member number → from federation
+    membership certificate.
+  - Division defaults when enabling a discipline: pistol `production`, carbine
+    `semi_auto_open` (SAO), PCC/mini `pcc_optics`, shotgun `open`.

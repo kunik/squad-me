@@ -8,3 +8,4 @@ the Obsidian knowledge base under `products/match-platform/`.
 - `deployment.md` — build-once artifact, Wrangler envs, Dev/Prod deploy flow
 - `provision.md` — Cloudflare resource bootstrap checklist
 - `inventory-dev.md` — generated Cloud Dev resource inventory (after provision)
+- `plans/` — accepted feature implementation plans (e.g. `plans/auth-registration-plan.md`)

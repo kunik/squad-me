@@ -8,5 +8,5 @@
     ]
   },
   "include": ["src/**/*.test.ts", "worker-configuration.d.ts"],
-  "exclude": []
+  "exclude": ["src/client/**"]
 }

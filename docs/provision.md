@@ -179,8 +179,7 @@ When identity/session/notification test keys exist:
 
 ```bash
 npx wrangler secret put SESSION_SIGNING_KEY --env dev
-npx wrangler secret put IDENTITY_PROVIDER_SECRET --env dev
-# …other Dev-only secrets
+# …other Dev-only secrets — see "Identity / auth secrets" below
 ```
 
 Local equivalents live in `.dev.vars` (gitignored); see `.dev.vars.example`.
@@ -249,6 +248,82 @@ Workflows:
 - `.github/workflows/deploy-dev.yml` — merge to `main` (smoke uses Access service token secrets)
 - `.github/workflows/deploy-production.yml` — `workflow_dispatch` only (optional `commit_sha`; default `main` tip)
 - `.github/workflows/provision-access-smoke.yml` — one-shot Access smoke secret bootstrap
+
+## Identity / auth secrets (docs/plans/auth-registration-plan.md)
+
+Phase 1–4 of the auth/registration plan are implemented in code
+(`src/worker/identity/`), gated entirely by `OTP_SINK_MODE=log` locally and in
+CI/tests (fake OTP provider only — zero real Gateway/Twilio calls). Twilio
+fallback provisioning and Turnstile widget creation are **Phase 0, still
+pending** owner dashboard actions. Turnstile client/server wiring is
+implemented: `GET /api/auth/config` exposes only the public site key, the
+register/reset forms render the widget, and `otp/start` verifies its token
+server-side before any provider spend.
+`TELEGRAM_GATEWAY_TOKEN` is already live in both Dev and Production (verified
+via `wrangler secret list --env <env>` on 2026-07-18) — no `OTP_SINK_MODE`
+binding exists in either environment, so once this code deploys, `otp/start`
+will immediately select the real Telegram Gateway provider. Turnstile remains
+a documented bypass only while its keys are unset, so configure both keys
+before exposing OTP routes publicly.
+
+### Secrets checklist
+
+| Secret | Required for | Status |
+|---|---|---|
+| `SESSION_SIGNING_KEY` | Session-token/IP hashing pepper (all envs) | **Set** — already provisioned |
+| `OTP_SINK_MODE` | `log` forces the fake OTP provider | **Local/CI only** (`.dev.vars` → `log`). Confirmed **absent** (no binding) in Dev and Production — do not set it there; real providers are selected whenever it's absent |
+| `TELEGRAM_GATEWAY_TOKEN` | Telegram Gateway (https://gateway.telegram.org/) — primary OTP channel | **Set** — live in both Dev and Production |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_VERIFY_SERVICE_SID` | Twilio Verify — fallback OTP channel | **Pending** — manual account signup |
+| `TURNSTILE_SECRET_KEY` | Server-only Turnstile siteverify credential | **Pending** — manual widget creation. Unset → local/dev bypass |
+| `TURNSTILE_SITE_KEY` | Public widget key returned by `GET /api/auth/config` | **Pending** — safe as a plain Worker variable or secret; must match the secret's widget |
+
+Apply with (Dev shown; swap `--env production` for Production):
+
+```bash
+npx wrangler secret put TWILIO_ACCOUNT_SID --env dev
+npx wrangler secret put TWILIO_AUTH_TOKEN --env dev
+npx wrangler secret put TWILIO_VERIFY_SERVICE_SID --env dev
+npx wrangler secret put TURNSTILE_SECRET_KEY --env dev
+# The site key is public; a Wrangler variable is preferred when configuration
+# management is added. `secret put` is also valid and matches current workflow.
+npx wrangler secret put TURNSTILE_SITE_KEY --env dev
+```
+
+Never set `OTP_SINK_MODE` in Dev/Prod — its mere presence (any value other
+than exactly `"log"` is still fine per the code, but there's no reason to set
+it at all) adds a confusing binding for no behavioral gain; real-provider
+selection already happens automatically whenever it's absent. If it's ever
+accidentally set, remove it with `npx wrangler secret delete OTP_SINK_MODE
+--env <env>`.
+
+Local dev/tests always use `.dev.vars` → `OTP_SINK_MODE=log` (see
+`.dev.vars.example`); never put real provider credentials there.
+
+### Manual steps still owed (Phase 0 — owner dashboard action, not scriptable)
+
+1. ~~Telegram Gateway account~~ — **done**; `TELEGRAM_GATEWAY_TOKEN` is live in
+   Dev and Production.
+2. **Twilio account + Verify service** — create a Verify Service (fallback
+   channel), collect Account SID / Auth Token / Verify Service SID.
+3. **Turnstile widget** — Cloudflare dashboard → Turnstile → create a managed widget
+   for `squadme.app` / `dev.squadme.app`, collect site key + secret key.
+   Configure both keys before public launch. With keys set, the browser token
+   is mandatory and canonical siteverify fails closed before `otp/start`
+   reaches Telegram/Twilio. With keys blank, local development remains usable
+   through the intentional bypass.
+4. **Budget alert** on Telegram Gateway / Twilio spend — set up in each
+   provider's dashboard (or a Cloudflare notification if/when billing data is
+   available) **before** raising OTP traffic, since there is no in-app spend
+   cap yet.
+5. `src/worker/identity/otp/index.ts` already selects Gateway automatically
+   whenever `OTP_SINK_MODE` is absent — no action needed here beyond keeping
+   that binding unset in Dev/Prod (see checklist above).
+6. **scrypt CPU-time benchmark** — `src/worker/identity/password.ts` ships
+   with the plan's starting params (`N=2^15, r=8, p=1`); a real Workers
+   CPU-time benchmark (not available in a sandboxed/local dev environment) is
+   still owed before raising traffic, to confirm the params fit the Workers
+   CPU budget (fallback documented in the plan: WebCrypto PBKDF2-SHA-256 ≥600k
+   iterations).
 
 ## Production — owner order
 

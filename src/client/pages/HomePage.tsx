@@ -1,14 +1,13 @@
 import { Link } from "react-router-dom";
-import { PublicAtmosphere } from "../components/PublicAtmosphere";
-import { PublicHeader } from "../components/PublicHeader";
+import { PublicChrome } from "../components/PublicChrome";
 import { useLocale } from "../locale";
 
 export function HomePage() {
   const { t } = useLocale();
 
   return (
-    <PublicAtmosphere>
-      <PublicHeader />
+    <>
+      <PublicChrome />
       <main className="home-hero">
         <img
           className="home-hero__logo"
@@ -26,6 +25,6 @@ export function HomePage() {
           <p className="home-hero__hint">{t.inviteHint}</p>
         </div>
       </main>
-    </PublicAtmosphere>
+    </>
   );
 }

@@ -2,5 +2,22 @@
 # Cloud Dev / Production secrets use: wrangler secret put <NAME> --env <env>
 
 SESSION_SIGNING_KEY=local-dev-only-change-me
-IDENTITY_PROVIDER_SECRET=local-test-mode
 NOTIFICATION_SINK_MODE=log
+
+# OTP (phone verification) — see docs/plans/auth-registration-plan.md.
+# `log` MUST stay set for local dev / tests: forces the fake provider, zero
+# real Telegram Gateway / Twilio calls. Leave the provider secrets below
+# blank locally; they are only needed once OTP_SINK_MODE is unset for a real
+# deploy (Cloud Dev / Production), and that requires the manual account
+# provisioning documented in docs/provision.md.
+OTP_SINK_MODE=log
+TELEGRAM_GATEWAY_TOKEN=
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_VERIFY_SERVICE_SID=
+
+# Turnstile on POST /api/auth/phone/otp/start. The site key is intentionally
+# public and is served to the browser by GET /api/auth/config; the secret key
+# remains server-only. Both blank locally = documented dev bypass.
+TURNSTILE_SECRET_KEY=
+TURNSTILE_SITE_KEY=
