@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth";
 import { useLocale } from "../locale";
-import { logout as logoutRequest } from "../lib/authApi";
+import { AUTHENTICATED_HOME_PATH, logout as logoutRequest } from "../lib/authApi";
 import type { Locale } from "../i18n";
 
 /** Placeholder until the real notifications inbox (profile section) exists. */
@@ -71,10 +71,11 @@ export function PublicHeader() {
   const showLogin = !loading && !account && !onLoginPage;
   const showSession = !loading && Boolean(account);
   const hasUnread = UNREAD_COUNT > 0;
+  const brandHome = account ? AUTHENTICATED_HOME_PATH : "/";
 
   return (
     <header className="public-header">
-      <Link to="/" className="public-header__brand" aria-label="Squad Me">
+      <Link to={brandHome} className="public-header__brand" aria-label="Squad Me">
         <picture>
           <source media="(max-width: 639px)" srcSet="/logo-mark.svg" />
           <img
@@ -136,7 +137,7 @@ export function PublicHeader() {
 
                 {/*
                   Design (user-menu.md / AppShell): Profile is the notifications
-                  entry — channels live under Settings on /profile. Unread count
+                  entry — channels live under My profile → Notifications on /profile. Unread count
                   shows as a badge on the avatar.
                 */}
                 <Link

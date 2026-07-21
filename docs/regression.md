@@ -18,6 +18,20 @@ Record each distinct bug with reproducible behavior and its test coverage.
 **Actual:** ...
 ```
 
+## AUTH-002 · Authed `/` HomeRoute Navigate loop (max update depth)
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/App.tsx` (`HomeRoute`, `CatchAllRoute`, `RequireGuest`), `src/client/main.tsx`, `safeNextPath`
+**Coverage:** `src/client/lib/authNavigation.test.ts` — AUTH-002 `safeNextPath` rejects `/` and guest auth entry paths; `postAuthLandingPath` never returns `/`. Manual: signed-in session on `/` lands once on `/matches` (or `/profile` while onboarding) without console “Maximum update depth exceeded”.
+
+### Steps to reproduce
+1. Sign in locally (completed onboarding or mid-onboarding).
+2. Open `/` (or follow a `?next=/` / logo path that resolves through home).
+3. Watch the console / React overlay.
+
+**Expected:** One replace navigation to `/matches` (or `/profile` if `onboardingStep != null`); page stays there.
+**Actual:** `HomeRoute` kept rendering `<Navigate>`, React Router `completeNavigation` re-entered forever (“Maximum update depth exceeded”). Contributing factors: outer data-router `path: "*"` wrapping App’s own `<Routes>`, catch-all `Navigate` back to `/`, and `safeNextPath` allowing `/` / `/login` as post-auth targets.
+
 ## AUTH-001 · Register-as-reset erased existing profile
 
 **Status:** Fixed (uncommitted working tree)
@@ -40,7 +54,7 @@ Record each distinct bug with reproducible behavior and its test coverage.
 
 ### Steps to reproduce
 1. Sign in locally and open `/profile`, including while the profile request is still loading.
-2. Click «Мої дивізіони» in the left profile menu.
+2. Click «Дивізіони» in the left profile menu.
 3. Observe the viewport and active menu item near the document-bottom boundary.
 
 **Expected:** The visible `#my-divisions` block is scrolled into view and remains active; its independent Edit/Save/Cancel flow saves `section: "disciplines"` without changing upper-profile fields.
@@ -50,14 +64,14 @@ Record each distinct bug with reproducible behavior and its test coverage.
 
 **Status:** Fixed (uncommitted working tree)
 **Area:** `src/client/pages/ProfilePage.tsx`, `src/client/lib/profileNavigation.ts`, `.public-surface` overflow
-**Coverage:** `src/client/lib/profileNavigation.test.ts` — `PROFILE-002` step-advance anchors are `my-divisions` (profile→disciplines) and `my-notifications` (disciplines→email); window scroll-top helper clamps so `scrollY = 0` stays reachable (menu/Skip/Save must use that path, not `scrollIntoView`). Manual: on `/profile` with `onboardingStep === "profile"`, press Skip (or Save), confirm banner advances to disciplines, «Мої дивізіони» becomes active, divisions section opens in edit mode, and the page scrolls after the edit form lays out (not while still on the short summary); then Skip/Save divisions → email, «Мої сповіщення» active, window scrolls with scroll-margin, and scrolling back to `scrollY = 0` still shows PublicHeader/logo.
+**Coverage:** `src/client/lib/profileNavigation.test.ts` — `PROFILE-002` step-advance anchors are `my-divisions` (profile→disciplines) and `my-notifications` (disciplines→email); window scroll-top helper clamps so `scrollY = 0` stays reachable (menu/Skip/Save must use that path, not `scrollIntoView`). Manual: on `/profile` with `onboardingStep === "profile"`, press Skip (or Save), confirm banner advances to disciplines, «Дивізіони» becomes active, divisions section opens in edit mode, and the page scrolls after the edit form lays out (not while still on the short summary); then Skip/Save divisions → email, «Сповіщення» active, window scrolls with scroll-margin, and scrolling back to `scrollY = 0` still shows PublicHeader/logo.
 
 ### Steps to reproduce
 1. Sign in with a session that still needs the profile onboarding step and open `/profile` near the top of the page.
 2. Press Skip on the HintPanel («панель підказки») so the step advances from profile → disciplines (then Skip again → email/notifications).
 3. Try to scroll up to see the Squad Me logo in `PublicHeader`.
 
-**Expected:** Banner advances profile → disciplines → email. Each Skip/Save activates the matching left-nav item via the same handler as a menu click (queued nav + window-only scroll with scroll-margin). Profile→disciplines also opens the divisions block in edit mode before scrolling, so the taller edit layout can leave `scrollY = 0` and the spy does not snap back to «Мій профіль». At `scrollY = 0` the full header/logo remains visible; scroll-spy selects «Мій профіль» at the page top.
+**Expected:** Banner advances profile → disciplines → email. Each Skip/Save activates the matching left-nav item via the same handler as a menu click (queued nav + window-only scroll with scroll-margin). Profile→disciplines also opens the divisions block in edit mode before scrolling, so the taller edit layout can leave `scrollY = 0` and the spy does not snap back to «Особисті дані». At `scrollY = 0` the full header/logo remains visible; scroll-spy selects «Особисті дані» at the page top.
 **Actual:** After Skip, `reloadAfterStep` auto-scrolled to `#my-notifications` via `Element.scrollIntoView`. Because `.public-surface` uses `overflow: hidden` (a scroll container), that scroll moved the header out of the clipped shell while window `scrollY` stayed near zero, so the logo could not be recovered by scrolling up. A later over-correction removed Skip navigation entirely instead of routing it through the menu handler. A follow-on race also scrolled to `#my-divisions` before the divisions edit form opened (and refetched profile on every step change), so the menu highlight did not stick and edit mode did not reliably appear.
 
 ## PROFILE-003 · Profile menu scroll overshot; upward spy flipped early
@@ -67,8 +81,8 @@ Record each distinct bug with reproducible behavior and its test coverage.
 **Coverage:** `src/client/lib/profileNavigation.test.ts` — `PROFILE-003` sticky-chrome offset ignores in-flow header/banner (click-scroll landing). Manual scroll-spy direction hysteresis was superseded by PROFILE-004’s single near-chrome reading line.
 
 ### Steps to reproduce
-1. Sign in and open `/profile` with enough content to scroll between «Мій профіль», «Мої дивізіони», and «Мої сповіщення».
-2. Click a lower left-nav item (e.g. «Мої дивізіони») and note where the section heading lands under the top of the viewport.
+1. Sign in and open `/profile` with enough content to scroll between «Особисті дані», «Дивізіони», and «Сповіщення».
+2. Click a lower left-nav item (e.g. «Дивізіони») and note where the section heading lands under the top of the viewport.
 3. Scroll upward slowly through sections and watch when the active menu item switches to the previous section.
 
 **Expected:** Menu/hash scroll places the section heading just below fixed `.app-top-chrome` (header + optional HintPanel / «панель підказки») plus comfort pad. Scrolling up should keep the current section active until its heading approaches that same near-top line, not flip while the heading is still mid-viewport.
@@ -82,10 +96,10 @@ Record each distinct bug with reproducible behavior and its test coverage.
 
 ### Steps to reproduce
 1. Sign in and open `/profile` with Profile, Divisions, and Notifications sections tall enough to scroll.
-2. Manually scroll down from the top through «Мій профіль» → «Мої дивізіони» → «Мої сповіщення» and watch the left-nav active item.
+2. Manually scroll down from the top through «Особисті дані» → «Дивізіони» → «Сповіщення» and watch the left-nav active item.
 3. Scroll back up through the same band.
 
-**Expected:** At `scrollY ≈ 0`, «Мій профіль» is active. While the near-chrome reading line sits between `#my-divisions` and `#my-notifications` tops, «Мої дивізіони» stays active for a clear range (both directions). Notifications activate only once their heading reaches that same near-chrome line — not as soon as the block enters mid-viewport.
+**Expected:** At `scrollY ≈ 0`, «Особисті дані» is active. While the near-chrome reading line sits between `#my-divisions` and `#my-notifications` tops, «Дивізіони» stays active for a clear range (both directions). Notifications activate only once their heading reaches that same near-chrome line — not as soon as the block enters mid-viewport.
 **Actual:** Downward spy used a ~40% viewport reading line (upward used near-chrome). Notifications’ top crossed the mid line while Divisions never uniquely owned it, so Divisions was skipped entirely; Profile felt sticky at the top and Notifications activated early.
 
 ## PROFILE-005 · Expanding membership panels shifted the hex background

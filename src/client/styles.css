@@ -1516,6 +1516,40 @@ select.auth-form__input option {
   background: transparent;
 }
 
+.profile-page__menu-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Accordion: only `.is-expanded` groups reveal children (grid 0fr → 1fr). */
+.profile-page__menu-sub {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease;
+}
+
+.profile-page__menu-group.is-expanded > .profile-page__menu-sub {
+  grid-template-rows: 1fr;
+}
+
+.profile-page__menu-sub-inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  overflow: hidden;
+  min-height: 0;
+  margin-left: 0.5rem;
+  padding-left: 0.625rem;
+  border-left: 1px solid color-mix(in oklch, var(--color-border) 70%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-page__menu-sub {
+    transition: none;
+  }
+}
+
 .profile-page__menu-item {
   width: 100%;
   min-height: 2.5rem;
@@ -1528,6 +1562,17 @@ select.auth-form__input option {
   font-weight: 600;
   text-align: left;
   cursor: pointer;
+}
+
+.profile-page__menu-item--sub {
+  min-height: 2.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.profile-page__menu-item--parent.is-group-active {
+  color: var(--color-text);
 }
 
 .profile-page__menu-item:hover {
@@ -1545,12 +1590,6 @@ select.auth-form__input option {
   border-color: color-mix(in oklch, var(--color-border) 80%, transparent);
   background: color-mix(in oklch, var(--color-surface2) 70%, transparent);
   box-shadow: inset 3px 0 0 var(--color-accent-hex);
-}
-
-.profile-page__menu-divider {
-  height: 1px;
-  margin: var(--space-3) var(--space-2);
-  background: color-mix(in oklch, var(--color-border) 65%, transparent);
 }
 
 .profile-page__menu-item:focus-visible {
@@ -1572,7 +1611,10 @@ select.auth-form__input option {
   scroll-margin-top: 1.5rem;
 }
 
-.notification-channels {
+/* Beat later `@media .auth-form { gap: … }` so view rows (direct children) match
+   edit rows nested under `.notification-channels__radios`. */
+.notification-channels,
+.auth-form.notification-channels {
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -1590,31 +1632,38 @@ select.auth-form__input option {
 }
 
 .notification-channels__row {
-  display: flex;
-  flex-wrap: wrap;
+  /* Shared view/edit: [control] [label 1fr] [status] [identifier] */
+  display: grid;
+  grid-template-columns: 1.125rem minmax(0, 1fr) 1.5rem minmax(0, auto);
+  column-gap: var(--space-2);
   align-items: center;
-  gap: var(--space-2) var(--space-3);
   padding: var(--space-3) 0;
   border-top: 1px solid color-mix(in oklch, var(--panel-border) 70%, transparent);
   color: var(--color-text);
   font-size: 0.9375rem;
 }
 
-.notification-channels__radios > .notification-channels__row:first-of-type,
-.notification-channels > .notification-channels__row:first-child {
+.notification-channels__radios > .notification-channels__row:first-of-type {
   border-top: none;
   padding-top: 0;
 }
 
-.notification-channels__radio {
+.notification-channels__control {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.notification-channels__radio {
   cursor: pointer;
 }
 
-.notification-channels__radio:has(input:disabled) {
+.notification-channels__row:has(.notification-channels__radio input:disabled)
+  .notification-channels__radio,
+.notification-channels__row:has(.notification-channels__radio input:disabled)
+  .notification-channels__label-row {
   cursor: not-allowed;
   opacity: 0.72;
 }
@@ -1632,11 +1681,10 @@ select.auth-form__input option {
 }
 
 .notification-channels__summary-pref {
-  width: 1.125rem;
-  text-align: center;
   color: color-mix(in oklch, var(--color-text) 55%, var(--color-muted));
   font-size: 0.75rem;
   line-height: 1;
+  text-align: center;
 }
 
 .notification-channels__row.is-selected .notification-channels__summary-pref {
@@ -1644,42 +1692,72 @@ select.auth-form__input option {
 }
 
 .notification-channels__label-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
+  display: block;
   min-width: 0;
+  cursor: pointer;
 }
 
-.notification-channels__status-icon,
-.notification-channels__status-btn {
+.notification-channels__row--summary .notification-channels__label-row {
+  cursor: default;
+}
+
+/* Grid column 3; keep empty in view when disconnected so icons stay aligned. */
+.notification-channels__status-slot {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 1.5rem;
   height: 1.5rem;
-  flex-shrink: 0;
-  padding: 0;
-  border: none;
-  background: transparent;
-}
-
-.notification-channels__status-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  object-fit: contain;
 }
 
 .notification-channels__status-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
   border-radius: var(--radius-sm);
+  background: transparent;
   cursor: pointer;
-  color: color-mix(in oklch, var(--color-muted) 85%, var(--color-text));
+}
+
+.notification-channels__status-icon {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  object-fit: contain;
+  object-position: center;
+}
+
+.notification-channels__status-btn .notification-channels__status-icon {
+  transition: opacity 120ms ease;
+}
+
+.notification-channels__status-btn .notification-channels__status-icon--hover {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.notification-channels__status-btn:hover:not(:disabled) .notification-channels__status-icon--idle,
+.notification-channels__status-btn:focus-visible .notification-channels__status-icon--idle {
+  opacity: 0;
+}
+
+.notification-channels__status-btn:hover:not(:disabled) .notification-channels__status-icon--hover,
+.notification-channels__status-btn:focus-visible .notification-channels__status-icon--hover {
+  opacity: 1;
 }
 
 .notification-channels__status-btn:hover:not(:disabled),
 .notification-channels__status-btn:focus-visible {
   outline: 1px solid color-mix(in oklch, var(--color-accent) 45%, var(--panel-border));
   outline-offset: 2px;
-  color: var(--color-text);
 }
 
 .notification-channels__status-btn:disabled {
@@ -1687,29 +1765,8 @@ select.auth-form__input option {
   cursor: not-allowed;
 }
 
-.notification-channels__disconnected {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 999px;
-  border: 1.5px solid color-mix(in oklch, var(--color-muted) 70%, var(--panel-border));
-  background: color-mix(in oklch, var(--color-muted) 12%, transparent);
-  opacity: 0.85;
-}
-
-.notification-channels__disconnected img {
-  display: block;
-  width: 0.7rem;
-  height: 0.7rem;
-  object-fit: contain;
-  opacity: 0.75;
-}
-
 .notification-channels__identifier {
   min-width: 0;
-  margin-left: auto;
   color: color-mix(in oklch, var(--color-text) 78%, var(--color-muted));
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;

@@ -48,12 +48,16 @@ Runs in GitHub Actions `ci.yml` on every PR. **No deployment.**
   `src/client/components/HintPanel.test.ts` (shared hint panel + optional Skip),
   `src/client/components/ProfileControls.test.ts` (no onboarding-only Skip
   inside forms),   `src/client/lib/profileNavigation.test.ts` (`PROFILE-001`
-  anchors/scroll-spy including `scrollY = 0` → «Мій профіль»; `PROFILE-002`
+  anchors/scroll-spy including `scrollY = 0` → «Особисті дані»; `PROFILE-002`
   step-advance anchors `my-divisions` then `my-notifications` + window-only
   scroll offset so Skip/Save menu navigation cannot clip PublicHeader via
   `scrollIntoView` on `.public-surface`; `PROFILE-003` fixed-chrome menu
   click offset; `PROFILE-004` single near-chrome spy reading line + classic
   last-crossed-top selection so Divisions is not skipped),
+  `src/client/lib/authNavigation.test.ts` + `profileMenu.test.ts`
+  (authenticated home `/matches` / `safeNextPath` fallback; AUTH-002 rejects
+  `/` and guest auth entry `next` values that would Navigate-loop; route map
+  `/matches` · `/linked-shooters` · `/profile`; onboarding → `/profile`),
   `src/client/components/PublicAtmosphere.test.ts` (`PROFILE-005` wash/hex
   siblings outside `.public-surface` so expanding panels cannot reflow the
   viewport-fixed atmosphere)

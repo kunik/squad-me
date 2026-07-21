@@ -8,8 +8,6 @@ import {
   resolveActiveProfileAnchor,
   windowScrollTopForAnchor,
 } from "../lib/profileNavigation";
-import type { ProfileNavSection } from "./useUnsavedDiscard";
-
 export const PROFILE_ANCHOR = "my-profile";
 export const DIVISIONS_ANCHOR = PROFILE_TO_DISCIPLINES_MENU_ANCHOR;
 export const NOTIFICATIONS_ANCHOR = PROFILE_TO_EMAIL_MENU_ANCHOR;
@@ -29,14 +27,12 @@ export const PROFILE_ANCHORS: readonly ProfileAnchor[] = [
 ];
 
 type UseProfileScrollSpyOptions = {
-  section: ProfileNavSection;
   loadingProfile: boolean;
   showNotifications: boolean;
   showProfileEditor: boolean;
   editingDivisions: boolean;
   editingNotifications: boolean;
   onboardingStep: string | null | undefined;
-  setSection: (section: ProfileNavSection) => void;
 };
 
 /**
@@ -44,14 +40,12 @@ type UseProfileScrollSpyOptions = {
  * Logic preserved from ProfilePage (PROFILE-002/004 regressions).
  */
 export function useProfileScrollSpy({
-  section,
   loadingProfile,
   showNotifications,
   showProfileEditor,
   editingDivisions,
   editingNotifications,
   onboardingStep,
-  setSection,
 }: UseProfileScrollSpyOptions) {
   const [activeAnchor, setActiveAnchor] = useState<ProfileAnchor>(PROFILE_ANCHOR);
   const initialHashHandled = useRef(false);
@@ -104,7 +98,6 @@ export function useProfileScrollSpy({
   function scrollToAnchor(id: string) {
     const anchor = id as ProfileAnchor;
     pendingAnchor.current = anchor;
-    setSection("profile");
     setActiveAnchor(anchor);
     window.history.replaceState(window.history.state, "", `#${id}`);
     window.setTimeout(performPendingAnchorScroll, 0);
@@ -120,7 +113,7 @@ export function useProfileScrollSpy({
     };
   }, []);
 
-  // Activate «Мої дивізіони» only after the divisions *edit* form is open.
+  // Activate «Дивізіони» only after the divisions *edit* form is open.
   useEffect(() => {
     if (onboardingStep !== "disciplines" || loadingProfile || !editingDivisions) {
       return;
@@ -131,7 +124,7 @@ export function useProfileScrollSpy({
     return () => window.clearTimeout(timer);
   }, [onboardingStep, loadingProfile, editingDivisions]);
 
-  // Same for «Мої сповіщення» during the email onboarding step.
+  // Same for «Сповіщення» during the email onboarding step.
   useEffect(() => {
     if (onboardingStep !== "email" || loadingProfile || !editingNotifications) {
       return;
@@ -143,7 +136,7 @@ export function useProfileScrollSpy({
   }, [onboardingStep, loadingProfile, editingNotifications]);
 
   useEffect(() => {
-    if (section !== "profile" || loadingProfile) return;
+    if (loadingProfile) return;
     const elements = PROFILE_ANCHORS.map((id) => document.getElementById(id)).filter(
       (element): element is HTMLElement => element !== null,
     );
@@ -182,7 +175,6 @@ export function useProfileScrollSpy({
       window.removeEventListener("resize", update);
     };
   }, [
-    section,
     loadingProfile,
     showNotifications,
     showProfileEditor,
@@ -191,12 +183,12 @@ export function useProfileScrollSpy({
   ]);
 
   useEffect(() => {
-    if (section !== "profile" || loadingProfile) return;
+    if (loadingProfile) return;
     const nextHash = `#${activeAnchor}`;
     if (window.location.hash !== nextHash) {
       window.history.replaceState(window.history.state, "", nextHash);
     }
-  }, [section, activeAnchor, loadingProfile]);
+  }, [activeAnchor, loadingProfile]);
 
   return { activeAnchor, scrollToAnchor };
 }

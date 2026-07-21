@@ -31,7 +31,6 @@ export const messages = {
     loginForgotLink: "Забули пароль?",
     loginRegisterPrompt: "Немає акаунту?",
     loginRegisterLink: "Зареєструватися",
-
     loginNoticePhoneChanged: "Номер телефону змінено. Увійдіть за новим номером",
     loginNoticePasswordChanged: "Пароль змінено. Увійдіть з новим паролем",
 
@@ -174,9 +173,10 @@ export const messages = {
     profileMenuMatches: "Мої матчі",
     profileMenuLinkedShooters: "Пов’язані стрільці",
     profileMenuMyProfile: "Мій профіль",
-    profileMenuDivisions: "Мої дивізіони",
-    profileMenuNotifications: "Мої сповіщення",
-    profileMenuActions: "Дії з профілем",
+    profileMenuPersonalDetails: "Особисті дані",
+    profileMenuDivisions: "Дивізіони",
+    profileMenuNotifications: "Сповіщення",
+    profileMenuActions: "Безпека",
     profileLinkedIRegister: "Я реєструю",
     profileLinkedRegisterMe: "Мене реєструють",
     profileChangePassword: "Змінити пароль",
@@ -190,7 +190,7 @@ export const messages = {
       "Дані для входу, контакти та особисті дані профілю буде видалено без можливості відновлення. Попередні й активні реєстрації на матчі залишаться без змін. Цю дію неможливо скасувати.",
     profileDeleteSuccess: "Акаунт і профіль видалено. Реєстрації на матчі збережено.",
     profileMatchesComingSoon: "Незабаром",
-    profileSummaryTitle: "Мій профіль",
+    profileSummaryTitle: "Особисті дані",
     profileSummaryEmpty: "—",
     profileSummaryYes: "Так",
     profileSummaryNo: "Ні",
@@ -202,8 +202,8 @@ export const messages = {
     profileUnsavedStay: "Залишитись",
     profileUnsavedLeave: "Вийти без збереження",
 
-    // Notification channels — under profile Settings («Мої сповіщення»)
-    commChannelsTitle: "Мої сповіщення",
+    // Notification channels — under «Мій профіль» → «Сповіщення»
+    commChannelsTitle: "Сповіщення",
     commChannelsEmailLabel: "Електронна пошта",
     commChannelsEmailRequired: "Вкажіть електронну пошту.",
     commChannelsTelegramLabel: "Telegram-бот",
@@ -319,7 +319,6 @@ export const messages = {
     loginForgotLink: "Forgot password?",
     loginRegisterPrompt: "Don't have an account?",
     loginRegisterLink: "Register",
-
     loginNoticePhoneChanged: "Phone number changed. Sign in with your new number.",
     loginNoticePasswordChanged: "Password changed. Sign in with your new password.",
 
@@ -460,9 +459,10 @@ export const messages = {
     profileMenuMatches: "My matches",
     profileMenuLinkedShooters: "Linked shooters",
     profileMenuMyProfile: "My profile",
-    profileMenuDivisions: "My divisions",
-    profileMenuNotifications: "My notifications",
-    profileMenuActions: "Profile actions",
+    profileMenuPersonalDetails: "Personal details",
+    profileMenuDivisions: "Divisions",
+    profileMenuNotifications: "Notifications",
+    profileMenuActions: "Security",
     profileLinkedIRegister: "I register",
     profileLinkedRegisterMe: "Others register me",
     profileChangePassword: "Change password",
@@ -476,7 +476,7 @@ export const messages = {
       "Your login data, contacts, and personal profile data will be permanently deleted. Previous and active match registrations will remain unchanged. This action cannot be undone.",
     profileDeleteSuccess: "Your account and profile were deleted. Match registrations were preserved.",
     profileMatchesComingSoon: "Coming soon",
-    profileSummaryTitle: "My profile",
+    profileSummaryTitle: "Personal details",
     profileSummaryEmpty: "—",
     profileSummaryYes: "Yes",
     profileSummaryNo: "No",
@@ -488,7 +488,7 @@ export const messages = {
     profileUnsavedStay: "Stay",
     profileUnsavedLeave: "Leave without saving",
 
-    commChannelsTitle: "My notifications",
+    commChannelsTitle: "Notifications",
     commChannelsEmailLabel: "Email",
     commChannelsEmailRequired: "Enter an email address.",
     commChannelsTelegramLabel: "Telegram Bot",

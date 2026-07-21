@@ -9,6 +9,7 @@ import { TurnstileWidget } from "../components/TurnstileWidget";
 import { useAuth } from "../auth";
 import { useLocale } from "../locale";
 import { register } from "../lib/authApi";
+import { PROFILE_PATH, postAuthLandingPath } from "../lib/profileMenu";
 import { translateAuthError } from "../lib/authErrors";
 import { isValidNickname } from "../lib/profileFormValidation";
 import { useProofWizard } from "../hooks/useProofWizard";
@@ -18,21 +19,20 @@ import { NICKNAME_MAX_LENGTH } from "../../shared/profileValidation";
 // and are driven by `GET /api/auth/me`'s `onboardingStep`.
 export function RegisterPage() {
   const { t } = useLocale();
-  const { account, loading: authLoading, refresh } = useAuth();
+  const { account, onboardingStep, loading: authLoading, refresh } = useAuth();
   const navigate = useNavigate();
   const wizard = useProofWizard({ purpose: "register", t });
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
 
-  // Already signed in → leave the pre-auth wizard. OnboardingGuard sends
-  // pending onboarding to `/profile`; otherwise home.
+  // Already signed in → leave the pre-auth wizard (onboarding → `/profile`, else matches).
   useEffect(() => {
     if (authLoading || !account) return;
     if (wizard.step === "phone" || wizard.step === "otp" || wizard.step === "password") {
       wizard.clearProof();
-      navigate("/", { replace: true });
+      navigate(postAuthLandingPath(onboardingStep), { replace: true });
     }
-  }, [authLoading, account, wizard.step, navigate]);
+  }, [authLoading, account, onboardingStep, wizard.step, navigate]);
 
   async function handlePasswordSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -66,7 +66,7 @@ export function RegisterPage() {
       wizard.setAccountMode(result.data.accountMode);
       wizard.clearProof();
       await refresh();
-      navigate("/profile", { replace: true });
+      navigate(PROFILE_PATH, { replace: true });
     } catch {
       wizard.setError(t.authErrorNetwork);
     } finally {

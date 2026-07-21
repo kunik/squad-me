@@ -1,4 +1,5 @@
 import { useEffect, useId, useState, type FormEvent } from "react";
+import { maskEmail, maskPhoneE164 } from "../lib/maskIdentity";
 import { useLocale } from "../locale";
 
 const SIMPLE_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -56,9 +57,9 @@ function resolvePreferred(
 }
 
 /**
- * Edit form for `/profile` «Мої сповіщення».
- * Radios pick the active notify preference; status icons reflect connect state
- * and open expandable connect panels when disconnected.
+ * Edit form for `/profile` «Сповіщення».
+ * Radios pick the active notify preference (enabled only when connected);
+ * status icons reflect connect state and open expandable connect panels when disconnected.
  */
 export function NotificationChannelsForm({
   submitting,
@@ -207,6 +208,8 @@ export function NotificationChannelsForm({
   const emailError = emailClientError ?? serverError;
   const showEmailPanel = emailPhase !== "idle";
   const emailIdentifier = email.trim();
+  const maskedEmail = emailIdentifier ? maskEmail(emailIdentifier) : "";
+  const maskedPhone = phoneE164.trim() ? maskPhoneE164(phoneE164) : "";
 
   return (
     <form className="auth-form profile-form notification-channels" onSubmit={handleSubmit}>
@@ -219,8 +222,8 @@ export function NotificationChannelsForm({
           checked={preferred === "email"}
           label={t.commChannelsEmailLabel}
           connected={emailConnected}
-          identifier={emailConnected ? emailIdentifier : null}
-          pendingIdentifier={!emailConnected && emailIdentifier ? emailIdentifier : null}
+          identifier={emailConnected ? maskedEmail : null}
+          pendingIdentifier={!emailConnected && maskedEmail ? maskedEmail : null}
           busy={busy}
           onSelect={() => {
             if (!emailConnected) return;
@@ -263,7 +266,7 @@ export function NotificationChannelsForm({
             )}
             {emailPhase === "awaiting_code" && (
               <>
-                <p className="notification-channels__pending-email">{emailIdentifier}</p>
+                <p className="notification-channels__pending-email">{maskedEmail}</p>
                 <label className="auth-form__field">
                   <span className="auth-form__label">{t.commChannelsEmailCodeLabel}</span>
                   <input
@@ -343,7 +346,7 @@ export function NotificationChannelsForm({
           checked={preferred === "sms"}
           label={t.commChannelsSmsLabel}
           connected={smsConnected}
-          identifier={smsConnected ? phoneE164 : null}
+          identifier={smsConnected ? maskedPhone : null}
           busy={busy}
           onSelect={() => {
             if (!smsConnected) return;
@@ -368,7 +371,7 @@ export function NotificationChannelsForm({
 }
 
 /**
- * Read-only «Мої сповіщення» for `/profile` view mode.
+ * Read-only «Сповіщення» for `/profile` view mode.
  */
 export function NotificationChannelsSummary({
   email,
@@ -385,28 +388,32 @@ export function NotificationChannelsSummary({
     sms: smsConnected,
   });
   const emailValue = email?.trim() ?? "";
+  const maskedEmail = emailValue ? maskEmail(emailValue) : "";
+  const maskedPhone = phoneE164.trim() ? maskPhoneE164(phoneE164) : "";
 
   return (
     <div className="auth-form profile-form profile-form--readonly notification-channels">
-      <ChannelSummaryRow
-        labelKey="email"
-        preferred={preferred === "email"}
-        connected={emailConnected}
-        identifier={emailConnected ? emailValue : null}
-        pendingIdentifier={!emailConnected && emailValue ? emailValue : null}
-      />
-      <ChannelSummaryRow
-        labelKey="telegram"
-        preferred={preferred === "telegram"}
-        connected={telegramConnected}
-        identifier={telegramConnected ? telegramUserId!.trim() : null}
-      />
-      <ChannelSummaryRow
-        labelKey="sms"
-        preferred={preferred === "sms"}
-        connected={smsConnected}
-        identifier={phoneE164.trim() || null}
-      />
+      <div className="notification-channels__radios" role="list">
+        <ChannelSummaryRow
+          labelKey="email"
+          preferred={preferred === "email"}
+          connected={emailConnected}
+          identifier={emailConnected ? maskedEmail : null}
+          pendingIdentifier={!emailConnected && maskedEmail ? maskedEmail : null}
+        />
+        <ChannelSummaryRow
+          labelKey="telegram"
+          preferred={preferred === "telegram"}
+          connected={telegramConnected}
+          identifier={telegramConnected ? telegramUserId!.trim() : null}
+        />
+        <ChannelSummaryRow
+          labelKey="sms"
+          preferred={preferred === "sms"}
+          connected={smsConnected}
+          identifier={maskedPhone || null}
+        />
+      </div>
     </div>
   );
 }
@@ -441,7 +448,10 @@ function ChannelRadioRow({
     <div
       className={`notification-channels__row${checked ? " is-selected" : ""}`}
     >
-      <label className="notification-channels__radio" htmlFor={inputId}>
+      <label
+        className="notification-channels__radio notification-channels__control"
+        htmlFor={inputId}
+      >
         <input
           id={inputId}
           type="radio"
@@ -451,26 +461,24 @@ function ChannelRadioRow({
           disabled={busy || !connected}
           onChange={onSelect}
         />
-        <span className="notification-channels__label-row">
-          <span>{label}</span>
+      </label>
+      <label className="notification-channels__label-row" htmlFor={inputId}>
+        {label}
+        <span className="visually-hidden">
+          {connected ? t.commChannelsConnected : t.commChannelsDisconnected}
         </span>
       </label>
-      <ConnectionStatus
-        connected={connected}
-        onConnectClick={onStatusClick}
-        disabled={busy}
-      />
-      {identifier && (
-        <span className="notification-channels__identifier">{identifier}</span>
-      )}
-      {!identifier && pendingIdentifier && (
-        <span className="notification-channels__identifier notification-channels__identifier--pending">
-          {pendingIdentifier}
-        </span>
-      )}
-      <span className="visually-hidden">
-        {connected ? t.commChannelsConnected : t.commChannelsDisconnected}
+      <span className="notification-channels__status-slot">
+        <ConnectionStatus
+          connected={connected}
+          onConnectClick={onStatusClick}
+          disabled={busy}
+        />
       </span>
+      <ChannelIdentifier
+        identifier={identifier}
+        pendingIdentifier={pendingIdentifier}
+      />
     </div>
   );
 }
@@ -502,27 +510,50 @@ function ChannelSummaryRow({
         preferred ? " is-selected" : ""
       }`}
     >
-      <span className="notification-channels__summary-pref" aria-hidden="true">
+      <span
+        className="notification-channels__summary-pref notification-channels__control"
+        aria-hidden="true"
+      >
         {preferred ? "●" : "○"}
       </span>
       <span className="notification-channels__label-row">
-        <span>{label}</span>
-      </span>
-      <ConnectionStatus connected={connected} />
-      {identifier && (
-        <span className="notification-channels__identifier">{identifier}</span>
-      )}
-      {!identifier && pendingIdentifier && (
-        <span className="notification-channels__identifier notification-channels__identifier--pending">
-          {pendingIdentifier}
+        {label}
+        <span className="visually-hidden">
+          {preferred ? t.commChannelsPreferred : ""}
+          {connected ? t.commChannelsConnected : t.commChannelsDisconnected}
         </span>
-      )}
-      <span className="visually-hidden">
-        {preferred ? t.commChannelsPreferred : ""}
-        {connected ? t.commChannelsConnected : t.commChannelsDisconnected}
       </span>
+      <span className="notification-channels__status-slot">
+        {connected ? <ConnectionStatus connected /> : null}
+      </span>
+      <ChannelIdentifier
+        identifier={identifier}
+        pendingIdentifier={pendingIdentifier}
+      />
     </div>
   );
+}
+
+function ChannelIdentifier({
+  identifier,
+  pendingIdentifier,
+}: {
+  identifier: string | null;
+  pendingIdentifier?: string | null;
+}) {
+  if (identifier) {
+    return (
+      <span className="notification-channels__identifier">{identifier}</span>
+    );
+  }
+  if (pendingIdentifier) {
+    return (
+      <span className="notification-channels__identifier notification-channels__identifier--pending">
+        {pendingIdentifier}
+      </span>
+    );
+  }
+  return <span className="notification-channels__identifier" aria-hidden="true" />;
 }
 
 function ConnectionStatus({
@@ -540,7 +571,7 @@ function ConnectionStatus({
     return (
       <img
         className="notification-channels__status-icon"
-        src="/icon-verified.png"
+        src="/icon-channel-connected.png"
         alt={t.commChannelsConnected}
         title={t.commChannelsConnected}
       />
@@ -557,27 +588,29 @@ function ConnectionStatus({
         title={t.commChannelsConnect}
         aria-label={t.commChannelsConnect}
       >
-        <DisconnectedGlyph />
+        <img
+          className="notification-channels__status-icon notification-channels__status-icon--idle"
+          src="/icon-channel-disconnected.png"
+          alt=""
+          aria-hidden="true"
+        />
+        <img
+          className="notification-channels__status-icon notification-channels__status-icon--hover"
+          src="/icon-channel-connected.png"
+          alt=""
+          aria-hidden="true"
+        />
       </button>
     );
   }
 
   return (
-    <span
+    <img
       className="notification-channels__status-icon notification-channels__status-icon--static"
+      src="/icon-channel-disconnected.png"
+      alt={t.commChannelsDisconnected}
       title={t.commChannelsDisconnected}
-      aria-label={t.commChannelsDisconnected}
-    >
-      <DisconnectedGlyph />
-    </span>
-  );
-}
-
-function DisconnectedGlyph() {
-  return (
-    <span className="notification-channels__disconnected" aria-hidden="true">
-      <img src="/icon-cancel.png" alt="" />
-    </span>
+    />
   );
 }
 

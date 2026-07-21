@@ -18,13 +18,13 @@ export const PROFILE_ANCHOR_SCROLL_MARGIN_PX = PROFILE_ANCHOR_COMFORT_PAD_PX;
 
 /**
  * Left-nav menu item activated when profile onboarding advances to the
- * disciplines step (Skip or Save). Same target as clicking «Мої дивізіони».
+ * disciplines step (Skip or Save). Same target as clicking «Дивізіони».
  */
 export const PROFILE_TO_DISCIPLINES_MENU_ANCHOR = "my-divisions" as const;
 
 /**
  * Left-nav menu item activated when disciplines onboarding advances to the
- * email step (Skip or Save). Same target as clicking «Мої сповіщення».
+ * email step (Skip or Save). Same target as clicking «Сповіщення».
  */
 export const PROFILE_TO_EMAIL_MENU_ANCHOR = "my-notifications" as const;
 

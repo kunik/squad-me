@@ -61,16 +61,28 @@ describe("normal profile management controls", () => {
     expect(markup).toContain("Електронна пошта");
     expect(markup).toContain("Telegram-бот");
     expect(markup).toContain("SMS");
-    expect(markup).toContain("shooter@example.test");
-    expect(markup).toContain("+380501112233");
+    expect(markup).toContain("sho***@***.test");
+    expect(markup).toContain("+380*****2233");
+    expect(markup).not.toContain("shooter@example.test");
+    expect(markup).not.toContain("+380501112233");
     expect(markup).toContain('type="radio"');
     expect(markup).toContain("Підключити");
-    expect(markup).toContain("icon-verified.png");
-    expect(markup).toContain("icon-cancel.png");
+    expect(markup).toContain("icon-channel-connected.png");
+    expect(markup).toContain("icon-channel-disconnected.png");
+    expect(markup).not.toContain("icon-verified.png");
+    expect(markup).not.toContain("icon-cancel.png");
     expect(markup).toContain("Зберегти зміни");
     expect(markup).toContain("Скасувати");
     expect(markup).not.toContain("Надіслати код");
     expect(markup).not.toContain("Пропустити");
+
+    // Shared row cells: control / label / status slot / identifier (not icon-in-label).
+    expect(markup).toContain("notification-channels__row");
+    expect(markup).toContain("notification-channels__status-slot");
+    expect(markup).toContain("notification-channels__identifier");
+    expect(markup).not.toMatch(
+      /notification-channels__label-row[^>]*>[^<]*<img[^>]*icon-channel-/,
+    );
 
     // Disconnected Email/Telegram radios stay disabled; SMS (auth phone) is selectable.
     expect(radioInputForValue(markup, "email")).toContain("disabled");
@@ -88,17 +100,15 @@ describe("normal profile management controls", () => {
       }),
     );
 
-    // Email is never fake-connected; SMS is preferred instead.
-    const emailRow = markup.slice(
-      markup.indexOf("Електронна пошта") - 120,
-      markup.indexOf("Електронна пошта") + 80,
-    );
-    const smsRow = markup.slice(
-      markup.indexOf(">SMS<") - 120,
-      markup.indexOf(">SMS<") + 80,
-    );
-    expect(emailRow).not.toContain("is-selected");
-    expect(smsRow).toContain("is-selected");
+    // Email is never fake-connected; SMS shows the preferred marker instead.
+    const emailMarker = markup.indexOf("Електронна пошта");
+    const telegramMarker = markup.indexOf("Telegram-бот");
+    const smsMarker = markup.indexOf(">SMS<");
+    const emailRow = markup.slice(emailMarker - 200, telegramMarker);
+    const smsRow = markup.slice(smsMarker - 200, smsMarker + 40);
+    expect(emailRow).toContain("○");
+    expect(emailRow).not.toContain("●");
+    expect(smsRow).toContain("●");
   });
 
   it("renders notification channels summary with three channel rows", () => {
@@ -112,12 +122,27 @@ describe("normal profile management controls", () => {
     expect(markup).toContain("Електронна пошта");
     expect(markup).toContain("Telegram-бот");
     expect(markup).toContain("SMS");
-    expect(markup).toContain("shooter@example.test");
-    expect(markup).toContain("+380501112233");
-    expect(markup).toContain("icon-verified.png");
+    expect(markup).toContain("sho***@***.test");
+    expect(markup).toContain("+380*****2233");
+    expect(markup).not.toContain("shooter@example.test");
+    expect(markup).not.toContain("+380501112233");
+    expect(markup).toContain("icon-channel-connected.png");
+    expect(markup).not.toContain("icon-channel-disconnected.png");
+    expect(markup).not.toContain("icon-verified.png");
     expect(markup).not.toContain("profile-form__chevron");
     expect(markup).not.toContain("Зберегти зміни");
     expect(markup).not.toContain("Надіслати код");
+
+    // Same row skeleton as edit; status lives in a dedicated slot after the label.
+    expect(markup).toContain("notification-channels__row notification-channels__row--summary");
+    expect(markup).toContain("notification-channels__status-slot");
+    expect(markup).not.toMatch(
+      /notification-channels__label-row[^>]*>[^<]*<img[^>]*icon-channel-/,
+    );
+    const smsIdx = markup.indexOf(">SMS<");
+    const smsTail = markup.slice(smsIdx, smsIdx + 350);
+    expect(smsTail).toContain("notification-channels__status-slot");
+    expect(smsTail).toContain("icon-channel-connected.png");
   });
 });
 

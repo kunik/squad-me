@@ -101,11 +101,11 @@ describe("profile navigation", () => {
   });
 
   it("PROFILE-002 advances onboarding via the next-step menu anchors", () => {
-    // Profile Skip/Save → «Мої дивізіони»; disciplines Skip/Save → «Мої сповіщення».
+    // Profile Skip/Save → «Дивізіони»; disciplines Skip/Save → «Сповіщення».
     // Both use windowScrollTopForAnchor — never Element.scrollIntoView inside
     // `.public-surface`. Profile→disciplines must open divisions edit mode
     // before scrolling so the taller layout can leave scrollY≈0 (otherwise
-    // atDocumentStart snaps the menu back to «Мій профіль»).
+    // atDocumentStart snaps the menu back to «Особисті дані»).
     expect(PROFILE_TO_DISCIPLINES_MENU_ANCHOR).toBe("my-divisions");
     expect(PROFILE_TO_EMAIL_MENU_ANCHOR).toBe("my-notifications");
     expect(PROFILE_STEP_ADVANCE_MENU_ANCHOR).toBe("my-notifications");

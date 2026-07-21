@@ -5,18 +5,21 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ChangePhonePage } from "./pages/ChangePhonePage";
+import { MatchesPage } from "./pages/MatchesPage";
+import { LinkedShootersPage } from "./pages/LinkedShootersPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { PublicAtmosphere } from "./components/PublicAtmosphere";
 import { useAuth } from "./auth";
 import { useLocale } from "./locale";
 import { safeNextPath } from "./lib/authApi";
 import { buildRequireAuthLoginRedirect } from "./lib/authNotice";
+import { postAuthLandingPath, PROFILE_PATH } from "./lib/profileMenu";
 
 /**
  * Pages reachable while signed in with onboarding still pending: public
  * unauthenticated auth pages plus `/profile` (and legacy aliases that
- * redirect there). Home and everything else force a redirect until
- * `onboardingStep` is null — refresh always converges on `/profile`.
+ * redirect there). Matches, linked shooters, and home force `/profile`
+ * until `onboardingStep` is null.
  */
 const ONBOARDING_GUARD_EXEMPT_PATHS = new Set([
   "/login",
@@ -44,25 +47,29 @@ function OnboardingGuard({ children }: { children: ReactNode }) {
     onboardingStep !== null &&
     !ONBOARDING_GUARD_EXEMPT_PATHS.has(location.pathname)
   ) {
-    return <Navigate to="/profile" replace />;
+    return <Navigate to={PROFILE_PATH} replace />;
   }
 
   return <>{children}</>;
 }
 
-/** Guests only — signed-in visitors go to onboarding `/profile` or `?next=` / home. */
+/** Guests only — signed-in visitors go to onboarding `/profile` or `?next=` / matches. */
 function RequireGuest({ children }: { children: ReactNode }) {
   const { account, onboardingStep, loading } = useAuth();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
 
   if (loading) {
     return null;
   }
   if (account) {
-    if (onboardingStep !== null) {
-      return <Navigate to="/profile" replace />;
+    const to =
+      onboardingStep !== null ? PROFILE_PATH : safeNextPath(searchParams.get("next"));
+    // Never <Navigate> to the current path — RR remounts Navigate forever (AUTH-002).
+    if (to === location.pathname) {
+      return null;
     }
-    return <Navigate to={safeNextPath(searchParams.get("next"))} replace />;
+    return <Navigate to={to} replace />;
   }
   return <>{children}</>;
 }
@@ -86,6 +93,50 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+/** Public landing for guests; signed-in visitors go to matches (or `/profile` if onboarding). */
+function HomeRoute() {
+  const { account, onboardingStep, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return null;
+  }
+  if (account) {
+    const to = postAuthLandingPath(onboardingStep);
+    // AUTH-002: <Navigate to={current path}> loops (max update depth). Landing
+    // must never be `/` while this route is mounted.
+    if (to === location.pathname) {
+      return null;
+    }
+    return <Navigate to={to} replace />;
+  }
+  return <HomePage />;
+}
+
+/**
+ * Unknown paths: guests → public `/`; signed-in users skip `/` and go straight
+ * to matches/profile so catch-all ↔ HomeRoute cannot ping-pong (AUTH-002).
+ */
+function CatchAllRoute() {
+  const { account, onboardingStep, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return null;
+  }
+  if (account) {
+    const to = postAuthLandingPath(onboardingStep);
+    if (to === location.pathname) {
+      return null;
+    }
+    return <Navigate to={to} replace />;
+  }
+  if (location.pathname === "/") {
+    return null;
+  }
+  return <Navigate to="/" replace />;
+}
+
 export function App() {
   const { refreshError, refresh } = useAuth();
   const { t } = useLocale();
@@ -102,7 +153,7 @@ export function App() {
       )}
       <OnboardingGuard>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<HomeRoute />} />
           <Route
             path="/login"
             element={
@@ -132,6 +183,22 @@ export function App() {
             }
           />
           <Route
+            path="/matches"
+            element={
+              <RequireAuth>
+                <MatchesPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/linked-shooters"
+            element={
+              <RequireAuth>
+                <LinkedShootersPage />
+              </RequireAuth>
+            }
+          />
+          <Route
             path="/profile"
             element={
               <RequireAuth>
@@ -140,9 +207,9 @@ export function App() {
             }
           />
           {/* Legacy aliases — profile owns post-auth onboarding + editing */}
-          <Route path="/onboarding" element={<Navigate to="/profile" replace />} />
-          <Route path="/complete-profile" element={<Navigate to="/profile" replace />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/onboarding" element={<Navigate to={PROFILE_PATH} replace />} />
+          <Route path="/complete-profile" element={<Navigate to={PROFILE_PATH} replace />} />
+          <Route path="*" element={<CatchAllRoute />} />
         </Routes>
       </OnboardingGuard>
     </PublicAtmosphere>

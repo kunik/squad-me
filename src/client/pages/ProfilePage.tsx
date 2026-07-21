@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AppDialog } from "../components/AppDialog";
-import { PublicChrome } from "../components/PublicChrome";
+import { AccountShell } from "../components/AccountShell";
 import { ProfileForm } from "../components/ProfileForm";
 import { ProfileSectionHeader } from "../components/ProfileSectionHeader";
 import { ProfileSummary } from "../components/ProfileSummary";
@@ -33,20 +33,18 @@ import {
   PROFILE_ANCHOR,
   useProfileScrollSpy,
 } from "../hooks/useProfileScrollSpy";
-import { type ProfileNavSection, useUnsavedDiscard } from "../hooks/useUnsavedDiscard";
+import { useUnsavedDiscard } from "../hooks/useUnsavedDiscard";
 
 /**
- * Authenticated profile surface: left avatar + nickname + mini-menu, right pane for
- * profile edit/view and notification channels. Post-auth onboarding is only a
- * HintPanel («панель підказки») in the shared fixed `PublicChrome` hint slot over this same
- * normal management surface.
+ * Personal profile on `/profile`: details, divisions, notifications, security.
+ * Post-auth onboarding is a HintPanel over this same surface.
+ * «Мої матчі» / «Пов’язані стрільці» live on `/matches` and `/linked-shooters`.
  */
 export function ProfilePage() {
   const { t } = useLocale();
   const { account, onboardingStep, loading: authLoading, refresh, setAccount } = useAuth();
   const navigate = useNavigate();
 
-  const [section, setSection] = useState<ProfileNavSection>("profile");
   const [profile, setProfile] = useState<ProfileView | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -71,7 +69,7 @@ export function ProfilePage() {
   const needsDisciplinesStep = onboardingStep === "disciplines";
   const needsEmailStep = onboardingStep === "email";
   const showProfileEditor = editing;
-  const showNotifications = section === "profile";
+  const showNotifications = true;
 
   const {
     profileDirty,
@@ -84,13 +82,12 @@ export function ProfilePage() {
     discardIntent,
     setDiscardIntent,
     unsavedStayRef,
-    openPage,
     closeUnsavedDialog,
     confirmDiscardUnsaved,
   } = useUnsavedDiscard({
     onSkipProfile: () => executeProfileSkip(),
     onSkipDisciplines: () => executeDisciplinesSkip(),
-    onNavigate: setSection,
+    onNavigate: () => undefined,
     onCancelProfile: () => {
       setEditing(false);
       setError(null);
@@ -107,14 +104,12 @@ export function ProfilePage() {
   });
 
   const { activeAnchor, scrollToAnchor } = useProfileScrollSpy({
-    section,
     loadingProfile,
     showNotifications,
     showProfileEditor,
     editingDivisions,
     editingNotifications,
     onboardingStep,
-    setSection,
   });
 
   const accountId = account?.id;
@@ -150,6 +145,14 @@ export function ProfilePage() {
     if (onboardingStep === "disciplines") setEditingDivisions(true);
     if (onboardingStep === "email") setEditingNotifications(true);
   }, [onboardingStep]);
+
+  // Deep-link from account shell «add nickname» → open personal-details edit.
+  useEffect(() => {
+    if (loadingProfile) return;
+    if (window.location.hash.slice(1) !== PROFILE_ANCHOR) return;
+    if (profile?.nickname?.trim()) return;
+    setEditing(true);
+  }, [loadingProfile, profile]);
 
   async function reloadAfterStep() {
     setError(null);
@@ -371,12 +374,7 @@ export function ProfilePage() {
   }
 
   if (authLoading || !account) {
-    return (
-      <>
-        <PublicChrome />
-        <main className="profile-page" />
-      </>
-    );
+    return <AccountShell>{null}</AccountShell>;
   }
 
   const onboardingHint = onboardingStep ? (
@@ -401,278 +399,178 @@ export function ProfilePage() {
 
   return (
     <>
-      <PublicChrome hint={onboardingHint} />
-      <main className="profile-page">
-        <aside className="profile-page__aside">
-          <div className="profile-page__identity">
-            <div className="profile-page__avatar" aria-hidden="true">
-              <img
-                className="profile-page__avatar-img"
-                src="/avatar-default.png"
-                alt=""
-                width={160}
-                height={160}
-              />
-            </div>
-            {profile?.nickname?.trim() ? (
-              <p className="profile-page__nickname">{profile.nickname.trim()}</p>
-            ) : (
-              <button
-                type="button"
-                className="auth-page__link auth-page__link--button profile-page__nickname is-empty"
-                onClick={() => {
-                  setSection("profile");
-                  setEditing(true);
-                  scrollToAnchor(PROFILE_ANCHOR);
-                }}
-              >
-                {t.profileAddNickname}
-              </button>
-            )}
-          </div>
-          <nav className="profile-page__menu" aria-label={t.profileMenuLabel}>
-            <button
-              type="button"
-              className={`profile-page__menu-item${section === "matches" ? " is-active" : ""}`}
-              aria-current={section === "matches" ? "page" : undefined}
-              onClick={() => openPage("matches")}
-            >
-              {t.profileMenuMatches}
-            </button>
-            <button
-              type="button"
-              className={`profile-page__menu-item${section === "linked" ? " is-active" : ""}`}
-              aria-current={section === "linked" ? "page" : undefined}
-              onClick={() => openPage("linked")}
-            >
-              {t.profileMenuLinkedShooters}
-            </button>
-            <div className="profile-page__menu-divider" role="separator" />
-            <button
-              type="button"
-              className={`profile-page__menu-item${section === "profile" && activeAnchor === PROFILE_ANCHOR ? " is-active" : ""}`}
-              aria-current={section === "profile" && activeAnchor === PROFILE_ANCHOR ? "location" : undefined}
-              onClick={() => scrollToAnchor(PROFILE_ANCHOR)}
-            >
-              {t.profileMenuMyProfile}
-            </button>
-            <button
-              type="button"
-              className={`profile-page__menu-item${section === "profile" && activeAnchor === DIVISIONS_ANCHOR ? " is-active" : ""}`}
-              aria-current={section === "profile" && activeAnchor === DIVISIONS_ANCHOR ? "location" : undefined}
-              onClick={() => scrollToAnchor(DIVISIONS_ANCHOR)}
-            >
-              {t.profileMenuDivisions}
-            </button>
-            <button
-              type="button"
-              className={`profile-page__menu-item${section === "profile" && activeAnchor === NOTIFICATIONS_ANCHOR ? " is-active" : ""}`}
-              aria-current={section === "profile" && activeAnchor === NOTIFICATIONS_ANCHOR ? "location" : undefined}
-              onClick={() => scrollToAnchor(NOTIFICATIONS_ANCHOR)}
-            >
-              {t.profileMenuNotifications}
-            </button>
-            <div className="profile-page__menu-divider" role="separator" />
-            <button
-              type="button"
-              className={`profile-page__menu-item${section === "profile" && activeAnchor === ACTIONS_ANCHOR ? " is-active" : ""}`}
-              aria-current={section === "profile" && activeAnchor === ACTIONS_ANCHOR ? "location" : undefined}
-              onClick={() => scrollToAnchor(ACTIONS_ANCHOR)}
-            >
-              {t.profileMenuActions}
-            </button>
-          </nav>
-        </aside>
-
-        <div className="profile-page__main">
-          {section === "matches" && (
-            <div className="profile-page__block profile-page__placeholder">
-              <h1 className="profile-page__section-title">{t.profileMenuMatches}</h1>
-              <p className="profile-page__hint">{t.profileMatchesComingSoon}</p>
-            </div>
-          )}
-
-          {section === "linked" && (
-            <div className="profile-page__block profile-page__placeholder">
-              <h1 className="profile-page__section-title">{t.profileMenuLinkedShooters}</h1>
-              <h2 className="profile-page__subheading">{t.profileLinkedIRegister}</h2>
-              <p className="profile-page__hint">{t.profileMatchesComingSoon}</p>
-              <h2 className="profile-page__subheading">{t.profileLinkedRegisterMe}</h2>
-              <p className="profile-page__hint">{t.profileMatchesComingSoon}</p>
-            </div>
-          )}
-
-          {section === "profile" && (
+      <AccountShell
+        hint={onboardingHint}
+        activeAnchor={activeAnchor}
+        onScrollToAnchor={scrollToAnchor}
+        nickname={loadingProfile ? undefined : profile?.nickname?.trim() || null}
+      >
+        <ProfileContentSection id={PROFILE_ANCHOR}>
+          {!loadingProfile && (
             <>
-              <ProfileContentSection id={PROFILE_ANCHOR}>
-                {!loadingProfile && (
-                  <>
-                    <ProfileSectionHeader
-                      title={t.profileSummaryTitle}
-                      editing={showProfileEditor}
-                      editLabel={t.profileEdit}
-                      cancelLabel={t.profileEditCancel}
-                      busy={submitting}
-                      onEdit={() => {
-                        setEditing(true);
-                        setError(null);
-                        setErrorField(null);
-                      }}
-                      onCancel={() => {
-                        if (profileDirty) {
-                          setDiscardIntent({ type: "cancel-profile" });
-                          return;
-                        }
-                        setEditing(false);
-                        setError(null);
-                        setErrorField(null);
-                      }}
-                    />
-                    {showProfileEditor ? (
-                      <ProfileForm
-                        mode="profile"
-                        initialValues={profile ?? undefined}
-                        submitting={submitting}
-                        serverError={error}
-                        serverField={errorField}
-                        showMembershipHints={needsProfileStep}
-                        onSubmit={handleProfileSubmit}
-                        onDirtyChange={setProfileDirty}
-                        onCancel={() => {
-                          if (profileDirty) {
-                            setDiscardIntent({ type: "cancel-profile" });
-                            return;
-                          }
-                          setEditing(false);
-                          setError(null);
-                          setErrorField(null);
-                        }}
-                      />
-                    ) : (
-                      <ProfileSummary
-                        mode="profile"
-                        profile={profile}
-                        showMembershipHints={needsProfileStep}
-                      />
-                    )}
-                  </>
-                )}
-              </ProfileContentSection>
-
-              <ProfileContentSection id={DIVISIONS_ANCHOR}>
-                {!loadingProfile && (
-                  <>
-                    <ProfileSectionHeader
-                      title={t.profileMenuDivisions}
-                      editing={editingDivisions}
-                      editLabel={t.profileEdit}
-                      cancelLabel={t.profileEditCancel}
-                      busy={submitting}
-                      onEdit={() => {
-                        setEditingDivisions(true);
-                        setDivisionsError(null);
-                      }}
-                      onCancel={() => {
-                        if (divisionsDirty) {
-                          setDiscardIntent({ type: "cancel-divisions" });
-                          return;
-                        }
-                        setEditingDivisions(false);
-                        setDivisionsError(null);
-                      }}
-                    />
-                    {editingDivisions ? (
-                      <ProfileForm
-                        mode="divisions"
-                        initialValues={profile ?? undefined}
-                        submitting={submitting}
-                        serverError={divisionsError}
-                        onSubmit={handleProfileSubmit}
-                        onDirtyChange={setDivisionsDirty}
-                        onCancel={() => {
-                          if (divisionsDirty) {
-                            setDiscardIntent({ type: "cancel-divisions" });
-                            return;
-                          }
-                          setEditingDivisions(false);
-                          setDivisionsError(null);
-                        }}
-                      />
-                    ) : (
-                      <ProfileSummary mode="divisions" profile={profile} />
-                    )}
-                  </>
-                )}
-              </ProfileContentSection>
-
-              {showNotifications && (
-                <ProfileContentSection
-                  id={NOTIFICATIONS_ANCHOR}
-                  className="profile-page__notifications"
-                >
-                  {!loadingProfile && (
-                    <>
-                      <ProfileSectionHeader
-                        title={t.commChannelsTitle}
-                        editing={editingNotifications}
-                        editLabel={t.profileEdit}
-                        cancelLabel={t.profileEditCancel}
-                        busy={submitting}
-                        onEdit={() => {
-                          setEditingNotifications(true);
-                          setEmailError(null);
-                        }}
-                        onCancel={requestCancelNotifications}
-                      />
-                      {editingNotifications ? (
-                        <NotificationChannelsForm
-                          initialEmail={account.email}
-                          phoneE164={account.phoneE164}
-                          submitting={submitting}
-                          serverError={emailError}
-                          onSaveEmail={persistAccountEmail}
-                          onDirtyChange={setNotificationsDirty}
-                          onCancel={requestCancelNotifications}
-                          onSaved={handleNotificationsSaved}
-                        />
-                      ) : (
-                        <NotificationChannelsSummary
-                          email={account.email}
-                          phoneE164={account.phoneE164}
-                        />
-                      )}
-                    </>
-                  )}
-                </ProfileContentSection>
+              <ProfileSectionHeader
+                title={t.profileSummaryTitle}
+                editing={showProfileEditor}
+                editLabel={t.profileEdit}
+                cancelLabel={t.profileEditCancel}
+                busy={submitting}
+                onEdit={() => {
+                  setEditing(true);
+                  setError(null);
+                  setErrorField(null);
+                }}
+                onCancel={() => {
+                  if (profileDirty) {
+                    setDiscardIntent({ type: "cancel-profile" });
+                    return;
+                  }
+                  setEditing(false);
+                  setError(null);
+                  setErrorField(null);
+                }}
+              />
+              {showProfileEditor ? (
+                <ProfileForm
+                  mode="profile"
+                  initialValues={profile ?? undefined}
+                  submitting={submitting}
+                  serverError={error}
+                  serverField={errorField}
+                  showMembershipHints={needsProfileStep}
+                  onSubmit={handleProfileSubmit}
+                  onDirtyChange={setProfileDirty}
+                  onCancel={() => {
+                    if (profileDirty) {
+                      setDiscardIntent({ type: "cancel-profile" });
+                      return;
+                    }
+                    setEditing(false);
+                    setError(null);
+                    setErrorField(null);
+                  }}
+                />
+              ) : (
+                <ProfileSummary
+                  mode="profile"
+                  profile={profile}
+                  showMembershipHints={needsProfileStep}
+                />
               )}
-              <section
-                id={ACTIONS_ANCHOR}
-                className="profile-page__block profile-page__anchor profile-page__actions"
-                aria-labelledby="profile-actions-heading"
-              >
-                <h2 id="profile-actions-heading" className="profile-page__section-title">
-                  {t.profileMenuActions}
-                </h2>
-                <Link className="btn btn--ghost" to="/change-phone">
-                  {t.profileChangePhone}
-                </Link>
-                <Link className="btn btn--ghost" to="/forgot-password">
-                  {t.profileChangePassword}
-                </Link>
-                <button
-                  className="btn profile-page__delete"
-                  type="button"
-                  ref={deleteTriggerRef}
-                  disabled={deleting}
-                  onClick={openDeleteDialog}
-                >
-                  {t.profileDelete}
-                </button>
-              </section>
             </>
           )}
-        </div>
-      </main>
+        </ProfileContentSection>
+
+        <ProfileContentSection id={DIVISIONS_ANCHOR}>
+          {!loadingProfile && (
+            <>
+              <ProfileSectionHeader
+                title={t.profileMenuDivisions}
+                editing={editingDivisions}
+                editLabel={t.profileEdit}
+                cancelLabel={t.profileEditCancel}
+                busy={submitting}
+                onEdit={() => {
+                  setEditingDivisions(true);
+                  setDivisionsError(null);
+                }}
+                onCancel={() => {
+                  if (divisionsDirty) {
+                    setDiscardIntent({ type: "cancel-divisions" });
+                    return;
+                  }
+                  setEditingDivisions(false);
+                  setDivisionsError(null);
+                }}
+              />
+              {editingDivisions ? (
+                <ProfileForm
+                  mode="divisions"
+                  initialValues={profile ?? undefined}
+                  submitting={submitting}
+                  serverError={divisionsError}
+                  onSubmit={handleProfileSubmit}
+                  onDirtyChange={setDivisionsDirty}
+                  onCancel={() => {
+                    if (divisionsDirty) {
+                      setDiscardIntent({ type: "cancel-divisions" });
+                      return;
+                    }
+                    setEditingDivisions(false);
+                    setDivisionsError(null);
+                  }}
+                />
+              ) : (
+                <ProfileSummary mode="divisions" profile={profile} />
+              )}
+            </>
+          )}
+        </ProfileContentSection>
+
+        {showNotifications && (
+          <ProfileContentSection
+            id={NOTIFICATIONS_ANCHOR}
+            className="profile-page__notifications"
+          >
+            {!loadingProfile && (
+              <>
+                <ProfileSectionHeader
+                  title={t.commChannelsTitle}
+                  editing={editingNotifications}
+                  editLabel={t.profileEdit}
+                  cancelLabel={t.profileEditCancel}
+                  busy={submitting}
+                  onEdit={() => {
+                    setEditingNotifications(true);
+                    setEmailError(null);
+                  }}
+                  onCancel={requestCancelNotifications}
+                />
+                {editingNotifications ? (
+                  <NotificationChannelsForm
+                    initialEmail={account.email}
+                    phoneE164={account.phoneE164}
+                    submitting={submitting}
+                    serverError={emailError}
+                    onSaveEmail={persistAccountEmail}
+                    onDirtyChange={setNotificationsDirty}
+                    onCancel={requestCancelNotifications}
+                    onSaved={handleNotificationsSaved}
+                  />
+                ) : (
+                  <NotificationChannelsSummary
+                    email={account.email}
+                    phoneE164={account.phoneE164}
+                  />
+                )}
+              </>
+            )}
+          </ProfileContentSection>
+        )}
+        <section
+          id={ACTIONS_ANCHOR}
+          className="profile-page__block profile-page__anchor profile-page__actions"
+          aria-labelledby="profile-actions-heading"
+        >
+          <h2 id="profile-actions-heading" className="profile-page__section-title">
+            {t.profileMenuActions}
+          </h2>
+          <Link className="btn btn--ghost" to="/change-phone">
+            {t.profileChangePhone}
+          </Link>
+          <Link className="btn btn--ghost" to="/forgot-password">
+            {t.profileChangePassword}
+          </Link>
+          <button
+            className="btn profile-page__delete"
+            type="button"
+            ref={deleteTriggerRef}
+            disabled={deleting}
+            onClick={openDeleteDialog}
+          >
+            {t.profileDelete}
+          </button>
+        </section>
+      </AccountShell>
       <AppDialog
         open={Boolean(discardIntent)}
         title={t.profileUnsavedTitle}
