@@ -1,0 +1,99 @@
+---
+description: UA-first product voice for user-facing UI copy (i18n, banners, auth errors)
+globs: src/client/i18n.ts,src/client/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# UI copy / product voice (UA-first)
+
+Applies when editing `src/client/i18n.ts`, page/component strings, auth errors
+shown to users, HintPanel / banner / dialog copy. Skip API codes, logs, tests.
+
+## Voice
+
+1. **UA first** — write Ukrainian, read it aloud; then EN that matches meaning and
+   tone (parity, not literal calque).
+2. **Plain speech** — spoken words over канцелярит / admin API tone.
+3. **Person’s point of view** — «вас», «тут», «ви»; not system abstractions
+   («сесії», «запит відхилено») unless no clearer word exists.
+4. **Concrete over jargon** in success/status: device/sign-in beats session;
+   sign out beats revoke; wrong password beats invalid credentials.
+5. **Success** = what changed → what stays true (two short thoughts).
+6. **Errors** = what went wrong (plain) + what to do next when useful.
+
+## Takeaway parity check (required)
+
+Before keeping any rewrite of user-facing copy, run **takeaway parity**:
+
+1. Form a short (**5–10 word**) takeaway from the **OLD** text alone.
+2. Form a short (**5–10 word**) takeaway from the **NEW** text alone.
+3. If the takeaways **differ strongly** → the change is incorrect (revise or
+   revert). Voice polish must not change the user’s understanding of what
+   happens.
+4. If the takeaways are **similar** → linguistic pass OK; continue to the
+   functional check below.
+
+Do this **per string** (UA and EN separately when both change). Record old/new
+takeaways in the work notes when doing a rewrite pass.
+
+## Functional accuracy check (required)
+
+After takeaway parity passes, verify the copy against **implemented behavior**
+(routes, handlers, UI wiring, product docs) — not only linguistic similarity.
+
+- Does the string accurately describe what the element or logic does?
+- Prefer accurate plain language over prettier-but-wrong copy.
+- Do **not** invent remediation that the product does not support.
+- If voice/audit proposal conflicts with behavior, **skip or adapt** and note
+  why (e.g. shared error code used in multiple flows).
+
+Examples of behavior to confirm before session/auth copy ships:
+
+- Clear / revoke-others: password step-up; **other** sessions end; **current**
+  stays (`POST /api/auth/sessions/revoke-others`).
+- Password reset / register-as-reset: other devices signed out; new password
+  replaces old.
+- Auth error codes: map via `translateAuthError` + triggers in identity routes
+  / OTP — keep anti-enumeration where required (`invalid_credentials`).
+
+## Before merge
+
+Any new/changed user-facing string:
+
+1. Read UA aloud (admin/backend/status-code tone → rewrite).
+2. Takeaway parity (old vs new).
+3. Functional accuracy vs code/docs.
+
+## Glossary (UI, not code)
+
+| Prefer (UA / EN) | Avoid in UI |
+|---|---|
+| залогінено / signed in | увійшлими; authenticated |
+| у системі / signed in | активна сесія (as the main idea) |
+| пристрої / devices | сесії / sessions (user-facing) |
+| вийти / sign out | відкликати / revoke |
+| неправильний пароль / wrong password | invalid credentials |
+
+## Bad → good
+
+```
+❌ UA: Сесії на інших пристроях завершено. Поточна сесія лишається активною.
+❌ EN: Other sessions have been terminated. This session remains active.
+✅ UA: На інших пристроях вас більше не залогінено. Тут ви лишаєтесь у системі.
+✅ EN: You’re signed out on other devices. This one stays signed in.
+
+❌ UA: Інші активні сесії буде завершено.
+✅ UA: На інших пристроях вас розлогінить.
+✅ EN: You’ll be signed out on other devices.
+
+❌ UA: Некоректний запит / EN: Invalid request
+✅ UA: Щось не так із запитом. Оновіть сторінку й спробуйте ще раз.
+✅ EN: Something’s wrong with this request. Refresh and try again.
+
+❌ UA: Неправильний номер телефону або пароль
+✅ UA: Неправильний номер або пароль
+✅ EN: Wrong phone number or password
+```
+
+Domain terms (дивізіон, ФПСУ, IPSC) stay; don’t invent softer synonyms for
+sport jargon users already know.

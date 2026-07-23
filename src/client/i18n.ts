@@ -45,7 +45,7 @@ export const messages = {
     registerLoginLink: "Увійти",
     registerPasswordHint: "Створіть пароль і вкажіть псевдо для завершення реєстрації.",
     registerResetWarning:
-      "Номер належить існуючому акаунту. Новий пароль замінить попередній, а інші сесії буде завершено.",
+      "Номер належить існуючому акаунту. Новий пароль замінить попередній, а на інших пристроях вас розлогінить.",
 
     // Profile form fields (also used on register password step for nickname)
     profileNameUaInfo:
@@ -211,13 +211,13 @@ export const messages = {
     profileAddNickname: "Додати псевдо",
     profileAsideLabel: "Профіль",
     profileAvatarAlt: "Аватар",
-    profileClearSessions: "Вийти з усіх сесій",
-    profileClearSessionsTitle: "Вийти з усіх інших сесій?",
+    profileClearSessions: "Вийти на інших пристроях",
+    profileClearSessionsTitle: "Вийти на інших пристроях?",
     profileClearSessionsConfirm:
-      "Інші пристрої буде розлогінено. Ця сесія залишиться активною. Підтвердіть паролем.",
+      "На інших пристроях вас розлогінить. Тут ви лишитесь у системі. Підтвердіть паролем.",
     profileClearSessionsPasswordLabel: "Пароль",
-    profileClearSessionsSubmit: "Вийти з усіх сесій",
-    profileClearSessionsSubmitting: "Завершуємо…",
+    profileClearSessionsSubmit: "Вийти на інших пристроях",
+    profileClearSessionsSubmitting: "Виходимо…",
     profileClearSessionsSuccess:
       "На інших пристроях вас більше не залогінено. Тут ви лишаєтесь у системі.",
     profileUnsavedTitle: "Незбережені зміни",
@@ -249,7 +249,8 @@ export const messages = {
     forgotSendCode: "Надіслати код",
     forgotSubmit: "Змінити пароль",
     forgotSubmitting: "Оновлюємо…",
-    forgotResetWarning: "Новий пароль замінить попередній, а інші активні сесії буде завершено.",
+    forgotResetWarning:
+      "Новий пароль замінить попередній, а на інших пристроях вас розлогінить.",
 
     // Change phone wizard (authenticated)
     changePhoneTitle: "Змінити номер телефону",
@@ -274,17 +275,18 @@ export const messages = {
 
     // Auth error mapping (server error codes → UA text)
     authErrorInvalidPhone: "Неправильний номер телефону",
-    authErrorInvalidRequest: "Некоректний запит",
+    authErrorInvalidRequest:
+      "Щось не так із запитом. Оновіть сторінку й спробуйте ще раз.",
     authErrorInvalidCode: "Неправильний код",
     authErrorLocked: "Забагато спроб. Запросіть новий код.",
     authErrorExpired: "Код застарів. Запросіть новий.",
-    authErrorNoChallenge: "Немає активного запиту коду. Запросіть новий.",
+    authErrorNoChallenge: "Немає активного коду. Запросіть новий.",
     authErrorRateLimited: "Занадто багато спроб. Спробуйте пізніше.",
     authErrorInvalidPassword: "Пароль має бути від 8 до 128 символів",
     authErrorInvalidProof: "Підтвердження застаріло. Почніть знову.",
     authErrorPhoneRegistered:
       "Цей номер уже зареєстровано. Увійдіть або відновіть пароль.",
-    authErrorInvalidCredentials: "Неправильний номер телефону або пароль",
+    authErrorInvalidCredentials: "Неправильний номер або пароль",
     authErrorTurnstileFailed:
       "Перевірку не пройдено. Оновіть сторінку і спробуйте ще раз.",
     authErrorTurnstileMisconfigured:
@@ -300,12 +302,14 @@ export const messages = {
     authErrorInvalidEmail: "Неправильна електронна пошта",
     authErrorEmailAlreadyUsed: "Ця електронна пошта вже використовується",
     authErrorUnauthenticated: "Увійдіть, щоб продовжити",
-    authErrorOriginNotAllowed: "Запит відхилено з міркувань безпеки",
+    authErrorOriginNotAllowed:
+      "Запит заблоковано з міркувань безпеки. Відкрийте сайт знову й спробуйте ще раз.",
     authErrorGeneric: "Щось пішло не так. Спробуйте ще раз.",
     authErrorNetwork: "Немає зв’язку із сервером. Перевірте мережу й повторіть спробу.",
     authErrorTurnstileUnavailable:
       "Не вдалося завантажити перевірку. Оновіть сторінку й спробуйте ще раз.",
-    authRefreshFailed: "Не вдалося оновити стан акаунту. Ви не вийшли із системи.",
+    authRefreshFailed:
+      "Не вдалося оновити дані акаунту. Ви лишаєтесь у системі.",
 
     // Header / user menu (App Shell pattern)
     headerMenuLabel: "Меню акаунту",
@@ -358,7 +362,7 @@ export const messages = {
     registerLoginLink: "Log in",
     registerPasswordHint: "Create a password and enter a nickname to finish registration.",
     registerResetWarning:
-      "This number belongs to an existing account. The new password will replace the old one and sign out other sessions.",
+      "This number belongs to an existing account. The new password replaces the old one, and you’ll be signed out on other devices.",
 
     profileNameUaInfo:
       "enter first and last name in Ukrainian, as in official documents",
@@ -523,12 +527,12 @@ export const messages = {
     profileAddNickname: "Add nickname",
     profileAsideLabel: "Profile",
     profileAvatarAlt: "Avatar",
-    profileClearSessions: "Sign out everywhere",
-    profileClearSessionsTitle: "Sign out of all other sessions?",
+    profileClearSessions: "Sign out on other devices",
+    profileClearSessionsTitle: "Sign out on other devices?",
     profileClearSessionsConfirm:
-      "Other devices will be signed out. This session stays active. Confirm with your password.",
+      "You’ll be signed out on other devices. This one stays signed in. Confirm with your password.",
     profileClearSessionsPasswordLabel: "Password",
-    profileClearSessionsSubmit: "Sign out everywhere",
+    profileClearSessionsSubmit: "Sign out on other devices",
     profileClearSessionsSubmitting: "Signing out…",
     profileClearSessionsSuccess:
       "You’re signed out on other devices. This one stays signed in.",
@@ -560,7 +564,7 @@ export const messages = {
     forgotSubmit: "Change password",
     forgotSubmitting: "Updating…",
     forgotResetWarning:
-      "The new password will replace the old one and sign out other active sessions.",
+      "The new password replaces the old one, and you’ll be signed out on other devices.",
 
     changePhoneTitle: "Change phone number",
     changePhoneConfirmHint:
@@ -582,17 +586,18 @@ export const messages = {
     otpResendWaitSuffix: "s",
 
     authErrorInvalidPhone: "Invalid phone number",
-    authErrorInvalidRequest: "Invalid request",
+    authErrorInvalidRequest:
+      "Something’s wrong with this request. Refresh and try again.",
     authErrorInvalidCode: "Invalid code",
     authErrorLocked: "Too many attempts. Request a new code.",
     authErrorExpired: "Code expired. Request a new one.",
-    authErrorNoChallenge: "No active code request. Request a new one.",
+    authErrorNoChallenge: "There’s no active code. Request a new one.",
     authErrorRateLimited: "Too many attempts. Try again later.",
     authErrorInvalidPassword: "Password must be 8–128 characters",
     authErrorInvalidProof: "Verification expired. Start again.",
     authErrorPhoneRegistered:
       "This number is already registered. Log in or reset your password.",
-    authErrorInvalidCredentials: "Invalid phone number or password",
+    authErrorInvalidCredentials: "Wrong phone number or password",
     authErrorTurnstileFailed: "Verification check failed. Refresh and try again.",
     authErrorTurnstileMisconfigured: "Sending a code is temporarily unavailable. Try again later.",
     authErrorInvalidProfile: "Check the details you entered",
@@ -606,12 +611,14 @@ export const messages = {
     authErrorInvalidEmail: "Invalid email address",
     authErrorEmailAlreadyUsed: "This email is already in use",
     authErrorUnauthenticated: "Sign in to continue",
-    authErrorOriginNotAllowed: "Request blocked for security reasons",
+    authErrorOriginNotAllowed:
+      "This request was blocked for security. Open the site again and try once more.",
     authErrorGeneric: "Something went wrong. Try again.",
     authErrorNetwork: "Could not reach the server. Check your connection and try again.",
     authErrorTurnstileUnavailable:
       "The verification check could not load. Refresh the page and try again.",
-    authRefreshFailed: "Account status could not be refreshed. You have not been signed out.",
+    authRefreshFailed:
+      "Couldn’t refresh your account. You’re still signed in.",
 
     headerMenuLabel: "Account menu",
     headerLanguage: "Language",
