@@ -57,7 +57,7 @@ function resolvePreferred(
 
 /**
  * Edit form for `/profile` «Сповіщення».
- * Gentelella `.list-group` rows with `.form-check` radios and `.toggle-row` layout.
+ * Channel rows with radios (disabled until connected) and connect affordances.
  */
 export function NotificationChannelsForm({
   submitting,
@@ -208,7 +208,11 @@ export function NotificationChannelsForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="list-group channel-list">
+      <div
+        className="channel-list"
+        role="radiogroup"
+        aria-label={t.commChannelsTitle}
+      >
         <ChannelRadioRow
           name={groupId}
           value="email"
@@ -380,6 +384,7 @@ export function NotificationChannelsSummary({
   telegramUserId = null,
   preferredChannel = null,
 }: NotificationChannelsSummaryProps) {
+  const { t } = useLocale();
   const emailConnected = false;
   const telegramConnected = Boolean(telegramUserId?.trim());
   const smsConnected = Boolean(phoneE164.trim());
@@ -393,7 +398,7 @@ export function NotificationChannelsSummary({
   const maskedPhone = phoneE164.trim() ? maskPhoneE164(phoneE164) : "";
 
   return (
-    <div className="list-group channel-list" role="list">
+    <div className="channel-list" role="list" aria-label={t.commChannelsTitle}>
       <ChannelSummaryRow
         labelKey="email"
         preferred={preferred === "email"}
@@ -444,27 +449,30 @@ function ChannelRadioRow({
 }) {
   const { t } = useLocale();
   const inputId = `${name}-${value}`;
+  const selectable = connected && !busy;
 
   return (
-    <div className={`list-group-item${checked ? " active" : ""}`}>
-      <div className="toggle-row">
-        <div>
-          <label className="form-check" htmlFor={inputId}>
+    <div className="channel-row">
+      <div className="channel-row__main">
+        <div className="channel-row__info">
+          <label
+            className={`form-check channel-choice${selectable ? "" : " is-muted"}`}
+            htmlFor={inputId}
+          >
             <input
               id={inputId}
               type="radio"
               name={name}
               value={value}
               checked={checked}
-              disabled={busy || !connected}
+              disabled={!selectable}
               onChange={onSelect}
             />
-            <span>{label}</span>
+            <span className="channel-choice__label">{label}</span>
           </label>
           <ChannelIdentifier
             identifier={identifier}
             pendingIdentifier={pendingIdentifier}
-            asDesc
           />
           <span className="visually-hidden">
             {connected ? t.commChannelsConnected : t.commChannelsDisconnected}
@@ -503,14 +511,18 @@ function ChannelSummaryRow({
         : t.commChannelsSmsLabel;
 
   return (
-    <div className={`list-group-item${preferred ? " active" : ""}`} role="listitem">
-      <div className="toggle-row">
-        <div>
-          <div className="label">{label}</div>
+    <div className="channel-row" role="listitem">
+      <div className="channel-row__main">
+        <div className="channel-row__info">
+          <ChannelChoiceView
+            preferred={preferred}
+            muted={!connected}
+            label={label}
+            preferredTitle={t.commChannelsPreferred}
+          />
           <ChannelIdentifier
             identifier={identifier}
             pendingIdentifier={pendingIdentifier}
-            asDesc
           />
           <span className="visually-hidden">
             {preferred ? t.commChannelsPreferred : ""}
@@ -523,27 +535,57 @@ function ChannelSummaryRow({
   );
 }
 
+/**
+ * View-mode preferred indicator: same radio control as edit (checked + disabled),
+ * or an empty slot so labels stay aligned.
+ */
+function ChannelChoiceView({
+  preferred,
+  muted,
+  label,
+  preferredTitle,
+}: {
+  preferred: boolean;
+  muted: boolean;
+  label: string;
+  preferredTitle: string;
+}) {
+  return (
+    <div className={`form-check channel-choice${muted ? " is-muted" : ""}`}>
+      {preferred ? (
+        <input
+          type="radio"
+          checked
+          disabled
+          readOnly
+          tabIndex={-1}
+          title={preferredTitle}
+          aria-label={preferredTitle}
+          onChange={() => undefined}
+        />
+      ) : (
+        <span className="channel-pref-slot" aria-hidden="true" />
+      )}
+      <span className="channel-choice__label">{label}</span>
+    </div>
+  );
+}
+
 function ChannelIdentifier({
   identifier,
   pendingIdentifier,
-  asDesc = false,
 }: {
   identifier: string | null;
   pendingIdentifier?: string | null;
-  asDesc?: boolean;
 }) {
   if (identifier) {
-    return asDesc ? (
-      <div className="desc">{identifier}</div>
-    ) : (
-      <span className="meta">{identifier}</span>
-    );
+    return <div className="channel-row__id">{identifier}</div>;
   }
   if (pendingIdentifier) {
-    return asDesc ? (
-      <div className="desc channel-pending">{pendingIdentifier}</div>
-    ) : (
-      <span className="meta channel-pending">{pendingIdentifier}</span>
+    return (
+      <div className="channel-row__id channel-row__id--pending">
+        {pendingIdentifier}
+      </div>
     );
   }
   return null;

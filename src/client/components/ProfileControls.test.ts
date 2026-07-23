@@ -79,15 +79,17 @@ describe("normal profile management controls", () => {
     expect(markup).not.toContain("Надіслати код");
     expect(markup).not.toContain("Пропустити");
 
-    // Gentelella list-group rows: radio / label / status / identifier.
-    expect(markup).toContain("list-group-item");
-    expect(markup).toContain("toggle-row");
-    expect(markup).toContain('class="desc"');
+    // Channel rows: radio / label / status / identifier (not list-group).
+    expect(markup).toContain("channel-row");
+    expect(markup).toContain("channel-row__main");
+    expect(markup).toContain("channel-row__id");
+    expect(markup).toContain('role="radiogroup"');
+    expect(markup).not.toContain("list-group-item");
     expect(markup).not.toMatch(
       /form-check[^>]*>[^<]*<(?:img|svg)[^>]*icon-channel-/,
     );
 
-    // Disconnected Email/Telegram radios stay disabled; SMS (auth phone) is selectable.
+    // Disconnected Email/Telegram radios stay disabled (still visible); SMS is selectable.
     expect(radioInputForValue(markup, "email")).toContain("disabled");
     expect(radioInputForValue(markup, "telegram")).toContain("disabled");
     expect(radioInputForValue(markup, "sms")).not.toContain("disabled");
@@ -103,14 +105,18 @@ describe("normal profile management controls", () => {
       }),
     );
 
-    // Email is never fake-connected; SMS row gets `.list-group-item active`.
+    // Email is never fake-connected; only SMS gets a checked display radio in view mode.
     const emailMarker = markup.indexOf("Електронна пошта");
     const telegramMarker = markup.indexOf("Telegram-бот");
     const smsMarker = markup.indexOf("SMS");
-    const emailRow = markup.slice(emailMarker - 120, telegramMarker);
-    const smsRow = markup.slice(smsMarker - 120, smsMarker + 120);
-    expect(emailRow).not.toContain("list-group-item active");
-    expect(smsRow).toContain("list-group-item active");
+    const emailRow = markup.slice(emailMarker - 200, telegramMarker);
+    const smsRow = markup.slice(smsMarker - 280, smsMarker + 280);
+    expect(emailRow).toContain("channel-pref-slot");
+    expect(emailRow).toContain("is-muted");
+    expect(emailRow).not.toContain("checked");
+    expect(smsRow).toContain('type="radio"');
+    expect(smsRow).toContain("checked");
+    expect(smsRow).not.toContain("channel-pref-slot");
   });
 
   it("renders notification channels summary with three channel rows", () => {
@@ -137,14 +143,16 @@ describe("normal profile management controls", () => {
     expect(markup).not.toContain("Зберегти зміни");
     expect(markup).not.toContain("Надіслати код");
 
-    // Same Gentelella list-group skeleton as edit; status lives after the label row.
-    expect(markup).toContain("list-group-item");
-    expect(markup).toContain("toggle-row");
+    expect(markup).toContain("channel-row");
+    expect(markup).toContain("channel-row__main");
+    expect(markup).not.toContain("list-group-item");
     expect(markup).not.toMatch(
       /class="label"[^>]*>[^<]*<img[^>]*icon-channel-/,
     );
     const smsIdx = markup.indexOf("SMS");
-    const smsTail = markup.slice(smsIdx, smsIdx + 400);
+    const smsTail = markup.slice(smsIdx - 200, smsIdx + 500);
+    expect(smsTail).toContain('type="radio"');
+    expect(smsTail).toContain("checked");
     expect(smsTail).toContain("status-green");
     expect(smsTail).toContain("channel-status-icon");
   });
@@ -226,8 +234,9 @@ describe("collapsible membership / discipline toggles", () => {
     expect(divisionsMarkup).not.toContain("profile-form__chevron");
     expect(divisionsMarkup).toContain("profile-form__toggle-body");
     expect(divisionsMarkup).toContain("is-enabled");
-    expect(divisionsMarkup).toContain("profile-form__discipline-meta");
+    expect(divisionsMarkup).toContain("field-view-value");
     expect(divisionsMarkup).toContain(" - ");
+    expect(divisionsMarkup).not.toContain("profile-form__discipline-meta");
   });
 });
 

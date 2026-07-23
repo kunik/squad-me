@@ -216,7 +216,7 @@ function DisciplineSummary({
   return (
     <CollapsibleToggleBlock enabled={enabled} label={label}>
       <p
-        className="field-view-value profile-form__discipline-meta"
+        className="field-view-value"
         aria-label={`${t.profileDivisionLabel}: ${division}. ${t.profilePowerFactorLabel}: ${powerFactor}`}
       >
         {division} - {powerFactor}
