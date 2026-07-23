@@ -145,14 +145,14 @@ describe("normal profile management controls", () => {
   });
 });
 
-describe("collapsible membership / discipline chevrons", () => {
+describe("collapsible membership / discipline toggles", () => {
   const emptyDiscipline: DisciplineBlock = {
     enabled: false,
     division: null,
     powerFactor: null,
   };
 
-  it("shows expand/collapse chevrons in edit mode", () => {
+  it("shows Gentelella toggle switches in edit mode", () => {
     const profileMarkup = withLocale(
       createElement(ProfileForm, {
         mode: "profile",
@@ -172,13 +172,16 @@ describe("collapsible membership / discipline chevrons", () => {
       }),
     );
 
-    expect(profileMarkup).toContain("profile-form__chevron");
-    expect(profileMarkup).toContain("is-open");
-    expect(divisionsMarkup).toContain("profile-form__chevron");
-    expect(divisionsMarkup).toContain("is-open");
+    expect(profileMarkup).toContain("toggle-row");
+    expect(profileMarkup).toContain('role="switch"');
+    expect(profileMarkup).toContain("toggle on");
+    expect(profileMarkup).not.toContain("profile-form__chevron");
+    expect(divisionsMarkup).toContain("toggle-row");
+    expect(divisionsMarkup).toContain("toggle on");
+    expect(divisionsMarkup).not.toContain("profile-form__chevron");
   });
 
-  it("hides chevrons in view mode but still shows enabled nested content", () => {
+  it("shows read-only toggles in view mode but still shows enabled nested content", () => {
     const profileMarkup = withLocale(
       createElement(ProfileSummary, {
         mode: "profile",
@@ -205,6 +208,8 @@ describe("collapsible membership / discipline chevrons", () => {
       }),
     );
 
+    expect(profileMarkup).toContain("toggle on");
+    expect(profileMarkup).toContain('aria-disabled="true"');
     expect(profileMarkup).not.toContain("profile-form__chevron");
     expect(profileMarkup).toContain("Олена");
     expect(profileMarkup).toContain("Шевченко");

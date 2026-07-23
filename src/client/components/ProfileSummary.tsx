@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useLocale } from "../locale";
 import type { DisciplineBlock, ProfileView } from "../lib/authApi";
+import { CollapsibleToggleBlock } from "./CollapsibleToggleBlock";
 import { FieldLabel, type FieldHintContent } from "./FieldHint";
 
 type ProfileSummaryProps = {
@@ -183,17 +184,10 @@ function MembershipSummary({
   label: string;
   children: ReactNode;
 }) {
-  const { t } = useLocale();
   return (
-    <fieldset
-      className={`profile-form__block profile-form__toggle-block${checked ? " is-enabled" : ""}`}
-    >
-      <div className="profile-form__status-row">
-        <span>{label}</span>
-        <strong>{checked ? t.profileSummaryYes : t.profileSummaryNo}</strong>
-      </div>
-      {checked && <div className="profile-form__toggle-body">{children}</div>}
-    </fieldset>
+    <CollapsibleToggleBlock enabled={checked} label={label}>
+      {children}
+    </CollapsibleToggleBlock>
   );
 }
 
@@ -219,24 +213,14 @@ function DisciplineSummary({
       : empty;
 
   return (
-    <fieldset
-      className={`profile-form__block profile-form__toggle-block${enabled ? " is-enabled" : ""}`}
-    >
-      <div className="profile-form__status-row">
-        <span>{label}</span>
-        <strong>{enabled ? t.profileSummaryYes : t.profileSummaryNo}</strong>
-      </div>
-      {enabled && (
-        <div className="profile-form__toggle-body">
-          <p
-            className="field-view-value profile-form__discipline-meta"
-            aria-label={`${t.profileDivisionLabel}: ${division}. ${t.profilePowerFactorLabel}: ${powerFactor}`}
-          >
-            {division} - {powerFactor}
-          </p>
-        </div>
-      )}
-    </fieldset>
+    <CollapsibleToggleBlock enabled={enabled} label={label}>
+      <p
+        className="field-view-value profile-form__discipline-meta"
+        aria-label={`${t.profileDivisionLabel}: ${division}. ${t.profilePowerFactorLabel}: ${powerFactor}`}
+      >
+        {division} - {powerFactor}
+      </p>
+    </CollapsibleToggleBlock>
   );
 }
 

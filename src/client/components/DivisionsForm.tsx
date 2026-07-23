@@ -17,6 +17,7 @@ import {
   type ProfileClientErrorCode,
   type ProfileFormFieldKey,
 } from "../lib/profileFormValidation";
+import { CollapsibleToggleBlock } from "./CollapsibleToggleBlock";
 import { ProfileFormActions } from "./ProfileFormActions";
 
 export type DivisionsFormProps = {
@@ -295,77 +296,64 @@ function DisciplineFields({
   powerFactorLabels: Record<PowerFactor, string>;
 }) {
   return (
-    <fieldset className="profile-form__block profile-form__toggle-block">
-      <label className="profile-form__checkbox">
-        <input
-          type="checkbox"
-          checked={block.enabled}
-          onChange={(e) => {
-            const enabled = e.target.checked;
-            setBlock({
-              enabled,
-              division: enabled
-                ? (block.division ?? DISCIPLINE_DEFAULT_DIVISION[disciplineKey])
-                : null,
-              powerFactor: enabled
-                ? (block.powerFactor ?? DISCIPLINE_DEFAULT_POWER_FACTOR[disciplineKey])
-                : DISCIPLINE_DEFAULT_POWER_FACTOR[disciplineKey],
-            });
-          }}
-        />
-        {label}
-        <span
-          className={`profile-form__chevron${block.enabled ? " is-open" : ""}`}
-          aria-hidden="true"
-        />
-      </label>
-      {block.enabled && (
-        <div className="profile-form__toggle-body">
-          <div className="form-row">
-            <label className="form-group">
-              <span className="form-label">{divisionLabel}</span>
-              <select
-                className={`form-control${divisionInvalid ? " is-invalid" : ""}`}
-                value={block.division ?? ""}
-                aria-invalid={divisionInvalid || undefined}
-                onChange={(e) =>
-                  setBlock({
-                    ...block,
-                    division: e.target.value || null,
-                  })
-                }
-                required
-              >
-                <option value="">—</option>
-                {DISCIPLINE_OPTIONS[disciplineKey].map((value) => (
-                  <option key={value} value={value}>
-                    {divisionLabels[value] ?? value}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="form-group">
-              <span className="form-label">{powerFactorLabel}</span>
-              <select
-                className="form-control"
-                value={block.powerFactor ?? DISCIPLINE_DEFAULT_POWER_FACTOR[disciplineKey]}
-                onChange={(e) =>
-                  setBlock({
-                    ...block,
-                    powerFactor: e.target.value as PowerFactor,
-                  })
-                }
-              >
-                {POWER_FACTORS.map((value) => (
-                  <option key={value} value={value}>
-                    {powerFactorLabels[value]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        </div>
-      )}
-    </fieldset>
+    <CollapsibleToggleBlock
+      enabled={block.enabled}
+      label={label}
+      onEnabledChange={(enabled) => {
+        setBlock({
+          enabled,
+          division: enabled
+            ? (block.division ?? DISCIPLINE_DEFAULT_DIVISION[disciplineKey])
+            : null,
+          powerFactor: enabled
+            ? (block.powerFactor ?? DISCIPLINE_DEFAULT_POWER_FACTOR[disciplineKey])
+            : DISCIPLINE_DEFAULT_POWER_FACTOR[disciplineKey],
+        });
+      }}
+    >
+      <div className="form-row">
+        <label className="form-group">
+          <span className="form-label">{divisionLabel}</span>
+          <select
+            className={`form-control${divisionInvalid ? " is-invalid" : ""}`}
+            value={block.division ?? ""}
+            aria-invalid={divisionInvalid || undefined}
+            onChange={(e) =>
+              setBlock({
+                ...block,
+                division: e.target.value || null,
+              })
+            }
+            required
+          >
+            <option value="">—</option>
+            {DISCIPLINE_OPTIONS[disciplineKey].map((value) => (
+              <option key={value} value={value}>
+                {divisionLabels[value] ?? value}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="form-group">
+          <span className="form-label">{powerFactorLabel}</span>
+          <select
+            className="form-control"
+            value={block.powerFactor ?? DISCIPLINE_DEFAULT_POWER_FACTOR[disciplineKey]}
+            onChange={(e) =>
+              setBlock({
+                ...block,
+                powerFactor: e.target.value as PowerFactor,
+              })
+            }
+          >
+            {POWER_FACTORS.map((value) => (
+              <option key={value} value={value}>
+                {powerFactorLabels[value]}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+    </CollapsibleToggleBlock>
   );
 }

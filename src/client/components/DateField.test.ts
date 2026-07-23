@@ -21,10 +21,12 @@ describe("DateField", () => {
     );
 
     expect(markup).toContain("form-control");
+    expect(markup).toContain("input-affix");
     expect(markup).toContain('type="text"');
     expect(markup).toContain('value="15.05.1990"');
-    expect(markup).toContain("/icon-calendar.png");
     expect(markup).toContain("cal-btn");
+    expect(markup).toContain("<svg");
+    expect(markup).not.toContain("/icon-calendar.png");
     expect(markup).not.toContain('type="date"');
   });
 

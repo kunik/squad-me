@@ -15,6 +15,7 @@ import {
 } from "../lib/profileFormValidation";
 import { UPSF_REGIONS } from "../lib/regions";
 import { transliterateUa } from "../lib/transliterateUa";
+import { CollapsibleToggleBlock } from "./CollapsibleToggleBlock";
 import { DateField } from "./DateField";
 import { FieldLabel } from "./FieldHint";
 import { ProfileFormActions } from "./ProfileFormActions";
@@ -361,266 +362,238 @@ export function ProfileDetailsForm({
         </div>
       </fieldset>
 
-      <fieldset className="profile-form__block profile-form__toggle-block">
-        <label className="profile-form__checkbox">
+      <CollapsibleToggleBlock
+        enabled={upsfMember}
+        label={t.profileUpsfMemberLabel}
+        onEnabledChange={(checked) => {
+          setUpsfMember(checked);
+          liveValidateProfile({ upsfMember: checked });
+        }}
+      >
+        {showMembershipHints && (
+          <p className="form-note" role="note">
+            {t.profileNameUaInfo}
+          </p>
+        )}
+        <div className="form-row">
+          <div className="form-group">
+            <FieldLabel hint={showMembershipHints ? t.profileNameUaHint : undefined}>
+              {t.profileFirstNameUaLabel}
+            </FieldLabel>
+            <input
+              className={`form-control${fieldInvalid("firstNameUa") ? " is-invalid" : ""}`}
+              type="text"
+              autoComplete="given-name"
+              maxLength={100}
+              placeholder={t.profileFirstNameUaPlaceholder}
+              value={firstNameUa}
+              aria-invalid={fieldInvalid("firstNameUa") || undefined}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFirstNameUa(value);
+                liveValidateProfile({ firstNameUa: value }, ["firstNameUa"]);
+              }}
+              onBlur={(e) => {
+                const nextEn = fillEmptyEnFromUa(firstNameEn, e.target.value);
+                setFirstNameEn(nextEn);
+                if (ipscMember) {
+                  liveValidateProfile(
+                    { firstNameUa: e.target.value, firstNameEn: nextEn },
+                    ["firstNameUa"],
+                  );
+                }
+              }}
+            />
+          </div>
+          <div className="form-group">
+            <FieldLabel hint={showMembershipHints ? t.profileNameUaHint : undefined}>
+              {t.profileLastNameUaLabel}
+            </FieldLabel>
+            <input
+              className={`form-control${fieldInvalid("lastNameUa") ? " is-invalid" : ""}`}
+              type="text"
+              autoComplete="family-name"
+              maxLength={100}
+              placeholder={t.profileLastNameUaPlaceholder}
+              value={lastNameUa}
+              aria-invalid={fieldInvalid("lastNameUa") || undefined}
+              onChange={(e) => {
+                const value = e.target.value;
+                setLastNameUa(value);
+                liveValidateProfile({ lastNameUa: value }, ["lastNameUa"]);
+              }}
+              onBlur={(e) => {
+                const nextEn = fillEmptyEnFromUa(lastNameEn, e.target.value);
+                setLastNameEn(nextEn);
+                if (ipscMember) {
+                  liveValidateProfile(
+                    { lastNameUa: e.target.value, lastNameEn: nextEn },
+                    ["lastNameUa"],
+                  );
+                }
+              }}
+            />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <FieldLabel hint={t.profileRegionHint}>{t.profileRegionLabel}</FieldLabel>
+            <select
+              className={`form-control${fieldInvalid("region") ? " is-invalid" : ""}`}
+              value={region}
+              aria-invalid={fieldInvalid("region") || undefined}
+              onChange={(e) => {
+                const value = e.target.value;
+                setRegion(value);
+                liveValidateProfile({ region: value }, ["region"]);
+              }}
+            >
+              <option value="">{t.profileRegionPlaceholder}</option>
+              {UPSF_REGIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <FieldLabel hint={t.profileCityHint}>{t.profileCityLabel}</FieldLabel>
+            <input
+              className="form-control"
+              type="text"
+              autoComplete="address-level2"
+              maxLength={100}
+              placeholder={t.profileCityPlaceholder}
+              value={city}
+              onChange={(e) => {
+                setCity(e.target.value);
+              }}
+            />
+          </div>
+        </div>
+        <div className="form-group">
+          <FieldLabel hint={t.profileClubHint}>{t.profileClubLabel}</FieldLabel>
           <input
-            type="checkbox"
-            checked={upsfMember}
+            className={`form-control${fieldInvalid("club") ? " is-invalid" : ""}`}
+            type="text"
+            autoComplete="organization"
+            maxLength={100}
+            placeholder={t.profileClubPlaceholder}
+            value={club}
+            aria-invalid={fieldInvalid("club") || undefined}
             onChange={(e) => {
-              const checked = e.target.checked;
-              setUpsfMember(checked);
-              liveValidateProfile({ upsfMember: checked });
+              const value = e.target.value;
+              setClub(value);
+              liveValidateProfile({ club: value }, ["club"]);
             }}
           />
-          {t.profileUpsfMemberLabel}
-          <span
-            className={`profile-form__chevron${upsfMember ? " is-open" : ""}`}
-            aria-hidden="true"
-          />
-        </label>
-        {upsfMember && (
-          <div className="profile-form__toggle-body">
-            {showMembershipHints && (
-              <p className="form-note" role="note">
-                {t.profileNameUaInfo}
-              </p>
-            )}
-            <div className="form-row">
-              <div className="form-group">
-                <FieldLabel hint={showMembershipHints ? t.profileNameUaHint : undefined}>
-                  {t.profileFirstNameUaLabel}
-                </FieldLabel>
-                <input
-                  className={`form-control${fieldInvalid("firstNameUa") ? " is-invalid" : ""}`}
-                  type="text"
-                  autoComplete="given-name"
-                  maxLength={100}
-                  placeholder={t.profileFirstNameUaPlaceholder}
-                  value={firstNameUa}
-                  aria-invalid={fieldInvalid("firstNameUa") || undefined}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setFirstNameUa(value);
-                    liveValidateProfile({ firstNameUa: value }, ["firstNameUa"]);
-                  }}
-                  onBlur={(e) => {
-                    const nextEn = fillEmptyEnFromUa(firstNameEn, e.target.value);
-                    setFirstNameEn(nextEn);
-                    if (ipscMember) {
-                      liveValidateProfile(
-                        { firstNameUa: e.target.value, firstNameEn: nextEn },
-                        ["firstNameUa"],
-                      );
-                    }
-                  }}
-                />
-              </div>
-              <div className="form-group">
-                <FieldLabel hint={showMembershipHints ? t.profileNameUaHint : undefined}>
-                  {t.profileLastNameUaLabel}
-                </FieldLabel>
-                <input
-                  className={`form-control${fieldInvalid("lastNameUa") ? " is-invalid" : ""}`}
-                  type="text"
-                  autoComplete="family-name"
-                  maxLength={100}
-                  placeholder={t.profileLastNameUaPlaceholder}
-                  value={lastNameUa}
-                  aria-invalid={fieldInvalid("lastNameUa") || undefined}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setLastNameUa(value);
-                    liveValidateProfile({ lastNameUa: value }, ["lastNameUa"]);
-                  }}
-                  onBlur={(e) => {
-                    const nextEn = fillEmptyEnFromUa(lastNameEn, e.target.value);
-                    setLastNameEn(nextEn);
-                    if (ipscMember) {
-                      liveValidateProfile(
-                        { lastNameUa: e.target.value, lastNameEn: nextEn },
-                        ["lastNameUa"],
-                      );
-                    }
-                  }}
-                />
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <FieldLabel hint={t.profileRegionHint}>{t.profileRegionLabel}</FieldLabel>
-                <select
-                  className={`form-control${fieldInvalid("region") ? " is-invalid" : ""}`}
-                  value={region}
-                  aria-invalid={fieldInvalid("region") || undefined}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setRegion(value);
-                    liveValidateProfile({ region: value }, ["region"]);
-                  }}
-                >
-                  <option value="">{t.profileRegionPlaceholder}</option>
-                  {UPSF_REGIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <FieldLabel hint={t.profileCityHint}>{t.profileCityLabel}</FieldLabel>
-                <input
-                  className="form-control"
-                  type="text"
-                  autoComplete="address-level2"
-                  maxLength={100}
-                  placeholder={t.profileCityPlaceholder}
-                  value={city}
-                  onChange={(e) => {
-                    setCity(e.target.value);
-                  }}
-                />
-              </div>
-            </div>
-            <div className="form-group">
-              <FieldLabel hint={t.profileClubHint}>{t.profileClubLabel}</FieldLabel>
-              <input
-                className={`form-control${fieldInvalid("club") ? " is-invalid" : ""}`}
-                type="text"
-                autoComplete="organization"
-                maxLength={100}
-                placeholder={t.profileClubPlaceholder}
-                value={club}
-                aria-invalid={fieldInvalid("club") || undefined}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setClub(value);
-                  liveValidateProfile({ club: value }, ["club"]);
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </fieldset>
+        </div>
+      </CollapsibleToggleBlock>
 
-      <fieldset className="profile-form__block profile-form__toggle-block">
-        <label className="profile-form__checkbox">
-          <input
-            type="checkbox"
-            checked={ipscMember}
-            onChange={(e) => {
-              const checked = e.target.checked;
-              setIpscMember(checked);
-              if (checked) {
-                const nextRegion = ipscRegion || DEFAULT_IPSC_REGION;
-                const nextFirst = fillEmptyEnFromUa(firstNameEn, firstNameUa);
-                const nextLast = fillEmptyEnFromUa(lastNameEn, lastNameUa);
-                setIpscRegion(nextRegion);
-                setFirstNameEn(nextFirst);
-                setLastNameEn(nextLast);
-                liveValidateProfile(
-                  {
-                    ipscMember: checked,
-                    ipscRegion: nextRegion,
-                    firstNameEn: nextFirst,
-                    lastNameEn: nextLast,
-                  },
-                );
-              } else {
-                liveValidateProfile({ ipscMember: checked });
-              }
-            }}
-          />
-          {t.profileIpscMemberLabel}
-          <span
-            className={`profile-form__chevron${ipscMember ? " is-open" : ""}`}
-            aria-hidden="true"
-          />
-        </label>
-        {ipscMember && (
-          <div className="profile-form__toggle-body">
-            {showMembershipHints && (
-              <p className="form-note" role="note">
-                {t.profileNameEnInfo}
-              </p>
-            )}
-            <div className="form-row">
-              <div className="form-group">
-                <FieldLabel hint={showMembershipHints ? t.profileNameEnHint : undefined}>
-                  {t.profileFirstNameEnLabel}
-                </FieldLabel>
-                <input
-                  className={`form-control${fieldInvalid("firstNameEn") ? " is-invalid" : ""}`}
-                  type="text"
-                  autoComplete="given-name"
-                  maxLength={100}
-                  placeholder={t.profileFirstNameEnPlaceholder}
-                  value={firstNameEn}
-                  aria-invalid={fieldInvalid("firstNameEn") || undefined}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setFirstNameEn(value);
-                    liveValidateProfile({ firstNameEn: value }, ["firstNameEn"]);
-                  }}
-                />
-              </div>
-              <div className="form-group">
-                <FieldLabel hint={showMembershipHints ? t.profileNameEnHint : undefined}>
-                  {t.profileLastNameEnLabel}
-                </FieldLabel>
-                <input
-                  className={`form-control${fieldInvalid("lastNameEn") ? " is-invalid" : ""}`}
-                  type="text"
-                  autoComplete="family-name"
-                  maxLength={100}
-                  placeholder={t.profileLastNameEnPlaceholder}
-                  value={lastNameEn}
-                  aria-invalid={fieldInvalid("lastNameEn") || undefined}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setLastNameEn(value);
-                    liveValidateProfile({ lastNameEn: value }, ["lastNameEn"]);
-                  }}
-                />
-              </div>
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <FieldLabel hint={t.profileIpscMemberNumberHint}>
-                  {t.profileIpscMemberNumberLabel}
-                </FieldLabel>
-                <input
-                  className="form-control"
-                  type="text"
-                  autoComplete="off"
-                  maxLength={50}
-                  placeholder={t.profileIpscMemberNumberPlaceholder}
-                  value={ipscMemberNumber}
-                  onChange={(e) => {
-                    setIpscMemberNumber(e.target.value);
-                  }}
-                />
-              </div>
-              <div className="form-group">
-                <FieldLabel hint={t.profileIpscRegionHint}>{t.profileIpscRegionLabel}</FieldLabel>
-                <input
-                  className={`form-control${fieldInvalid("ipscRegion") ? " is-invalid" : ""}`}
-                  type="text"
-                  autoComplete="off"
-                  maxLength={5}
-                  placeholder={DEFAULT_IPSC_REGION}
-                  value={ipscRegion}
-                  aria-invalid={fieldInvalid("ipscRegion") || undefined}
-                  onChange={(e) => {
-                    const value = e.target.value.toUpperCase().slice(0, 5);
-                    setIpscRegion(value);
-                    liveValidateProfile({ ipscRegion: value }, ["ipscRegion"]);
-                  }}
-                />
-              </div>
-            </div>
-          </div>
+      <CollapsibleToggleBlock
+        enabled={ipscMember}
+        label={t.profileIpscMemberLabel}
+        onEnabledChange={(checked) => {
+          setIpscMember(checked);
+          if (checked) {
+            const nextRegion = ipscRegion || DEFAULT_IPSC_REGION;
+            const nextFirst = fillEmptyEnFromUa(firstNameEn, firstNameUa);
+            const nextLast = fillEmptyEnFromUa(lastNameEn, lastNameUa);
+            setIpscRegion(nextRegion);
+            setFirstNameEn(nextFirst);
+            setLastNameEn(nextLast);
+            liveValidateProfile({
+              ipscMember: checked,
+              ipscRegion: nextRegion,
+              firstNameEn: nextFirst,
+              lastNameEn: nextLast,
+            });
+          } else {
+            liveValidateProfile({ ipscMember: checked });
+          }
+        }}
+      >
+        {showMembershipHints && (
+          <p className="form-note" role="note">
+            {t.profileNameEnInfo}
+          </p>
         )}
-      </fieldset>
+        <div className="form-row">
+          <div className="form-group">
+            <FieldLabel hint={showMembershipHints ? t.profileNameEnHint : undefined}>
+              {t.profileFirstNameEnLabel}
+            </FieldLabel>
+            <input
+              className={`form-control${fieldInvalid("firstNameEn") ? " is-invalid" : ""}`}
+              type="text"
+              autoComplete="given-name"
+              maxLength={100}
+              placeholder={t.profileFirstNameEnPlaceholder}
+              value={firstNameEn}
+              aria-invalid={fieldInvalid("firstNameEn") || undefined}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFirstNameEn(value);
+                liveValidateProfile({ firstNameEn: value }, ["firstNameEn"]);
+              }}
+            />
+          </div>
+          <div className="form-group">
+            <FieldLabel hint={showMembershipHints ? t.profileNameEnHint : undefined}>
+              {t.profileLastNameEnLabel}
+            </FieldLabel>
+            <input
+              className={`form-control${fieldInvalid("lastNameEn") ? " is-invalid" : ""}`}
+              type="text"
+              autoComplete="family-name"
+              maxLength={100}
+              placeholder={t.profileLastNameEnPlaceholder}
+              value={lastNameEn}
+              aria-invalid={fieldInvalid("lastNameEn") || undefined}
+              onChange={(e) => {
+                const value = e.target.value;
+                setLastNameEn(value);
+                liveValidateProfile({ lastNameEn: value }, ["lastNameEn"]);
+              }}
+            />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <FieldLabel hint={t.profileIpscMemberNumberHint}>
+              {t.profileIpscMemberNumberLabel}
+            </FieldLabel>
+            <input
+              className="form-control"
+              type="text"
+              autoComplete="off"
+              maxLength={50}
+              placeholder={t.profileIpscMemberNumberPlaceholder}
+              value={ipscMemberNumber}
+              onChange={(e) => {
+                setIpscMemberNumber(e.target.value);
+              }}
+            />
+          </div>
+          <div className="form-group">
+            <FieldLabel hint={t.profileIpscRegionHint}>{t.profileIpscRegionLabel}</FieldLabel>
+            <input
+              className={`form-control${fieldInvalid("ipscRegion") ? " is-invalid" : ""}`}
+              type="text"
+              autoComplete="off"
+              maxLength={5}
+              placeholder={DEFAULT_IPSC_REGION}
+              value={ipscRegion}
+              aria-invalid={fieldInvalid("ipscRegion") || undefined}
+              onChange={(e) => {
+                const value = e.target.value.toUpperCase().slice(0, 5);
+                setIpscRegion(value);
+                liveValidateProfile({ ipscRegion: value }, ["ipscRegion"]);
+              }}
+            />
+          </div>
+        </div>
+      </CollapsibleToggleBlock>
 
       {displayedError && (
         <p className="form-error" role="alert">

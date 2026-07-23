@@ -986,71 +986,39 @@ h2.card-title {
   border-color: color-mix(in srgb, var(--primary) 35%, var(--border-color));
 }
 
-.profile-form__checkbox {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
+/* Gentelella `.toggle-row` header inside the bordered membership/discipline block. */
+.profile-form__toggle-block > .toggle-row {
+  padding: 10px 14px;
   margin: 0;
-  font-size: 13px;
-  font-weight: var(--font-weight-medium);
-  color: var(--text);
-  cursor: pointer;
   background: var(--bg-surface-secondary);
-  border-bottom: 1px solid var(--border-color-light);
+  border-bottom-color: var(--border-color-light);
+  gap: 12px;
 }
 
-.profile-form__toggle-block:not(.is-enabled) .profile-form__checkbox {
+.profile-form__toggle-block > .toggle-row:last-child {
   border-bottom: 0;
 }
 
-.profile-form__checkbox input[type="checkbox"] {
+/* Interactive switch: reset button chrome; keep Gentelella `.toggle` geometry. */
+button.toggle {
   appearance: none;
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  border: 1.5px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  background: var(--bg-surface);
-  cursor: pointer;
-  flex-shrink: 0;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
 }
 
-.profile-form__checkbox input[type="checkbox"]:checked {
-  background: var(--primary);
-  border-color: var(--primary);
+button.toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
-.profile-form__chevron {
-  margin-left: auto;
-  width: 8px;
-  height: 8px;
-  border-right: 1.5px solid var(--text-muted);
-  border-bottom: 1.5px solid var(--text-muted);
-  transform: rotate(-45deg);
-  transition: transform 150ms;
-}
-
-.profile-form__chevron.is-open {
-  transform: rotate(45deg);
+[data-theme="dark"] .toggle:not(.on) {
+  background: color-mix(in srgb, var(--text-muted) 45%, transparent);
 }
 
 .profile-form__toggle-body {
   padding: 14px;
-}
-
-.profile-form__status-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  font-size: 13px;
-  font-weight: var(--font-weight-medium);
-  color: var(--text);
-  background: var(--bg-surface-secondary);
-  border-bottom: 1px solid var(--border-color-light);
 }
 
 .profile-form__radio-group {
@@ -1367,43 +1335,41 @@ button.nav-link {
   margin-top: 4px;
 }
 
-/* —— Date field (birth date) calendar popover —— */
-.date-field {
-  position: relative;
-}
-.date-field .form-control {
-  padding-right: 40px;
+/* —— Date field (birth date) — Gentelella `.input-affix` + portal calendar —— */
+.date-field.input-affix .form-control {
   cursor: pointer;
+  padding-right: 12px;
 }
-.date-field .cal-btn {
-  position: absolute;
-  top: 50%;
-  right: 6px;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
+.date-field .cal-btn.affix {
+  appearance: none;
   border: 0;
-  background: transparent;
+  border-left: 1px solid var(--border-color);
+  margin: 0;
+  padding: 0 10px;
+  background: var(--bg-surface-secondary);
   color: var(--text-muted);
-  border-radius: var(--radius-sm);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-.date-field .cal-btn:hover:not(:disabled) {
+.date-field .cal-btn.affix:hover:not(:disabled) {
   color: var(--primary);
 }
-.date-field .cal-btn:disabled {
+.date-field .cal-btn.affix:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
+.date-field.input-affix.is-invalid {
+  border-color: var(--red);
+}
 .date-pop {
-  padding: 14px;
+  padding: 12px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   background: var(--bg-surface);
-  box-shadow: 0 10px 30px color-mix(in srgb, var(--brand-black) 16%, transparent);
+  box-shadow: var(--shadow-card),
+    0 12px 28px color-mix(in srgb, var(--brand-black) 14%, transparent);
 }
 .date-pop--portal {
   z-index: 200;
@@ -1433,6 +1399,7 @@ button.nav-link {
 .date-pop .dp-nav-btn:hover:not(:disabled) {
   border-color: var(--primary);
   color: var(--primary);
+  background: var(--primary-lt);
 }
 .date-pop .dp-nav-btn:disabled {
   opacity: 0.35;

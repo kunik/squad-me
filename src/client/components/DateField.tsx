@@ -409,12 +409,12 @@ export function DateField({
       <FieldLabel id={`${fieldId}-label`} hint={hint}>
         {label}
       </FieldLabel>
-      <div className="date-field">
+      <div className={`input-affix date-field${invalid ? " is-invalid" : ""}`}>
         <input
           ref={inputRef}
           id={fieldId}
           type="text"
-          className={`form-control ${invalid ? " is-invalid" : ""}`}
+          className={`form-control${invalid ? " is-invalid" : ""}`}
           inputMode="numeric"
           autoComplete="bday"
           placeholder={t.dateFieldPlaceholder}
@@ -432,7 +432,7 @@ export function DateField({
         <button
           ref={calendarBtnRef}
           type="button"
-          className="cal-btn"
+          className="affix cal-btn"
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls={open ? popoverId : undefined}
@@ -440,17 +440,30 @@ export function DateField({
           disabled={disabled}
           onClick={() => (open ? closePicker("calendar") : openPicker())}
         >
-          <img
-            src="/icon-calendar.png"
-            alt=""
-            width={22}
-            height={22}
-            aria-hidden="true"
-          />
+          <CalendarIcon />
         </button>
       </div>
 
       {popover && createPortal(popover, document.body)}
     </div>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M16 3v4M8 3v4M3 11h18" />
+    </svg>
   );
 }
