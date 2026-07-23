@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { BrandFullLogo } from "../components/BrandLogo";
 import { GuestBrand, GuestUtilities } from "../components/GuestChrome";
 import { useLocale } from "../locale";
 
@@ -12,7 +13,7 @@ export function HomePage() {
         <GuestUtilities className="home-topbar-controls" />
       </div>
       <main className="home-hero">
-        <img className="hero-logo" src="/logo-full.svg" alt="Squad Me" width={794} height={177} />
+        <BrandFullLogo />
         <p>{t.support}</p>
         <div className="cta">
           <Link to="/login" className="btn btn-primary btn-lg">

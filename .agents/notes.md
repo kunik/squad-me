@@ -56,7 +56,8 @@ secrets"):
   Infra rule: document every infra action; prefer those scripts.
 - Client unauth home (`/`): atmospheric public surface + header (logo,
   UA/EN, session-aware Log in/Log out) + brand hero + login CTA
-  (`react-router-dom`). Logo: `public/logo-full.svg` from KB
+  (`react-router-dom`). Logo: `public/logo-full-{light,dark}.png` +
+  `logo-mark-{light,dark}.png` (theme-aware via `BrandLogo`)
   `products/match-platform/design/completed/brand/`. Palette from
   `specs/brand-brief.md` / `design/principles.md` (dark neutral + tactical
   orange `#E8823C`). Landing font Inter (same as brand guide; not Barlow).

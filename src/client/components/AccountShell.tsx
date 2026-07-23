@@ -1,5 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { BrandMark } from "./BrandLogo";
+import { BrandWordmark } from "./BrandWordmark";
 import { ProfileSideMenu } from "./ProfileSideMenu";
 import { SidebarFooter } from "./SidebarFooter";
 import { useAuth } from "../auth";
@@ -115,10 +117,8 @@ export function AccountShell({
     <>
       <aside className={`sidebar${sidebarOpen ? " open" : ""}`} aria-label={t.profileMenuLabel}>
         <Link to={AUTHENTICATED_HOME_PATH} className="sidebar-brand" aria-label="Squad Me">
-          <span className="brand-icon">
-            <img src="/logo-mark.svg" alt="" width={28} height={28} />
-          </span>
-          <span className="brand-name">Squad Me</span>
+          <BrandMark size={28} on="dark" />
+          <BrandWordmark />
         </Link>
 
         <ProfileSideMenu />

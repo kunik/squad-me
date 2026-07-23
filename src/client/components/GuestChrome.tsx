@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { BrandMark } from "./BrandLogo";
+import { BrandWordmark } from "./BrandWordmark";
 import { LangSwitch } from "./LangSwitch";
 import { ThemeSwitch } from "./ThemeSwitch";
 
@@ -19,10 +21,8 @@ export function GuestBrand({
 }: GuestBrandProps) {
   return (
     <Link to="/" className={className} aria-label="Squad Me">
-      <span className="brand-icon">
-        <img src="/logo-mark.svg" alt="" width={markSize} height={markSize} />
-      </span>
-      <span className={nameClassName}>Squad Me</span>
+      <BrandMark size={markSize} on="theme" />
+      <BrandWordmark className={nameClassName} />
     </Link>
   );
 }

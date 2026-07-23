@@ -31,7 +31,8 @@ empty states, card header actions), use **inline SVG in React** — same style a
 
 Put files under `public/` **only** for:
 
-- Brand logos (`logo-full.svg`, `logo-mark.svg`, favicons)
+- Brand logos (`logo-full-light.png`, `logo-full-dark.png`,
+  `logo-mark-light.png`, `logo-mark-dark.png`, favicons)
 - PWA / app icons (`icon-192`, `icon-512`, maskable, apple-touch)
 - Avatars (`avatar-default.png` and user-uploaded/served avatars)
 - Icons that must be shared as files (e.g. CSS `mask-image` →
@@ -41,6 +42,9 @@ Put files under `public/` **only** for:
 
 Name new static icons `public/icon-<purpose>.svg` or `.png` and **reference them
 from code** in the same change. Do not leave unreferenced files in `public/`.
+
+After replacing `logo-mark-light.png`, regenerate chrome derivatives with
+`npm run icons:regen` (favicon, apple-touch, PWA / maskable).
 
 ## User-provided assets
 

@@ -206,6 +206,9 @@ body.sidebar-open {
 .sidebar .brand-name {
   color: var(--brand-floral);
 }
+.brand-name-me {
+  color: var(--brand-pumpkin);
+}
 .btn-success {
   border-color: color-mix(in srgb, var(--green) 78%, var(--brand-black));
 }
@@ -253,13 +256,22 @@ body,
 
 /* —— Brand mark in sidebar + auth cards (image instead of the "G" glyph) —— */
 .brand-icon {
-  overflow: hidden;
   background: transparent;
 }
-.brand-icon img {
+.brand-icon img,
+.brand-mark {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  display: block;
+}
+.brand-icon--themed .brand-mark--for-light {
+  display: none;
+}
+[data-theme="light"] .brand-icon--themed .brand-mark--for-dark {
+  display: none;
+}
+[data-theme="light"] .brand-icon--themed .brand-mark--for-light {
   display: block;
 }
 
@@ -457,7 +469,7 @@ a.sidebar-user {
 .auth-brand .brand-icon {
   width: 34px;
   height: 34px;
-  border-radius: 8px;
+  border-radius: 0;
   background: transparent;
 }
 .auth-utilities {
@@ -605,7 +617,7 @@ a.sidebar-user {
 }
 .home-brand-name {
   color: var(--text);
-  font-weight: 600;
+  font-weight: 700;
 }
 .home-topbar-controls {
   display: flex;
@@ -625,9 +637,28 @@ a.sidebar-user {
   text-align: center;
   padding: 32px 24px 64px;
 }
-.home-hero img.hero-logo {
+.home-hero img.hero-logo,
+.home-hero .brand-full--themed {
   width: min(20rem, 74vw);
   height: auto;
+}
+.brand-full--themed {
+  display: inline-block;
+  line-height: 0;
+}
+.brand-full--themed .brand-full {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.brand-full--themed .brand-full--for-light {
+  display: none;
+}
+[data-theme="light"] .brand-full--themed .brand-full--for-dark {
+  display: none;
+}
+[data-theme="light"] .brand-full--themed .brand-full--for-light {
+  display: block;
 }
 .home-hero p {
   max-width: 30rem;
