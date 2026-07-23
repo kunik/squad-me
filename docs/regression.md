@@ -275,31 +275,31 @@ When editing an entry, keep this table’s Status column in sync (use `Fixed` or
 **Expected:** Signed-in auth forms exit to `/profile` («До профілю»); guest forms exit to `/` («На головну»).
 **Actual:** Forgot-password always linked home; change-phone always linked profile — inconsistent for the same signed-in profile security flows.
 
-## SHELL-001 · Mobile content width jumps (scrollbar gutter)
+## SHELL-001 · Content width jumps when overlay locks scroll
 
 **Status:** Fixed (uncommitted working tree)
-**Area:** `src/client/styles.css` (`html { scrollbar-gutter: stable }` + `--removed-scrollbar-width` padding/topbar), `src/client/lib/scrollLock.ts` / `useSidebarScrollLock` (AccountShell), `body.sidebar-open { overflow: hidden }` in `gentelella.css`
-**Coverage:** Unit — `scrollLock.test.ts` covers gap math. Visual assert still needed on &lt;768px (classic vs overlay scrollbars / DOM lock).
+**Area:** `src/client/styles.css` (`html { scrollbar-gutter: stable }` + `body.scroll-locked` overflow/padding/topbar), `src/client/lib/scrollLock.ts` / `useBodyScrollLock` (AccountShell drawer + `AppDialog`)
+**Coverage:** Unit — `scrollLock.test.ts` covers gap math. Visual assert still needed (classic vs overlay scrollbars / DOM lock) for mobile drawer and modal.
 
 ### Steps to reproduce
-1. Sign in on a viewport &lt;768px wide.
+1. Sign in on a viewport where a classic scrollbar takes layout width (often &lt;768px, or desktop without `scrollbar-gutter` support).
 2. Compare horizontal inset of content cards on `/profile` (tall, usually scrollable) vs `/matches`.
-3. On either page, open the mobile sidebar and watch the main column.
+3. Open the mobile sidebar — or open any `AppDialog` (e.g. Profile unsaved-changes) — and watch the main column / topbar.
 
-**Expected:** Profile and Matches share the same content-block horizontal inset; opening the drawer does not shift content sideways.
-**Actual:** Tall Profile reserved a classic scrollbar while short Matches often did not, so Profile looked more inset on the right. Opening the drawer set `body.sidebar-open { overflow: hidden }`, removed the scrollbar, and the content expanded (~6–15px jump). `scrollbar-gutter: stable` alone is insufficient on Safari/macOS when the gutter is ignored or overlay scrollbars still interact with `overflow: hidden` differently — fix measures `clientWidth` before/after lock and sets `--removed-scrollbar-width` only when the gap is &gt; 0 (avoids double-padding when gutter already works).
+**Expected:** Profile and Matches share the same content-block horizontal inset; opening any scroll-locking scrim (drawer or modal) does not shift content or the fixed topbar sideways.
+**Actual:** Tall Profile reserved a classic scrollbar while short Matches often did not, so Profile looked more inset on the right. Opening the drawer set `body.sidebar-open { overflow: hidden }`, removed the scrollbar, and the content expanded (~6–15px jump). Modals used `body.modal-open` / inline `overflow: hidden` without the same compensation. `scrollbar-gutter: stable` alone is insufficient on Safari/macOS when the gutter is ignored — fix uses one `body.scroll-locked` class, measures `clientWidth` before/after the first lock, and sets `--removed-scrollbar-width` only when the gap is &gt; 0 (avoids double-padding when gutter already works; nested locks share one gap).
 
 ## SHELL-002 · Overlay scrims were slate-blue
 
 **Status:** Fixed (uncommitted working tree)
-**Area:** `src/client/styles.css` (`--overlay-scrim`; `.sidebar-backdrop`, `.modal-backdrop`, `.cmdk-backdrop`, `.drawer-backdrop`), override of Gentelella `rgba(15, 23, 42, …)` / `rgba(15, 22, 35, …)`
+**Area:** `src/client/styles.css` (`--overlay-scrim`, `--overlay-blur`; `.sidebar-backdrop`, `.modal-backdrop`, `.cmdk-backdrop`, `.drawer-backdrop`), override of Gentelella `rgba(15, 23, 42, …)` / `rgba(15, 22, 35, …)`
 **Coverage:** Not covered — brand color token; manual visual check.
 
 ### Steps to reproduce
 1. On &lt;768px, open the account sidebar drawer — or trigger any `AppDialog` (e.g. Profile unsaved-changes confirm).
 2. Observe the scrim behind the panel / dialog.
 
-**Expected:** Neutral black/carbon-derived overlay (`--overlay-scrim`) aligned with Squad Me chrome, shared across sidebar and modals.
+**Expected:** One shared neutral black/carbon overlay (`--overlay-scrim`) + shared `--overlay-blur` on every overlay surface (sidebar, modal, unused template cmdk/drawer).
 **Actual:** Bluish slate overlay from Gentelella leftovers (`rgba(15, 23, 42, 0.4–0.45)` on sidebar/modal; same family on unused `.cmdk-backdrop` / `.drawer-backdrop`).
 
 ## SHELL-003 · Mobile drawer footer stacks when rail preference set
@@ -311,7 +311,7 @@ When editing an entry, keep this table’s Status column in sync (use `Fixed` or
 ### Steps to reproduce
 1. On desktop (≥769px), collapse the sidebar to rail (`body.sidebar-rail`).
 2. Resize the viewport to &lt;769px (sidebar hides).
-3. Open the mobile drawer (`body.sidebar-open`).
+3. Open the mobile drawer (`.sidebar.open`).
 
 **Expected:** Profile link and logout sit on one horizontal row (expanded drawer chrome).
 **Actual:** Rail footer CSS (`flex-direction: column`, hidden logout label) still applied because `sidebar-rail` remained on `body` from the desktop preference, so logout stacked under profile.

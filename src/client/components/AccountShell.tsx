@@ -5,7 +5,7 @@ import { BrandWordmark } from "./BrandWordmark";
 import { ProfileSideMenu } from "./ProfileSideMenu";
 import { SidebarFooter } from "./SidebarFooter";
 import { useAuth } from "../auth";
-import { useSidebarScrollLock } from "../hooks/useSidebarScrollLock";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 import { useLocale } from "../locale";
 import { AUTHENTICATED_HOME_PATH, getProfile } from "../lib/authApi";
 import { profileSectionFromPath } from "../lib/profileMenu";
@@ -97,7 +97,7 @@ export function AccountShell({
     };
   }, []);
 
-  useSidebarScrollLock(sidebarOpen);
+  useBodyScrollLock(sidebarOpen);
 
   const nickname = nicknameControlled ? nicknameProp : fetchedNickname;
   const showNickname = nicknameControlled || !loadingNickname;

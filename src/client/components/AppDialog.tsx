@@ -6,6 +6,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
@@ -56,15 +57,13 @@ export function AppDialog({
   busyRef.current = busy;
   onCloseRef.current = onClose;
 
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open) return;
 
     previouslyFocused.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.body.classList.add("modal-open");
 
     requestAnimationFrame(() => {
       const preferred = initialFocusRef?.current;
@@ -102,8 +101,6 @@ export function AppDialog({
     document.addEventListener("keydown", handleKeyDown);
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-      document.body.classList.remove("modal-open");
       const restore = returnFocusRef?.current ?? previouslyFocused.current;
       restore?.focus?.();
     };

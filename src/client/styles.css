@@ -98,28 +98,28 @@
   /* Shared overlay scrim — carbon/black, not Gentelella slate-blue
      (sidebar drawer, modals, unused template cmdk/drawer backdrops). */
   --overlay-scrim: color-mix(in srgb, var(--brand-black) 52%, transparent);
+  --overlay-blur: 2px;
 }
 
 /*
  * Reserve scrollbar space so tall Profile vs short Matches share the same
- * content width when the browser honors it. Drawer open still uses
- * `body.sidebar-open { overflow: hidden }` (gentelella); Safari/macOS often
- * ignore scrollbar-gutter, so AccountShell measures the clientWidth delta and
- * sets --removed-scrollbar-width for the padding/topbar compensation below.
+ * content width when the browser honors it. Overlay scroll locks
+ * (`body.scroll-locked` → overflow: hidden) still need a measured gap on
+ * Safari/macOS when gutter is ignored — `applyBodyScrollLock` sets
+ * --removed-scrollbar-width for the padding/topbar compensation below.
  */
 html {
   scrollbar-gutter: stable;
 }
 
-body.sidebar-open {
+body.scroll-locked {
+  overflow: hidden;
   padding-right: var(--removed-scrollbar-width, 0px);
 }
 
-@media (max-width: 768px) {
-  /* Fixed topbar is viewport-relative; body padding alone does not inset it. */
-  body.sidebar-open .topbar {
-    right: var(--removed-scrollbar-width, 0px);
-  }
+/* Fixed topbar is viewport-relative; body padding alone does not inset it. */
+body.scroll-locked .topbar {
+  right: var(--removed-scrollbar-width, 0px);
 }
 
 .sidebar-backdrop,
@@ -127,6 +127,14 @@ body.sidebar-open {
 .cmdk-backdrop,
 .drawer-backdrop {
   background: var(--overlay-scrim);
+  backdrop-filter: blur(var(--overlay-blur));
+  -webkit-backdrop-filter: blur(var(--overlay-blur));
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --overlay-blur: 0px;
+  }
 }
 
 [data-theme="dark"] {
