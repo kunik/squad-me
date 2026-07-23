@@ -32,3 +32,17 @@ Rebuilt the authenticated and public client chrome on Gentelella v4 layout patte
 - Confirm whether a newer KB avatar reappears after `tmp/imagegen` cleanup; re-sync if so.
 - Push / PR for `experiment/gentelella-redesign` only when requested.
 - Remaining fidelity/polish items from the redesign plan and audit.
+
+## Branch handoff (2026-07-23 evening)
+
+Incremental session logs on this branch today:
+
+- `2026-07-23-1416-styles-layout-unify.md` — Card/topbar/GuestChrome, fidelity audit §9
+- `2026-07-23-1840-profile-aside-theme-shell.md` — aside/scroll-spy, mobile stack, theme AUTO, phone masking, inline chrome icons
+- `2026-07-23-1944-brand-logo-wordmark.md` — official PNG wordmarks, `icons:regen`, committed with `3c11429`
+
+**HEAD:** `3c11429` — Align brand logos with official light/dark wordmark assets (1 commit ahead of `origin/experiment/gentelella-redesign`).
+
+**Verification (2026-07-23 20:01):** `npm run typecheck` pass; `npm test` — 23 files, 198 tests pass.
+
+**Left unstaged:** `.agents/tmp/` (clone, backups, theme experiments); untracked duplicate `2026-07-21-2254-change-phone-flow.md` (unrelated).
