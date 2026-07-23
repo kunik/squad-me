@@ -156,9 +156,9 @@ export function AccountShell({
             </svg>
           </button>
           <nav className="breadcrumb" aria-label="Breadcrumb">
-            <span className="current" aria-current="page">
+            <h1 className="current" aria-current="page">
               {pageTitle}
-            </span>
+            </h1>
           </nav>
         </div>
       </header>

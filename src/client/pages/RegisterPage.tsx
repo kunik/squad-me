@@ -122,7 +122,7 @@ export function RegisterPage() {
                 />
               )}
               {wizard.error && (
-                <div className="auth-form-error" role="alert">
+                <div className="form-error form-error--banner" role="alert">
                   {wizard.error}
                 </div>
               )}
@@ -184,7 +184,7 @@ export function RegisterPage() {
                 required
               />
               {wizard.error && (
-                <div className="auth-form-error" role="alert">
+                <div className="form-error form-error--banner" role="alert">
                   {wizard.error}
                 </div>
               )}

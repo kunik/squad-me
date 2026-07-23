@@ -23,6 +23,7 @@ export function applyTheme(theme: Theme) {
   document.documentElement.setAttribute("data-theme", theme);
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
+    // Keep in sync with CSS `--brand-black` / `--brand-floral` in styles.css.
     meta.setAttribute("content", theme === "dark" ? "#050609" : "#fef8ec");
   }
 }

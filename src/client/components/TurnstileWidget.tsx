@@ -79,7 +79,7 @@ export function TurnstileWidget({
     <div className="turnstile-widget">
       <div ref={containerRef} />
       {failed && (
-        <div className="auth-form-error" role="alert">
+        <div className="form-error form-error--banner" role="alert">
           {t.authErrorTurnstileUnavailable}
         </div>
       )}

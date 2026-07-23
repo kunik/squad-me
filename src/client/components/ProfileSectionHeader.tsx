@@ -23,7 +23,7 @@ export function ProfileSectionHeader({
 }: ProfileSectionHeaderProps) {
   return (
     <div className="card-header">
-      <div className="card-title">{title}</div>
+      <h2 className="card-title">{title}</h2>
       <div className="card-options">
         {editing
           ? onCancel && (

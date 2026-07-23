@@ -7,9 +7,8 @@ export type ProfileAnchorPosition<T extends string> = {
 
 /**
  * Comfort gap below fixed top chrome (or the viewport top when nothing is
- * pinned). Matches `.profile-section { scroll-margin-top: 72px }` at the
- * default root font size. Previously 5rem / 80px, which left headings too far
- * down after a menu scroll when header/hint were not pinned.
+ * pinned). CSS uses `--topbar-offset` (`--topbar-h` + `--space-4`) for
+ * `.profile-section { scroll-margin-top }` and sticky aside.
  */
 export const PROFILE_ANCHOR_COMFORT_PAD_PX = 24;
 

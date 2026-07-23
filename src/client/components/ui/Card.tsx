@@ -3,20 +3,11 @@ import type { ReactNode } from "react";
 type CardProps = {
   children: ReactNode;
   className?: string;
-  featured?: boolean;
-  muted?: boolean;
 };
 
-/** Gentelella `.card` surface. */
-export function Card({ children, className = "", featured = false, muted = false }: CardProps) {
-  const mods = [
-    featured ? "match-card is-featured" : "",
-    muted ? "match-card is-past" : "",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-  return <div className={`card ${mods}`.trim()}>{children}</div>;
+/** Gentelella `.card` surface. Domain modifiers belong on callers (e.g. MatchCard). */
+export function Card({ children, className = "" }: CardProps) {
+  return <div className={`card${className ? ` ${className}` : ""}`}>{children}</div>;
 }
 
 type CardHeaderProps = {
@@ -29,7 +20,7 @@ export function CardHeader({ title, subtitle, actions }: CardHeaderProps) {
   return (
     <div className="card-header">
       <div>
-        <div className="card-title">{title}</div>
+        <h2 className="card-title">{title}</h2>
         {subtitle ? <div className="card-subtitle">{subtitle}</div> : null}
       </div>
       {actions ? <div className="card-options">{actions}</div> : null}

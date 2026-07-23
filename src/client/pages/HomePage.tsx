@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import { LangSwitch } from "../components/LangSwitch";
-import { ThemeSwitch } from "../components/ThemeSwitch";
+import { GuestBrand, GuestUtilities } from "../components/GuestChrome";
 import { useLocale } from "../locale";
 
 export function HomePage() {
@@ -9,14 +8,8 @@ export function HomePage() {
   return (
     <div className="home">
       <div className="home-topbar">
-        <span className="brand">
-          <img src="/logo-mark.svg" alt="" width={26} height={26} />
-          <span className="brand-name home-brand-name">Squad Me</span>
-        </span>
-        <div className="home-topbar-controls">
-          <ThemeSwitch compact />
-          <LangSwitch />
-        </div>
+        <GuestBrand nameClassName="brand-name home-brand-name" />
+        <GuestUtilities className="home-topbar-controls" />
       </div>
       <main className="home-hero">
         <img className="hero-logo" src="/logo-full.svg" alt="Squad Me" width={794} height={177} />

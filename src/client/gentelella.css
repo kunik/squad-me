@@ -2706,42 +2706,6 @@ body.modal-open {
   pointer-events: none;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 36px 20px;
-}
-
-.empty-state-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 14px;
-  border-radius: 50%;
-  background: var(--bg-surface-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-}
-
-.empty-state-icon svg {
-  width: 30px;
-  height: 30px;
-}
-
-.empty-state-title {
-  font-size: 15px;
-  font-weight: var(--font-weight-bold);
-  color: var(--text);
-  margin-bottom: 4px;
-}
-
-.empty-state-desc {
-  font-size: 13px;
-  color: var(--text-muted);
-  margin-bottom: 16px;
-  line-height: 1.5;
-}
-
 .list-group {
   display: flex;
   flex-direction: column;

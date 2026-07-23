@@ -88,7 +88,7 @@ export function ForgotPasswordPage() {
                     />
                   )}
                   {wizard.error && (
-                    <div className="auth-form-error" role="alert">
+                    <div className="form-error form-error--banner" role="alert">
                       {wizard.error}
                     </div>
                   )}
@@ -147,7 +147,7 @@ export function ForgotPasswordPage() {
                     required
                   />
                   {wizard.error && (
-                    <div className="auth-form-error" role="alert">
+                    <div className="form-error form-error--banner" role="alert">
                       {wizard.error}
                     </div>
                   )}

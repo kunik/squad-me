@@ -2,7 +2,6 @@ import { AccountShell } from "../components/AccountShell";
 import { Card, CardBody, CardHeader } from "../components/ui/Card";
 import { DataTable } from "../components/ui/DataTable";
 import { EmptyState } from "../components/ui/EmptyState";
-import { SectionHeader } from "../components/ui/SectionHeader";
 import { useLocale } from "../locale";
 import {
   DEMO_I_REGISTER,
@@ -34,8 +33,6 @@ export function LinkedShootersPage() {
 
   return (
     <AccountShell>
-      <SectionHeader title={t.profileMenuLinkedShooters} />
-
       <div className="stack">
         <Card>
           <CardHeader title={t.profileLinkedIRegister} />

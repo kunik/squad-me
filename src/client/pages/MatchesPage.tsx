@@ -3,7 +3,6 @@ import { AccountShell } from "../components/AccountShell";
 import { Badge } from "../components/ui/Badge";
 import { Card, CardBody } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
-import { SectionHeader } from "../components/ui/SectionHeader";
 import { useLocale } from "../locale";
 import {
   DEMO_MATCHES,
@@ -20,28 +19,30 @@ export function MatchesPage() {
   const upcoming = DEMO_MATCHES.filter((m) => m.status === "upcoming");
   const past = DEMO_MATCHES.filter((m) => m.status === "past");
   const [featured, ...restUpcoming] = upcoming;
+  const isEmpty = upcoming.length === 0 && past.length === 0;
+
+  const createMatchButton = canCreateMatch ? (
+    <button type="button" className="btn btn-primary" disabled title={t.profileMatchesComingSoon}>
+      {t.matchesNewMatch}
+    </button>
+  ) : null;
 
   return (
     <AccountShell>
-      <SectionHeader
-        title={t.profileMenuMatches}
-        actions={
-          canCreateMatch ? (
-            <button type="button" className="btn btn-primary" disabled title={t.profileMatchesComingSoon}>
-              {t.matchesNewMatch}
-            </button>
-          ) : undefined
-        }
-      />
-
-      {upcoming.length === 0 && past.length === 0 ? (
+      {isEmpty ? (
         <Card>
           <CardBody>
-            <EmptyState title={t.matchesEmptyTitle} description={t.matchesEmptyBody} />
+            <EmptyState
+              title={t.matchesEmptyTitle}
+              description={t.matchesEmptyBody}
+              action={createMatchButton}
+            />
           </CardBody>
         </Card>
       ) : (
         <>
+          {createMatchButton ? <div className="page-actions page-actions--inline">{createMatchButton}</div> : null}
+
           {featured ? (
             <div className="row col-1">
               <MatchCard match={featured} locale={locale} featured />
@@ -86,8 +87,16 @@ function MatchCard({
   muted?: boolean;
 }) {
   const { t } = useLocale();
+  const mods = [
+    "match-card",
+    featured ? "is-featured" : "",
+    muted ? "is-past" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <Card featured={featured} muted={muted} className="match-card">
+    <Card className={mods}>
       <CardBody>
         <Badge tone={roleTone(match.role)}>{roleLabel(match.role, t)}</Badge>
         <h3 className="match-name">{match.name}</h3>

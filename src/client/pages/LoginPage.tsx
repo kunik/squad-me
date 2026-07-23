@@ -96,7 +96,7 @@ export function LoginPage() {
           required
         />
         {error && (
-          <div className="auth-form-error" role="alert">
+          <div className="form-error form-error--banner" role="alert">
             {error}
           </div>
         )}

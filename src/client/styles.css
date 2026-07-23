@@ -16,12 +16,13 @@
 @import "./gentelella.css";
 
 /* —— Brand palette → Gentelella token slots ——
-   Canonical HEX from KB design/palette.md (2026-07-23):
+   Canonical HEX (KB design/palette.md):
      Black #050609 · Carbon Black #1D2020 · Carmine #BC1030 ·
      Pumpkin Spice #E8823C · Floral White #FEF8EC · Blue Energy #4A8FE7
-   Pumpkin = primary. Blue Energy = spot auxiliary / highlight (→ --blue).
-   Carmine is a second brand color, not auto-mapped to danger/status red. */
+   Plus 3 status colors (not brand) and 2 muted inks. Everything else is
+   color-mix / alias of these. Carmine ≠ danger. */
 :root {
+  /* Canonical brand */
   --brand-black: #050609;
   --brand-carbon: #1d2020;
   --brand-carmine: #bc1030;
@@ -29,67 +30,111 @@
   --brand-floral: #fef8ec;
   --brand-blue-energy: #4a8fe7;
 
+  /* Status (semantic, separate from brand) */
+  --status-success: #2fb344;
+  --status-warning: #f59f00;
+  --status-danger: #d63939;
+
+  /* Shared muted inks (only two) */
+  --ink-muted-on-light: #6a6e6e;
+  --ink-muted-on-dark: #8e9393;
+
+  /* Primary / accents */
   --primary: var(--brand-pumpkin);
-  --primary-dk: #c96a28;
-  --primary-lt: rgba(232, 130, 60, 0.1);
+  --primary-dk: color-mix(in srgb, var(--brand-pumpkin) 72%, var(--brand-black));
+  --primary-lt: color-mix(in srgb, var(--brand-pumpkin) 10%, transparent);
   --orange: var(--brand-pumpkin);
   --blue: var(--brand-blue-energy);
   --azure: var(--brand-blue-energy);
-  --blue-lt: rgba(74, 143, 231, 0.1);
-  --azure-lt: rgba(74, 143, 231, 0.1);
 
-  /* Light theme: Floral White field, ink from Black / Carbon */
+  /* Status → Gentelella slots */
+  --green: var(--status-success);
+  --yellow: var(--status-warning);
+  --red: var(--status-danger);
+  --green-lt: color-mix(in srgb, var(--status-success) 10%, transparent);
+  --red-lt: color-mix(in srgb, var(--status-danger) 10%, transparent);
+  --yellow-lt: color-mix(in srgb, var(--status-warning) 10%, transparent);
+  --blue-lt: color-mix(in srgb, var(--brand-blue-energy) 10%, transparent);
+  --azure-lt: var(--blue-lt);
+
+  /* Collapse unused Gentelella rainbow → nearest brand/status */
+  --lime: var(--status-success);
+  --pink: var(--brand-carmine);
+  --purple: var(--brand-blue-energy);
+  --indigo: var(--brand-blue-energy);
+  --cyan: var(--brand-blue-energy);
+  --purple-lt: var(--blue-lt);
+  --cyan-lt: var(--blue-lt);
+
+  /* Light theme surfaces / ink */
   --body-bg: var(--brand-floral);
   --bg-surface: #ffffff;
-  --bg-surface-secondary: #f3ebd8;
-  --border-color: rgba(29, 32, 32, 0.14);
-  --border-color-light: rgba(29, 32, 32, 0.08);
-  --border-translucent: rgba(29, 32, 32, 0.1);
+  --bg-surface-secondary: color-mix(in srgb, var(--brand-floral) 88%, var(--brand-carbon));
+  --border-color: color-mix(in srgb, var(--brand-carbon) 14%, transparent);
+  --border-color-light: color-mix(in srgb, var(--brand-carbon) 8%, transparent);
+  --border-translucent: color-mix(in srgb, var(--brand-carbon) 10%, transparent);
   --text: var(--brand-black);
   --text-secondary: var(--brand-carbon);
-  --text-muted: #6a6e6e;
-  --text-disabled: #a3a7a7;
-  --shadow: rgba(5, 6, 9, 0.06) 0 2px 4px 0;
-  --shadow-card: 0 0 0 1px var(--border-translucent), rgba(5, 6, 9, 0.06) 0 2px 4px 0;
+  --text-muted: var(--ink-muted-on-light);
+  --text-disabled: color-mix(in srgb, var(--ink-muted-on-light) 55%, var(--brand-floral));
+  --shadow: color-mix(in srgb, var(--brand-black) 6%, transparent) 0 2px 4px 0;
+  --shadow-card: 0 0 0 1px var(--border-translucent),
+    color-mix(in srgb, var(--brand-black) 6%, transparent) 0 2px 4px 0;
 
-  /* Sidebar stays dark chrome in both themes */
+  /* Shell geometry (matches Gentelella topbar height). theme-color meta
+     uses the same brand blacks/florals as --brand-black / --brand-floral. */
+  --topbar-h: 56px;
+  --topbar-offset: calc(var(--topbar-h) + var(--space-4));
+
+  /* Sidebar: always dark chrome */
   --sidebar-bg: var(--brand-black);
-  --sidebar-hover: rgba(254, 248, 236, 0.05);
-  --sidebar-active: rgba(232, 130, 60, 0.14);
-  --sidebar-text: #8e9393;
-  --sidebar-text-hover: #e8e0d0;
+  --sidebar-hover: color-mix(in srgb, var(--brand-floral) 5%, transparent);
+  --sidebar-active: color-mix(in srgb, var(--brand-pumpkin) 14%, transparent);
+  --sidebar-text: var(--ink-muted-on-dark);
+  --sidebar-text-hover: color-mix(in srgb, var(--brand-floral) 88%, var(--brand-carbon));
   --sidebar-text-active: var(--brand-floral);
-  --sidebar-border: rgba(254, 248, 236, 0.08);
+  --sidebar-border: color-mix(in srgb, var(--brand-floral) 8%, transparent);
 }
 
 [data-theme="dark"] {
-  --primary: var(--brand-pumpkin);
-  --primary-dk: #c96a28;
-  --primary-lt: rgba(232, 130, 60, 0.16);
-  --sidebar-active: rgba(232, 130, 60, 0.18);
-  --blue-lt: rgba(74, 143, 231, 0.18);
-  --azure-lt: rgba(74, 143, 231, 0.18);
+  --primary-lt: color-mix(in srgb, var(--brand-pumpkin) 16%, transparent);
+  --sidebar-active: color-mix(in srgb, var(--brand-pumpkin) 18%, transparent);
+  --blue-lt: color-mix(in srgb, var(--brand-blue-energy) 18%, transparent);
+  --azure-lt: var(--blue-lt);
+  --green-lt: color-mix(in srgb, var(--status-success) 16%, transparent);
+  --red-lt: color-mix(in srgb, var(--status-danger) 16%, transparent);
+  --yellow-lt: color-mix(in srgb, var(--status-warning) 16%, transparent);
+  --purple-lt: var(--blue-lt);
+  --cyan-lt: var(--blue-lt);
 
-  /* Dark: Black field, Carbon surfaces, Floral ink */
   --body-bg: var(--brand-black);
   --bg-surface: var(--brand-carbon);
-  --bg-surface-secondary: #111314;
-  --border-color: rgba(254, 248, 236, 0.1);
-  --border-color-light: rgba(254, 248, 236, 0.06);
-  --border-translucent: rgba(254, 248, 236, 0.1);
+  --bg-surface-secondary: color-mix(in srgb, var(--brand-black) 70%, var(--brand-carbon));
+  --border-color: color-mix(in srgb, var(--brand-floral) 10%, transparent);
+  --border-color-light: color-mix(in srgb, var(--brand-floral) 6%, transparent);
+  --border-translucent: color-mix(in srgb, var(--brand-floral) 10%, transparent);
   --text: var(--brand-floral);
-  --text-secondary: #d4cec0;
-  --text-muted: #8e9393;
-  --text-disabled: #555959;
-  --shadow: rgba(0, 0, 0, 0.45) 0 2px 4px 0;
-  --shadow-card: 0 0 0 1px var(--border-translucent), rgba(0, 0, 0, 0.35) 0 2px 4px 0;
+  --text-secondary: color-mix(in srgb, var(--brand-floral) 82%, var(--brand-carbon));
+  --text-muted: var(--ink-muted-on-dark);
+  --text-disabled: color-mix(in srgb, var(--ink-muted-on-dark) 55%, var(--brand-black));
+  --shadow: color-mix(in srgb, var(--brand-black) 45%, transparent) 0 2px 4px 0;
+  --shadow-card: 0 0 0 1px var(--border-translucent),
+    color-mix(in srgb, var(--brand-black) 35%, transparent) 0 2px 4px 0;
 }
 
-/* Auth wash: Pumpkin Spice + Blue Energy spot highlight */
+/* Auth wash: Pumpkin + Blue Energy only */
 .auth-page {
   background:
-    radial-gradient(ellipse 60% 80% at 20% 30%, rgba(232, 130, 60, 0.1), transparent),
-    radial-gradient(ellipse 60% 80% at 80% 70%, rgba(74, 143, 231, 0.08), transparent),
+    radial-gradient(
+      ellipse 60% 80% at 20% 30%,
+      color-mix(in srgb, var(--brand-pumpkin) 10%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 60% 80% at 80% 70%,
+      color-mix(in srgb, var(--brand-blue-energy) 8%, transparent),
+      transparent
+    ),
     var(--body-bg);
 }
 
@@ -110,6 +155,36 @@
 .sidebar .nav-link:hover .icon,
 .sidebar .nav-link.active .icon {
   opacity: 1;
+}
+
+/* Group labels + badges: drop leftover cool-gray / teal hardcodes */
+.nav-label {
+  color: color-mix(in srgb, var(--sidebar-text) 55%, transparent);
+}
+/* Nav colour badges → same tokens as semantic Badge tones (danger/info/accent). */
+.badge-red {
+  background: var(--red-lt);
+  color: var(--red);
+}
+.badge-blue {
+  background: var(--blue-lt);
+  color: var(--blue);
+}
+.badge-teal {
+  background: var(--primary-lt);
+  color: var(--primary);
+}
+.sidebar .brand-name {
+  color: var(--brand-floral);
+}
+.btn-success {
+  border-color: color-mix(in srgb, var(--green) 78%, var(--brand-black));
+}
+.btn-warning {
+  border-color: color-mix(in srgb, var(--yellow) 78%, var(--brand-black));
+}
+.btn-danger {
+  border-color: color-mix(in srgb, var(--red) 78%, var(--brand-black));
 }
 
 html,
@@ -187,14 +262,14 @@ a.sidebar-user {
   border-top: 1px solid var(--sidebar-border);
 }
 .sidebar-footer .lang-seg {
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--brand-floral) 6%, transparent);
 }
 .sidebar-footer .lang-seg button {
   color: var(--sidebar-text);
 }
 .sidebar-footer .lang-seg button.active {
   background: var(--primary);
-  color: #fff;
+  color: var(--brand-floral);
 }
 .sidebar-footer-tools .theme-toggle {
   width: 32px;
@@ -341,7 +416,7 @@ body.sidebar-rail .sidebar-footer-error {
 }
 .lang-seg button.active {
   background: var(--primary);
-  color: #fff;
+  color: var(--brand-floral);
 }
 .lang-seg button:focus-visible {
   outline: 2px solid var(--primary);
@@ -377,7 +452,7 @@ body.sidebar-rail .sidebar-footer-error {
   padding: 10px 16px;
   border-radius: var(--radius);
   background: var(--red-lt);
-  border: 1px solid rgba(214, 57, 57, 0.22);
+  border: 1px solid color-mix(in srgb, var(--red) 22%, transparent);
   color: var(--text);
   font-size: 13px;
 }
@@ -438,12 +513,14 @@ body.sidebar-rail .sidebar-footer-error {
   width: 100%;
   justify-content: center;
 }
-.auth-form-error {
+/* Block-level form alert (auth + any form-level banner). Field-level stays
+   Gentelella `.form-error` (small red text under a control). */
+.form-error--banner {
   margin-bottom: 14px;
   padding: 10px 12px;
   border-radius: var(--radius);
   background: var(--red-lt);
-  border: 1px solid rgba(214, 57, 57, 0.22);
+  border: 1px solid color-mix(in srgb, var(--red) 22%, transparent);
   color: var(--text);
   font-size: 12.5px;
   line-height: 1.45;
@@ -536,10 +613,13 @@ body.sidebar-rail .sidebar-footer-error {
   display: flex;
   align-items: center;
   gap: 10px;
+  text-decoration: none;
+  color: inherit;
 }
-.home-topbar .brand img {
+.home-topbar .brand .brand-icon {
+  width: 26px;
   height: 26px;
-  width: auto;
+  flex-shrink: 0;
 }
 .home-brand-name {
   color: var(--text);
@@ -587,12 +667,33 @@ body.sidebar-rail .sidebar-footer-error {
 
 /* Section anchors clear the fixed topbar when scroll-spy jumps to them. */
 .profile-section {
-  scroll-margin-top: 72px;
+  scroll-margin-top: var(--topbar-offset);
 }
 
 .page-wrapper > .card.profile-section,
 .page-wrapper > .card.profile-actions {
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
+}
+
+/* Page-level actions live in content (not a second page title). */
+.page-actions--inline {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-4);
+}
+
+/* Semantic page title in the account topbar (replaces span.breadcrumb.current). */
+.topbar .breadcrumb h1.current {
+  margin: 0;
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  line-height: inherit;
+  color: var(--text);
+}
+
+/* Heading reset when card titles are h2 under the page h1. */
+h2.card-title {
+  margin: 0;
 }
 
 .profile-page-layout {
@@ -603,20 +704,20 @@ body.sidebar-rail .sidebar-footer-error {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .profile-aside {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
   min-width: 0;
 }
 
 @media (min-width: 1101px) {
   .profile-aside {
     position: sticky;
-    top: 72px;
+    top: var(--topbar-offset);
   }
 }
 
@@ -1079,7 +1180,7 @@ button.nav-link {
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
   background: var(--bg-surface);
-  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.14);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--brand-black) 14%, transparent);
   color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.45;
@@ -1190,7 +1291,7 @@ button.nav-link {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   background: var(--bg-surface);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--brand-black) 16%, transparent);
 }
 .date-pop--portal {
   z-index: 200;
@@ -1270,7 +1371,7 @@ button.nav-link {
 .date-pop .dp-day.is-selected {
   background: var(--primary);
   border-color: var(--primary);
-  color: #fff;
+  color: var(--brand-floral);
 }
 .date-pop .dp-day:disabled {
   opacity: 0.3;
@@ -1373,7 +1474,7 @@ button.nav-link {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
 }
 .muted {
   color: var(--text-muted);
