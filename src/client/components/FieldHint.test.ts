@@ -32,4 +32,15 @@ describe("FieldHint structured content", () => {
     expect(markup).toContain("<label");
     expect(markup).toContain('tabindex="-1"');
   });
+
+  // PROFILE-014: popover must leave overflow-clipping parents (portal class).
+  it("marks the tooltip as a body-portaled popover", () => {
+    const markup = renderToStaticMarkup(
+      createElement(FieldHint, { text: "Для реєстрації на чемпіонати міст." }),
+    );
+
+    expect(markup).toContain("hint-pop--portal");
+    expect(markup).toContain('role="tooltip"');
+    expect(markup).toContain("Для реєстрації на чемпіонати міст.");
+  });
 });

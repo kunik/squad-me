@@ -1307,7 +1307,7 @@ button.nav-link {
   gap: 6px;
 }
 
-/* —— Field hint (i) popover —— */
+/* —— Field hint (i) popover (portaled to body — escapes panel overflow) —— */
 .field-hint {
   position: relative;
   display: inline-flex;
@@ -1338,9 +1338,9 @@ button.nav-link {
   color: var(--primary);
   background: var(--primary-lt);
 }
-.field-hint .hint-pop {
-  position: absolute;
-  z-index: 60;
+.hint-pop {
+  position: fixed;
+  z-index: 200;
   width: max-content;
   max-width: min(16rem, 70vw);
   padding: 8px 10px;
@@ -1356,24 +1356,12 @@ button.nav-link {
   pointer-events: none;
   transition: opacity 120ms;
 }
-.field-hint--top .hint-pop {
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-}
-.field-hint--right .hint-pop {
-  top: 50%;
-  left: calc(100% + 8px);
-  transform: translateY(-50%);
-}
-.field-hint.is-open .hint-pop,
-.field-hint:focus-within .hint-pop,
-.field-hint:has(.hint-trigger:hover) .hint-pop {
+.hint-pop.is-visible {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
 }
-.field-hint .hint-rules {
+.hint-pop .hint-rules {
   display: block;
   margin-top: 4px;
   font-style: italic;

@@ -4,8 +4,10 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 
 /** Purpose text, optionally followed by italic validation rules. */
 export type FieldHintContent =
@@ -37,11 +39,54 @@ type FieldHintProps = {
 
 type Placement = "right" | "top";
 
+type PopCoords = {
+  top: number;
+  left: number;
+};
+
+const GAP = 6;
+const EDGE = 8;
+
+function resolvePlacement(
+  rootRect: DOMRect,
+  popoverWidth: number,
+  popoverHeight: number,
+): { placement: Placement; coords: PopCoords } {
+  const spaceRight = window.innerWidth - rootRect.right - GAP;
+  const placement: Placement =
+    spaceRight >= Math.min(popoverWidth, 160) ? "right" : "top";
+
+  if (placement === "right") {
+    let top = rootRect.top + rootRect.height / 2 - popoverHeight / 2;
+    top = Math.min(
+      Math.max(EDGE, top),
+      window.innerHeight - popoverHeight - EDGE,
+    );
+    return {
+      placement,
+      coords: { top, left: rootRect.right + 8 },
+    };
+  }
+
+  let left = rootRect.left + rootRect.width / 2 - popoverWidth / 2;
+  left = Math.min(
+    Math.max(EDGE, left),
+    window.innerWidth - popoverWidth - EDGE,
+  );
+  let top = rootRect.top - popoverHeight - GAP;
+  if (top < EDGE) {
+    top = rootRect.bottom + GAP;
+  }
+  return { placement, coords: { top, left } };
+}
+
 /**
  * Compact (i) control that reveals a short field/block hint on click
  * (and hover on fine pointers). Prefers right of the icon, falls back to
- * above when there isn't enough room. Keep outside wrapping `<label>`s for
- * the whole control — use a `.form-group` wrapper instead.
+ * above when there isn't enough room. Portaled to `document.body` so
+ * `overflow: hidden` parents (e.g. `.profile-form__panel`) cannot clip it.
+ * Keep outside wrapping `<label>`s for the whole control — use a
+ * `.form-group` wrapper instead.
  *
  * Structured hints show purpose first, then validation rules on a new
  * italic line. Not in the Tab order (`tabIndex={-1}`); open via pointer.
@@ -51,33 +96,43 @@ export function FieldHint({ text }: FieldHintProps) {
   const rootRef = useRef<HTMLSpanElement>(null);
   const popoverRef = useRef<HTMLSpanElement>(null);
   const [open, setOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const [placement, setPlacement] = useState<Placement>("right");
+  const [coords, setCoords] = useState<PopCoords | null>(null);
   const { description, validation } = normalizeFieldHint(text);
   const ariaLabel = hintAriaLabel(text);
+  const visible = open || hovered;
 
   useLayoutEffect(() => {
-    if (!open) return;
+    if (!visible) {
+      setCoords(null);
+      return;
+    }
 
     const root = rootRef.current;
     const popover = popoverRef.current;
     if (!root || !popover) return;
 
-    const gap = 6;
     const rootRect = root.getBoundingClientRect();
-    // Measure natural width without the placement class fighting us.
-    const popoverWidth = popover.offsetWidth;
-    const spaceRight = window.innerWidth - rootRect.right - gap;
-    const next: Placement = spaceRight >= Math.min(popoverWidth, 160) ? "right" : "top";
-    setPlacement(next);
-  }, [open, description, validation]);
+    const popoverWidth = popover.offsetWidth || Math.min(256, window.innerWidth * 0.7);
+    const popoverHeight = popover.offsetHeight || 40;
+    const next = resolvePlacement(rootRect, popoverWidth, popoverHeight);
+    setPlacement(next.placement);
+    setCoords(next.coords);
+  }, [visible, description, validation]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!visible) return;
 
     const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false);
+      const target = event.target as Node;
+      if (
+        rootRef.current?.contains(target) ||
+        popoverRef.current?.contains(target)
+      ) {
+        return;
       }
+      setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
@@ -86,11 +141,14 @@ export function FieldHint({ text }: FieldHintProps) {
       const root = rootRef.current;
       const popover = popoverRef.current;
       if (!root || !popover) return;
-      const gap = 6;
       const rootRect = root.getBoundingClientRect();
-      const popoverWidth = popover.offsetWidth;
-      const spaceRight = window.innerWidth - rootRect.right - gap;
-      setPlacement(spaceRight >= Math.min(popoverWidth, 160) ? "right" : "top");
+      const next = resolvePlacement(
+        rootRect,
+        popover.offsetWidth || 160,
+        popover.offsetHeight || 40,
+      );
+      setPlacement(next.placement);
+      setCoords(next.coords);
     };
 
     document.addEventListener("pointerdown", onPointerDown);
@@ -103,22 +161,31 @@ export function FieldHint({ text }: FieldHintProps) {
       window.removeEventListener("resize", onReposition);
       window.removeEventListener("scroll", onReposition, true);
     };
-  }, [open]);
+  }, [visible]);
+
+  const popStyle: CSSProperties | undefined = coords
+    ? { top: coords.top, left: coords.left }
+    : undefined;
+
+  const tip = (
+    <span
+      ref={popoverRef}
+      id={tipId}
+      role="tooltip"
+      className={`hint-pop hint-pop--portal field-hint--${placement}${visible ? " is-visible" : ""}`}
+      style={popStyle}
+    >
+      <span>{description}</span>
+      {validation ? <span className="hint-rules">{validation}</span> : null}
+    </span>
+  );
 
   return (
     <span
       ref={rootRef}
-      className={`field-hint field-hint--${placement}${open ? " is-open" : ""}`}
-      onMouseEnter={() => {
-        const root = rootRef.current;
-        const popover = popoverRef.current;
-        if (!root || !popover) return;
-        const gap = 6;
-        const rootRect = root.getBoundingClientRect();
-        const popoverWidth = popover.offsetWidth || 160;
-        const spaceRight = window.innerWidth - rootRect.right - gap;
-        setPlacement(spaceRight >= Math.min(popoverWidth, 160) ? "right" : "top");
-      }}
+      className={`field-hint${open ? " is-open" : ""}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
       <button
         type="button"
@@ -139,10 +206,7 @@ export function FieldHint({ text }: FieldHintProps) {
       >
         <span aria-hidden="true">i</span>
       </button>
-      <span ref={popoverRef} id={tipId} role="tooltip" className="hint-pop">
-        <span>{description}</span>
-        {validation ? <span className="hint-rules">{validation}</span> : null}
-      </span>
+      {typeof document !== "undefined" ? createPortal(tip, document.body) : tip}
     </span>
   );
 }

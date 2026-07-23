@@ -31,6 +31,7 @@ When editing an entry, keep this table’s Status column in sync (use `Fixed` or
 | PROFILE-011 | Fixed | Mobile Profile stacked identity before actions | profile-page-layout CSS | Manual (CSS order) |
 | PROFILE-012 | Fixed | Mobile Profile cards stay narrow left column | profile-page-layout CSS | Manual (CSS) |
 | PROFILE-013 | Fixed | Membership / discipline toggles did not mark dirty | ProfileDetailsForm / DivisionsForm | Manual |
+| PROFILE-014 | Fixed | Field hint tooltip clipped by membership panel | FieldHint / profile-form__panel | FieldHint.test.ts |
 | SHELL-001 | Fixed | Mobile content width jumps (scrollbar gutter) | styles / scrollLock | scrollLock.test.ts + visual |
 | SHELL-002 | Fixed | Overlay scrims were slate-blue | `--overlay-scrim` | Manual (token) |
 | SHELL-003 | Fixed | Mobile drawer footer stacks when rail preference set | sidebar-footer CSS | Manual (CSS) |
@@ -339,3 +340,16 @@ When editing an entry, keep this table’s Status column in sync (use `Fixed` or
 
 **Expected:** Form is dirty after the toggle; Cancel opens the unsaved-changes confirmation.
 **Actual:** Switch is a `button[role=switch]`, so it never fired the form’s `onChange={markDirty}` path used by native inputs. Dirty stayed false and Cancel exited edit mode immediately with no dialog.
+
+## PROFILE-014 · Field hint tooltip clipped by membership panel
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/components/FieldHint.tsx`, `src/client/styles.css` (`.hint-pop` portal), `.profile-form__panel { overflow: hidden }`
+**Coverage:** `src/client/components/FieldHint.test.ts` — PROFILE-014 asserts `hint-pop--portal` + tooltip role. Manual: on `/profile` edit UPSF «Місто» (i), full text «Для реєстрації на чемпіонати міст.» visible beyond panel edge.
+
+### Steps to reproduce
+1. Sign in, open `/profile`, edit personal details with UPSF membership enabled.
+2. Hover or click the (i) next to «Місто» (right column inside the membership panel).
+
+**Expected:** Full hint text is readable (not cut off by the panel border).
+**Actual:** Absolute `.hint-pop` stayed inside `.profile-form__panel` (`overflow: hidden`), so the right-side tooltip was clipped mid-sentence.
