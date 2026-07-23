@@ -1,11 +1,13 @@
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ChangeEvent,
   type KeyboardEvent,
 } from "react";
+import { createPortal } from "react-dom";
 import { useLocale } from "../locale";
 import {
   buildMonthGrid,
@@ -51,10 +53,14 @@ export function DateField({
   const fieldId = id ?? `date-field-${autoId}`;
   const popoverId = `${fieldId}-popover`;
   const rootRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const calendarBtnRef = useRef<HTMLButtonElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const [popoverStyle, setPopoverStyle] = useState<{ top: number; left: number } | null>(
+    null,
+  );
   const [focused, setFocused] = useState(false);
   const [draft, setDraft] = useState(() =>
     value ? formatIsoDisplay(value, locale) : "",
@@ -74,6 +80,41 @@ export function DateField({
     }
   }, [value, locale, focused]);
 
+  useLayoutEffect(() => {
+    if (!open || !rootRef.current) {
+      setPopoverStyle(null);
+      return;
+    }
+
+    const popoverWidth = Math.min(320, window.innerWidth * 0.92);
+    const popoverHeight = 360;
+
+    function updatePosition() {
+      const anchor = rootRef.current?.querySelector(".date-field");
+      if (!anchor) return;
+      const rect = anchor.getBoundingClientRect();
+      let left = rect.left;
+      if (left + popoverWidth > window.innerWidth - 8) {
+        left = window.innerWidth - popoverWidth - 8;
+      }
+      left = Math.max(8, left);
+
+      let top = rect.bottom + 6;
+      if (top + popoverHeight > window.innerHeight - 8) {
+        top = Math.max(8, rect.top - popoverHeight - 6);
+      }
+      setPopoverStyle({ top, left });
+    }
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
 
@@ -84,9 +125,11 @@ export function DateField({
     }
 
     const handlePointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setOpen(false);
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) || popoverRef.current?.contains(target)) {
+        return;
       }
+      setOpen(false);
     };
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -102,13 +145,13 @@ export function DateField({
     requestAnimationFrame(() => {
       const preferred =
         gridRef.current?.querySelector<HTMLButtonElement>(
-          '.date-field__day[aria-selected="true"]:not(:disabled)',
+          '.dp-day[aria-selected="true"]:not(:disabled)',
         ) ??
         gridRef.current?.querySelector<HTMLButtonElement>(
-          '.date-field__day[aria-current="date"]:not(:disabled)',
+          '.dp-day[aria-current="date"]:not(:disabled)',
         ) ??
         gridRef.current?.querySelector<HTMLButtonElement>(
-          ".date-field__day:not(:disabled):not(.date-field__day--outside)",
+          ".dp-day:not(:disabled):not(.is-outside)",
         );
       preferred?.focus();
     });
@@ -203,12 +246,12 @@ export function DateField({
 
   function handleGridKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const target = event.target;
-    if (!(target instanceof HTMLButtonElement) || !target.classList.contains("date-field__day")) {
+    if (!(target instanceof HTMLButtonElement) || !target.classList.contains("dp-day")) {
       return;
     }
     const buttons = Array.from(
       gridRef.current?.querySelectorAll<HTMLButtonElement>(
-        ".date-field__day:not(:disabled)",
+        ".dp-day:not(:disabled)",
       ) ?? [],
     );
     const index = buttons.indexOf(target);
@@ -235,17 +278,143 @@ export function DateField({
     return compareIsoDates(nextMonthStart, `${max.slice(0, 7)}-01`) <= 0;
   })();
 
+  const popover =
+    open && popoverStyle ? (
+      <div
+        id={popoverId}
+        ref={popoverRef}
+        className="date-pop date-pop--portal"
+        role="dialog"
+        aria-modal="false"
+        aria-label={t.dateFieldCalendarLabel}
+        style={{
+          position: "fixed",
+          top: popoverStyle.top,
+          left: popoverStyle.left,
+          width: "min(20rem, 92vw)",
+        }}
+      >
+        <div className="dp-nav">
+          <button
+            type="button"
+            className="dp-nav-btn"
+            aria-label={t.dateFieldPrevMonth}
+            disabled={!canPrev}
+            onClick={() => goMonth(-1)}
+          >
+            ‹
+          </button>
+          <div className="dp-title" aria-live="polite">
+            {monthLabel(viewYear, viewMonth, locale)}
+          </div>
+          <button
+            type="button"
+            className="dp-nav-btn"
+            aria-label={t.dateFieldNextMonth}
+            disabled={!canNext}
+            onClick={() => goMonth(1)}
+          >
+            ›
+          </button>
+        </div>
+
+        <div className="dp-selects">
+          <label>
+            <span className="visually-hidden">{t.dateFieldMonthLabel}</span>
+            <select
+              className="form-control"
+              value={viewMonth}
+              aria-label={t.dateFieldMonthLabel}
+              onChange={(e) => setViewMonth(Number(e.target.value))}
+            >
+              {Array.from({ length: 12 }, (_, i) => {
+                const month = i + 1;
+                const name = new Intl.DateTimeFormat(
+                  locale === "ua" ? "uk-UA" : "en-GB",
+                  { month: "long" },
+                ).format(new Date(2024, i, 1));
+                return (
+                  <option key={month} value={month}>
+                    {name}
+                  </option>
+                );
+              })}
+            </select>
+          </label>
+          <label>
+            <span className="visually-hidden">{t.dateFieldYearLabel}</span>
+            <select
+              className="form-control"
+              value={viewYear}
+              aria-label={t.dateFieldYearLabel}
+              onChange={(e) => setViewYear(Number(e.target.value))}
+            >
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="dp-weekdays" aria-hidden="true">
+          {weekdays.map((day) => (
+            <span key={day} className="dp-weekday">
+              {day}
+            </span>
+          ))}
+        </div>
+
+        <div
+          ref={gridRef}
+          className="dp-grid"
+          role="grid"
+          aria-label={monthLabel(viewYear, viewMonth, locale)}
+          onKeyDown={handleGridKeyDown}
+        >
+          {days.map((cell) => {
+            const isDisabled = compareIsoDates(cell.iso, max) > 0;
+            const isSelected = cell.iso === value;
+            const isToday = cell.iso === today;
+            return (
+              <button
+                key={cell.iso}
+                type="button"
+                role="gridcell"
+                className={[
+                  "dp-day",
+                  cell.outside ? "is-outside" : "",
+                  isSelected ? "is-selected" : "",
+                  isToday && !isSelected ? "is-today" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                disabled={isDisabled}
+                aria-selected={isSelected}
+                aria-current={isToday ? "date" : undefined}
+                tabIndex={-1}
+                onClick={() => selectDay(cell.iso)}
+              >
+                {cell.day}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    ) : null;
+
   return (
-    <div className="auth-form__field date-field" ref={rootRef}>
+    <div className="form-group date-field-wrap" ref={rootRef}>
       <FieldLabel id={`${fieldId}-label`} hint={hint}>
         {label}
       </FieldLabel>
-      <div className="date-field__control">
+      <div className="date-field">
         <input
           ref={inputRef}
           id={fieldId}
           type="text"
-          className={`auth-form__input date-field__input${invalid ? " is-invalid" : ""}`}
+          className={`form-control ${invalid ? " is-invalid" : ""}`}
           inputMode="numeric"
           autoComplete="bday"
           placeholder={t.dateFieldPlaceholder}
@@ -263,7 +432,7 @@ export function DateField({
         <button
           ref={calendarBtnRef}
           type="button"
-          className="date-field__calendar-btn"
+          className="cal-btn"
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls={open ? popoverId : undefined}
@@ -272,7 +441,6 @@ export function DateField({
           onClick={() => (open ? closePicker("calendar") : openPicker())}
         >
           <img
-            className="date-field__icon"
             src="/icon-calendar.png"
             alt=""
             width={22}
@@ -282,123 +450,7 @@ export function DateField({
         </button>
       </div>
 
-      {open && (
-        <div
-          id={popoverId}
-          className="date-field__popover"
-          role="dialog"
-          aria-modal="false"
-          aria-label={t.dateFieldCalendarLabel}
-        >
-          <div className="date-field__nav">
-            <button
-              type="button"
-              className="date-field__nav-btn"
-              aria-label={t.dateFieldPrevMonth}
-              disabled={!canPrev}
-              onClick={() => goMonth(-1)}
-            >
-              ‹
-            </button>
-            <div className="date-field__nav-title" aria-live="polite">
-              {monthLabel(viewYear, viewMonth, locale)}
-            </div>
-            <button
-              type="button"
-              className="date-field__nav-btn"
-              aria-label={t.dateFieldNextMonth}
-              disabled={!canNext}
-              onClick={() => goMonth(1)}
-            >
-              ›
-            </button>
-          </div>
-
-          <div className="date-field__selects">
-            <label className="date-field__select-wrap">
-              <span className="visually-hidden">{t.dateFieldMonthLabel}</span>
-              <select
-                className="auth-form__input date-field__select"
-                value={viewMonth}
-                aria-label={t.dateFieldMonthLabel}
-                onChange={(e) => setViewMonth(Number(e.target.value))}
-              >
-                {Array.from({ length: 12 }, (_, i) => {
-                  const month = i + 1;
-                  const name = new Intl.DateTimeFormat(
-                    locale === "ua" ? "uk-UA" : "en-GB",
-                    { month: "long" },
-                  ).format(new Date(2024, i, 1));
-                  return (
-                    <option key={month} value={month}>
-                      {name}
-                    </option>
-                  );
-                })}
-              </select>
-            </label>
-            <label className="date-field__select-wrap">
-              <span className="visually-hidden">{t.dateFieldYearLabel}</span>
-              <select
-                className="auth-form__input date-field__select"
-                value={viewYear}
-                aria-label={t.dateFieldYearLabel}
-                onChange={(e) => setViewYear(Number(e.target.value))}
-              >
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <div className="date-field__weekdays" aria-hidden="true">
-            {weekdays.map((day) => (
-              <span key={day} className="date-field__weekday">
-                {day}
-              </span>
-            ))}
-          </div>
-
-          <div
-            ref={gridRef}
-            className="date-field__grid"
-            role="grid"
-            aria-label={monthLabel(viewYear, viewMonth, locale)}
-            onKeyDown={handleGridKeyDown}
-          >
-            {days.map((cell) => {
-              const isDisabled = compareIsoDates(cell.iso, max) > 0;
-              const isSelected = cell.iso === value;
-              const isToday = cell.iso === today;
-              return (
-                <button
-                  key={cell.iso}
-                  type="button"
-                  role="gridcell"
-                  className={[
-                    "date-field__day",
-                    cell.outside ? "date-field__day--outside" : "",
-                    isSelected ? "date-field__day--selected" : "",
-                    isToday && !isSelected ? "date-field__day--today" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  disabled={isDisabled}
-                  aria-selected={isSelected}
-                  aria-current={isToday ? "date" : undefined}
-                  tabIndex={-1}
-                  onClick={() => selectDay(cell.iso)}
-                >
-                  {cell.day}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {popover && createPortal(popover, document.body)}
     </div>
   );
 }

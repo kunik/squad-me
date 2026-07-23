@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AppDialog } from "../components/AppDialog";
 import { AccountShell } from "../components/AccountShell";
+import { HintPanel } from "../components/HintPanel";
 import { ProfileForm } from "../components/ProfileForm";
 import { ProfileSectionHeader } from "../components/ProfileSectionHeader";
 import { ProfileSummary } from "../components/ProfileSummary";
@@ -9,7 +10,7 @@ import {
   NotificationChannelsForm,
   NotificationChannelsSummary,
 } from "../components/NotificationChannelsForm";
-import { HintPanel } from "../components/HintPanel";
+import { ProfileAside } from "../components/ProfileAside";
 import { useAuth } from "../auth";
 import { useLocale } from "../locale";
 import {
@@ -27,7 +28,6 @@ import { translateAuthError } from "../lib/authErrors";
 import { clearOtpProof } from "../lib/otpProofStorage";
 import { ProfileContentSection } from "../lib/profileNavigation";
 import {
-  ACTIONS_ANCHOR,
   DIVISIONS_ANCHOR,
   NOTIFICATIONS_ANCHOR,
   PROFILE_ANCHOR,
@@ -293,7 +293,7 @@ export function ProfilePage() {
     }
     // SMS-only Save (no accounts.email) must stamp dismissal like Skip —
     // otherwise onboardingStep stays "email" across logout/password reset.
-    if (!account.email?.trim()) {
+    if (!account?.email?.trim()) {
       setBannerError(null);
       setSkipping(true);
       try {
@@ -401,10 +401,10 @@ export function ProfilePage() {
     <>
       <AccountShell
         hint={onboardingHint}
-        activeAnchor={activeAnchor}
-        onScrollToAnchor={scrollToAnchor}
         nickname={loadingProfile ? undefined : profile?.nickname?.trim() || null}
       >
+        <div className="row col-8-4 profile-page-layout">
+          <div className="profile-page-main">
         <ProfileContentSection id={PROFILE_ANCHOR}>
           {!loadingProfile && (
             <>
@@ -429,33 +429,35 @@ export function ProfilePage() {
                   setErrorField(null);
                 }}
               />
-              {showProfileEditor ? (
-                <ProfileForm
-                  mode="profile"
-                  initialValues={profile ?? undefined}
-                  submitting={submitting}
-                  serverError={error}
-                  serverField={errorField}
-                  showMembershipHints={needsProfileStep}
-                  onSubmit={handleProfileSubmit}
-                  onDirtyChange={setProfileDirty}
-                  onCancel={() => {
-                    if (profileDirty) {
-                      setDiscardIntent({ type: "cancel-profile" });
-                      return;
-                    }
-                    setEditing(false);
-                    setError(null);
-                    setErrorField(null);
-                  }}
-                />
-              ) : (
-                <ProfileSummary
-                  mode="profile"
-                  profile={profile}
-                  showMembershipHints={needsProfileStep}
-                />
-              )}
+              <div className="card-body">
+                {showProfileEditor ? (
+                  <ProfileForm
+                    mode="profile"
+                    initialValues={profile ?? undefined}
+                    submitting={submitting}
+                    serverError={error}
+                    serverField={errorField}
+                    showMembershipHints={needsProfileStep}
+                    onSubmit={handleProfileSubmit}
+                    onDirtyChange={setProfileDirty}
+                    onCancel={() => {
+                      if (profileDirty) {
+                        setDiscardIntent({ type: "cancel-profile" });
+                        return;
+                      }
+                      setEditing(false);
+                      setError(null);
+                      setErrorField(null);
+                    }}
+                  />
+                ) : (
+                  <ProfileSummary
+                    mode="profile"
+                    profile={profile}
+                    showMembershipHints={needsProfileStep}
+                  />
+                )}
+              </div>
             </>
           )}
         </ProfileContentSection>
@@ -482,35 +484,34 @@ export function ProfilePage() {
                   setDivisionsError(null);
                 }}
               />
-              {editingDivisions ? (
-                <ProfileForm
-                  mode="divisions"
-                  initialValues={profile ?? undefined}
-                  submitting={submitting}
-                  serverError={divisionsError}
-                  onSubmit={handleProfileSubmit}
-                  onDirtyChange={setDivisionsDirty}
-                  onCancel={() => {
-                    if (divisionsDirty) {
-                      setDiscardIntent({ type: "cancel-divisions" });
-                      return;
-                    }
-                    setEditingDivisions(false);
-                    setDivisionsError(null);
-                  }}
-                />
-              ) : (
-                <ProfileSummary mode="divisions" profile={profile} />
-              )}
+              <div className="card-body">
+                {editingDivisions ? (
+                  <ProfileForm
+                    mode="divisions"
+                    initialValues={profile ?? undefined}
+                    submitting={submitting}
+                    serverError={divisionsError}
+                    onSubmit={handleProfileSubmit}
+                    onDirtyChange={setDivisionsDirty}
+                    onCancel={() => {
+                      if (divisionsDirty) {
+                        setDiscardIntent({ type: "cancel-divisions" });
+                        return;
+                      }
+                      setEditingDivisions(false);
+                      setDivisionsError(null);
+                    }}
+                  />
+                ) : (
+                  <ProfileSummary mode="divisions" profile={profile} />
+                )}
+              </div>
             </>
           )}
         </ProfileContentSection>
 
         {showNotifications && (
-          <ProfileContentSection
-            id={NOTIFICATIONS_ANCHOR}
-            className="profile-page__notifications"
-          >
+          <ProfileContentSection id={NOTIFICATIONS_ANCHOR} className="profile-notifications">
             {!loadingProfile && (
               <>
                 <ProfileSectionHeader
@@ -525,51 +526,44 @@ export function ProfilePage() {
                   }}
                   onCancel={requestCancelNotifications}
                 />
-                {editingNotifications ? (
-                  <NotificationChannelsForm
-                    initialEmail={account.email}
-                    phoneE164={account.phoneE164}
-                    submitting={submitting}
-                    serverError={emailError}
-                    onSaveEmail={persistAccountEmail}
-                    onDirtyChange={setNotificationsDirty}
-                    onCancel={requestCancelNotifications}
-                    onSaved={handleNotificationsSaved}
-                  />
-                ) : (
-                  <NotificationChannelsSummary
-                    email={account.email}
-                    phoneE164={account.phoneE164}
-                  />
-                )}
+                <div className="card-body">
+                  {editingNotifications ? (
+                    <NotificationChannelsForm
+                      initialEmail={account.email}
+                      phoneE164={account.phoneE164}
+                      submitting={submitting}
+                      serverError={emailError}
+                      onSaveEmail={persistAccountEmail}
+                      onDirtyChange={setNotificationsDirty}
+                      onCancel={requestCancelNotifications}
+                      onSaved={handleNotificationsSaved}
+                    />
+                  ) : (
+                    <NotificationChannelsSummary
+                      email={account.email}
+                      phoneE164={account.phoneE164}
+                    />
+                  )}
+                </div>
               </>
             )}
           </ProfileContentSection>
         )}
-        <section
-          id={ACTIONS_ANCHOR}
-          className="profile-page__block profile-page__anchor profile-page__actions"
-          aria-labelledby="profile-actions-heading"
-        >
-          <h2 id="profile-actions-heading" className="profile-page__section-title">
-            {t.profileMenuActions}
-          </h2>
-          <Link className="btn btn--ghost" to="/change-phone">
-            {t.profileChangePhone}
-          </Link>
-          <Link className="btn btn--ghost" to="/forgot-password">
-            {t.profileChangePassword}
-          </Link>
-          <button
-            className="btn profile-page__delete"
-            type="button"
-            ref={deleteTriggerRef}
-            disabled={deleting}
-            onClick={openDeleteDialog}
-          >
-            {t.profileDelete}
-          </button>
-        </section>
+          </div>
+
+          {!loadingProfile && (
+            <ProfileAside
+              nickname={profile?.nickname?.trim() || null}
+              showNickname
+              activeAnchor={activeAnchor}
+              showNotifications={showNotifications}
+              onNavigate={scrollToAnchor}
+              onDeleteClick={openDeleteDialog}
+              deleteBusy={deleting}
+              deleteTriggerRef={deleteTriggerRef}
+            />
+          )}
+        </div>
       </AccountShell>
       <AppDialog
         open={Boolean(discardIntent)}
@@ -580,7 +574,7 @@ export function ProfilePage() {
         actions={
           <>
             <button
-              className="btn btn--ghost"
+              className="btn btn-ghost"
               type="button"
               onClick={confirmDiscardUnsaved}
             >
@@ -588,7 +582,7 @@ export function ProfilePage() {
             </button>
             <button
               ref={unsavedStayRef}
-              className="btn btn--primary"
+              className="btn btn-primary"
               type="button"
               onClick={closeUnsavedDialog}
             >
@@ -609,7 +603,7 @@ export function ProfilePage() {
         actions={
           <>
             <button
-              className="btn btn--ghost"
+              className="btn btn-ghost"
               type="button"
               disabled={deleting}
               onClick={closeDeleteDialog}
@@ -617,7 +611,7 @@ export function ProfilePage() {
               {t.profileEditCancel}
             </button>
             <button
-              className="btn btn--primary"
+              className="btn btn-danger"
               type="button"
               disabled={deleting || deleteConfirmation !== t.profileDeletePhrase}
               onClick={handleDeleteAccount}
@@ -627,11 +621,12 @@ export function ProfilePage() {
           </>
         }
       >
-        <label className="app-dialog__field">
-          <span>{t.profileDeleteInputLabel}</span>
+        <div className="modal-form-row">
+          <label htmlFor="profile-delete-confirm">{t.profileDeleteInputLabel}</label>
           <input
             ref={deleteInputRef}
-            className="app-dialog__input"
+            id="profile-delete-confirm"
+            className="form-control"
             type="text"
             value={deleteConfirmation}
             autoComplete="off"
@@ -639,9 +634,9 @@ export function ProfilePage() {
             disabled={deleting}
             onChange={(event) => setDeleteConfirmation(event.target.value)}
           />
-        </label>
+        </div>
         {deleteError && (
-          <p className="auth-page__error" role="alert">
+          <p className="form-error" role="alert">
             {deleteError}
           </p>
         )}

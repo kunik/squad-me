@@ -1,108 +1,62 @@
+import { Link, useLocation } from "react-router-dom";
 import { useLocale } from "../locale";
-import { useLocation, useNavigate } from "react-router-dom";
 import {
-  defaultAnchorForMenuGroup,
-  isProfileMenuGroupExpanded,
   pathForProfileSection,
   PROFILE_MENU_GROUPS,
-  PROFILE_PATH,
   profileSectionFromPath,
 } from "../lib/profileMenu";
 
-type ProfileSideMenuProps = {
-  activeAnchor: string;
-  /** When on `/profile`, scroll to an in-page anchor; otherwise unused. */
-  onScrollToAnchor?: (id: string) => void;
-};
-
 /**
- * Accordion left nav for the account area: top-level items are routes;
- * profile children stay hash anchors on `/profile`.
+ * Gentelella `.sidebar-nav`: flat `.nav-link` rows for routed account screens.
+ * Profile is opened from the sidebar footer avatar, not from this menu.
  */
-export function ProfileSideMenu({
-  activeAnchor,
-  onScrollToAnchor,
-}: ProfileSideMenuProps) {
+export function ProfileSideMenu() {
   const { t } = useLocale();
   const { pathname } = useLocation();
-  const navigate = useNavigate();
-  const section = profileSectionFromPath(pathname);
-
-  function openProfileAnchor(id: string) {
-    if (profileSectionFromPath(pathname) === "profile" && onScrollToAnchor) {
-      onScrollToAnchor(id);
-      return;
-    }
-    navigate(`${PROFILE_PATH}#${id}`);
-  }
+  const activeSection = profileSectionFromPath(pathname);
 
   return (
-    <nav className="profile-page__menu" aria-label={t.profileMenuLabel}>
-      {PROFILE_MENU_GROUPS.map((group) => {
-        const expanded = isProfileMenuGroupExpanded(group.section, section);
-        const hasChildren = group.children.length > 0;
-        const label = t[group.labelKey] as string;
-        const subId = `profile-menu-sub-${group.section}`;
-        const parentActive = expanded && !hasChildren;
-        const groupActive = expanded && hasChildren;
+    <nav className="sidebar-nav" aria-label={t.profileMenuLabel}>
+      <div className="nav-group">
+        <div className="nav-label">{t.profileMenuLabel}</div>
+        {PROFILE_MENU_GROUPS.map((group) => {
+          const onScreen = group.section === activeSection;
+          const label = t[group.labelKey] as string;
 
-        return (
-          <div
-            key={group.section}
-            className={`profile-page__menu-group${expanded ? " is-expanded" : ""}`}
-          >
-            <button
-              type="button"
-              className={`profile-page__menu-item profile-page__menu-item--parent${
-                parentActive ? " is-active" : ""
-              }${groupActive ? " is-group-active" : ""}`}
-              aria-expanded={hasChildren ? expanded : undefined}
-              aria-controls={hasChildren ? subId : undefined}
-              aria-current={parentActive ? "page" : undefined}
-              onClick={() => {
-                if (group.section === "profile") {
-                  const anchor = defaultAnchorForMenuGroup(group);
-                  if (anchor) openProfileAnchor(anchor);
-                  else navigate(pathForProfileSection("profile"));
-                  return;
-                }
-                navigate(pathForProfileSection(group.section));
-              }}
+          return (
+            <Link
+              key={group.section}
+              to={pathForProfileSection(group.section)}
+              className={`nav-link${onScreen ? " active" : ""}`}
+              aria-current={onScreen ? "page" : undefined}
+              data-rail-label={label}
+              title={label}
             >
-              {label}
-            </button>
-            {hasChildren ? (
-              <div
-                id={subId}
-                className="profile-page__menu-sub"
-                role="group"
-                aria-label={label}
-                aria-hidden={!expanded}
-              >
-                <div className="profile-page__menu-sub-inner">
-                  {group.children.map((child) => {
-                    const childActive = expanded && activeAnchor === child.id;
-                    return (
-                      <button
-                        key={child.id}
-                        type="button"
-                        className={`profile-page__menu-item profile-page__menu-item--sub${
-                          childActive ? " is-active" : ""
-                        }`}
-                        aria-current={childActive ? "location" : undefined}
-                        tabIndex={expanded ? undefined : -1}
-                        onClick={() => openProfileAnchor(child.id)}
-                      >
-                        {t[child.labelKey] as string}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        );
-      })}
+              <NavIcon section={group.section} />
+              <span className="nav-text">{label}</span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
+  );
+}
+
+function NavIcon({ section }: { section: string }) {
+  if (section === "matches") {
+    return (
+      <svg className="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="4" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="10" width="7" height="11" rx="1.5" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" />
+    </svg>
   );
 }

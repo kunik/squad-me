@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { PublicChrome } from "../components/PublicChrome";
+import { AuthLayout } from "../components/AuthLayout";
 import { OtpStep } from "../components/OtpStep";
 import { PasswordField } from "../components/PasswordField";
 import { HintPanel } from "../components/HintPanel";
@@ -87,26 +87,24 @@ export function RegisterPage() {
           : t.registerPasswordHint;
 
   return (
-    <>
-      <PublicChrome
-        hint={
-          <HintPanel
-            progress={stepProgress}
-            tone={wizard.accountMode === "password_reset" ? "warning" : "info"}
-          >
-            {stepHint}
-          </HintPanel>
-        }
-      />
-      <main className="auth-page">
+    <AuthLayout
+      hint={
+        <HintPanel
+          progress={stepProgress}
+          tone={wizard.accountMode === "password_reset" ? "warning" : "info"}
+        >
+          {stepHint}
+        </HintPanel>
+      }
+    >
         {wizard.step === "phone" && (
           <>
-            <h1 className="auth-page__title">{t.registerTitle}</h1>
-            <form className="auth-form" onSubmit={wizard.handlePhoneSubmit}>
-              <label className="auth-form__field">
+            <h1 className="auth-title">{t.registerTitle}</h1>
+            <form onSubmit={wizard.handlePhoneSubmit}>
+              <div className="form-group">
                 <FieldLabel hint={t.phoneHint}>{t.phoneLabel}</FieldLabel>
                 <input
-                  className="auth-form__input"
+                  className="form-control"
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
@@ -115,7 +113,7 @@ export function RegisterPage() {
                   placeholder="0XXXXXXXXX"
                   required
                 />
-              </label>
+              </div>
               {wizard.turnstileSiteKey && (
                 <TurnstileWidget
                   key={wizard.turnstileAttempt}
@@ -124,12 +122,12 @@ export function RegisterPage() {
                 />
               )}
               {wizard.error && (
-                <p className="auth-form__error" role="alert">
+                <div className="auth-form-error" role="alert">
                   {wizard.error}
-                </p>
+                </div>
               )}
               <button
-                className="btn btn--primary auth-form__submit"
+                className="btn btn-primary btn-lg btn-block"
                 type="submit"
                 disabled={
                   wizard.submitting ||
@@ -139,12 +137,12 @@ export function RegisterPage() {
                 {t.registerSendCode}
               </button>
             </form>
-            <p className="auth-page__hint">
-              {t.registerHaveAccount}{" "}
-              <Link to="/login" className="auth-page__link">
-                {t.registerLoginLink}
-              </Link>
-            </p>
+            <div className="auth-links">
+              <p>
+                {t.registerHaveAccount} <Link to="/login">{t.registerLoginLink}</Link>
+              </p>
+              <Link to="/">{t.backHome}</Link>
+            </div>
           </>
         )}
 
@@ -161,12 +159,12 @@ export function RegisterPage() {
 
         {wizard.step === "password" && (
           <>
-            <h1 className="auth-page__title">{t.passwordLabel}</h1>
-            <form className="auth-form" onSubmit={handlePasswordSubmit}>
-              <label className="auth-form__field">
+            <h1 className="auth-title">{t.passwordLabel}</h1>
+            <form onSubmit={handlePasswordSubmit}>
+              <div className="form-group">
                 <FieldLabel hint={t.profileNicknameHint}>{t.profileNicknameLabel}</FieldLabel>
                 <input
-                  className="auth-form__input"
+                  className="form-control"
                   type="text"
                   autoComplete="off"
                   maxLength={NICKNAME_MAX_LENGTH}
@@ -174,7 +172,7 @@ export function RegisterPage() {
                   onChange={(e) => setNickname(e.target.value)}
                   required
                 />
-              </label>
+              </div>
               <PasswordField
                 id="register-password"
                 label={t.passwordLabel}
@@ -186,32 +184,21 @@ export function RegisterPage() {
                 required
               />
               {wizard.error && (
-                <p className="auth-form__error" role="alert">
+                <div className="auth-form-error" role="alert">
                   {wizard.error}
-                </p>
+                </div>
               )}
-              <button
-                className="btn btn--primary auth-form__submit"
-                type="submit"
-                disabled={wizard.submitting}
-              >
+              <button className="btn btn-primary btn-lg btn-block" type="submit" disabled={wizard.submitting}>
                 {wizard.submitting ? t.registerSubmitting : t.registerSubmit}
               </button>
             </form>
-            <button
-              type="button"
-              className="auth-page__link auth-page__link--button"
-              onClick={wizard.backToOtp}
-            >
-              {t.backButton}
-            </button>
+            <div className="auth-links">
+              <button type="button" className="link-btn" onClick={wizard.backToOtp}>
+                {t.backButton}
+              </button>
+            </div>
           </>
         )}
-
-        <Link to="/" className="btn btn--ghost auth-page__back">
-          {t.backHome}
-        </Link>
-      </main>
-    </>
+    </AuthLayout>
   );
 }

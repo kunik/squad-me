@@ -193,7 +193,7 @@ export function DivisionsForm({
   return (
     <form
       ref={formRef}
-      className="auth-form profile-form"
+      className="profile-form"
       onSubmit={handleSubmit}
       onChange={markDirty}
     >
@@ -259,7 +259,7 @@ export function DivisionsForm({
       />
 
       {displayedError && (
-        <p className="auth-form__error" role="alert">
+        <p className="form-error" role="alert">
           {displayedError}
         </p>
       )}
@@ -321,11 +321,11 @@ function DisciplineFields({
       </label>
       {block.enabled && (
         <div className="profile-form__toggle-body">
-          <div className="profile-form__row">
-            <label className="auth-form__field">
-              <span className="auth-form__label">{divisionLabel}</span>
+          <div className="form-row">
+            <label className="form-group">
+              <span className="form-label">{divisionLabel}</span>
               <select
-                className={`auth-form__input${divisionInvalid ? " is-invalid" : ""}`}
+                className={`form-control${divisionInvalid ? " is-invalid" : ""}`}
                 value={block.division ?? ""}
                 aria-invalid={divisionInvalid || undefined}
                 onChange={(e) =>
@@ -344,10 +344,10 @@ function DisciplineFields({
                 ))}
               </select>
             </label>
-            <label className="auth-form__field">
-              <span className="auth-form__label">{powerFactorLabel}</span>
+            <label className="form-group">
+              <span className="form-label">{powerFactorLabel}</span>
               <select
-                className="auth-form__input"
+                className="form-control"
                 value={block.powerFactor ?? DISCIPLINE_DEFAULT_POWER_FACTOR[disciplineKey]}
                 onChange={(e) =>
                   setBlock({

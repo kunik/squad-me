@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { PublicChrome } from "../components/PublicChrome";
+import { AuthLayout } from "../components/AuthLayout";
 import { OtpStep } from "../components/OtpStep";
 import { PasswordField } from "../components/PasswordField";
 import { HintPanel } from "../components/HintPanel";
@@ -48,31 +48,29 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <>
-      <PublicChrome
-        hint={
-          <HintPanel
-            progress={`${t.flowStep} ${
-              wizard.step === "phone" ? 1 : wizard.step === "otp" ? 2 : 3
-            } ${t.flowStepOf} 3`}
-          >
-            {wizard.step === "phone"
-              ? t.forgotIntro
-              : wizard.step === "otp"
-                ? t.otpSentNotice
-                : t.forgotResetWarning}
-          </HintPanel>
-        }
-      />
-      <main className="auth-page">
+    <AuthLayout
+      hint={
+        <HintPanel
+          progress={`${t.flowStep} ${
+            wizard.step === "phone" ? 1 : wizard.step === "otp" ? 2 : 3
+          } ${t.flowStepOf} 3`}
+        >
+          {wizard.step === "phone"
+            ? t.forgotIntro
+            : wizard.step === "otp"
+              ? t.otpSentNotice
+              : t.forgotResetWarning}
+        </HintPanel>
+      }
+    >
         {wizard.step === "phone" && (
               <>
-                <h1 className="auth-page__title">{t.forgotTitle}</h1>
-                <form className="auth-form" onSubmit={wizard.handlePhoneSubmit}>
-                  <label className="auth-form__field">
+                <h1 className="auth-title">{t.forgotTitle}</h1>
+                <form onSubmit={wizard.handlePhoneSubmit}>
+                  <div className="form-group">
                     <FieldLabel hint={t.phoneHint}>{t.phoneLabel}</FieldLabel>
                     <input
-                      className="auth-form__input"
+                      className="form-control"
                       type="tel"
                       inputMode="tel"
                       autoComplete="tel"
@@ -81,7 +79,7 @@ export function ForgotPasswordPage() {
                       placeholder="0XXXXXXXXX"
                       required
                     />
-                  </label>
+                  </div>
                   {wizard.turnstileSiteKey && (
                     <TurnstileWidget
                       key={wizard.turnstileAttempt}
@@ -90,12 +88,12 @@ export function ForgotPasswordPage() {
                     />
                   )}
                   {wizard.error && (
-                    <p className="auth-form__error" role="alert">
+                    <div className="auth-form-error" role="alert">
                       {wizard.error}
-                    </p>
+                    </div>
                   )}
                   <button
-                    className="btn btn--primary auth-form__submit"
+                    className="btn btn-primary btn-lg btn-block"
                     type="submit"
                     disabled={
                       wizard.submitting ||
@@ -136,8 +134,8 @@ export function ForgotPasswordPage() {
 
             {wizard.step === "password" && (
               <>
-                <h1 className="auth-page__title">{t.newPasswordLabel}</h1>
-                <form className="auth-form" onSubmit={handlePasswordSubmit}>
+                <h1 className="auth-title">{t.newPasswordLabel}</h1>
+                <form onSubmit={handlePasswordSubmit}>
                   <PasswordField
                     id="reset-password"
                     label={t.newPasswordLabel}
@@ -149,32 +147,25 @@ export function ForgotPasswordPage() {
                     required
                   />
                   {wizard.error && (
-                    <p className="auth-form__error" role="alert">
+                    <div className="auth-form-error" role="alert">
                       {wizard.error}
-                    </p>
+                    </div>
                   )}
-                  <button
-                    className="btn btn--primary auth-form__submit"
-                    type="submit"
-                    disabled={wizard.submitting}
-                  >
+                  <button className="btn btn-primary btn-lg btn-block" type="submit" disabled={wizard.submitting}>
                     {wizard.submitting ? t.forgotSubmitting : t.forgotSubmit}
                   </button>
                 </form>
-                <button
-                  type="button"
-                  className="auth-page__link auth-page__link--button"
-                  onClick={wizard.backToOtp}
-                >
-                  {t.backButton}
-                </button>
+                <div className="auth-links">
+                  <button type="button" className="link-btn" onClick={wizard.backToOtp}>
+                    {t.backButton}
+                  </button>
+                </div>
               </>
             )}
 
-        <Link to="/" className="btn btn--ghost auth-page__back">
-          {t.backHome}
-        </Link>
-      </main>
-    </>
+        <div className="auth-links">
+          <Link to="/">{t.backHome}</Link>
+        </div>
+    </AuthLayout>
   );
 }

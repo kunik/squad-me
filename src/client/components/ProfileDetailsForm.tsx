@@ -285,15 +285,15 @@ export function ProfileDetailsForm({
   return (
     <form
       ref={formRef}
-      className="auth-form profile-form"
+      className="profile-form"
       onSubmit={handleSubmit}
       onChange={markDirty}
     >
       <fieldset className="profile-form__block">
-        <label className="auth-form__field">
+        <div className="form-group">
           <FieldLabel hint={t.profileNicknameHint}>{t.profileNicknameLabel}</FieldLabel>
           <input
-            className={`auth-form__input${fieldInvalid("nickname") ? " is-invalid" : ""}`}
+            className={`form-control${fieldInvalid("nickname") ? " is-invalid" : ""}`}
             type="text"
             autoComplete="off"
             maxLength={100}
@@ -305,11 +305,11 @@ export function ProfileDetailsForm({
               liveValidateProfile({ nickname: value }, ["nickname"]);
             }}
           />
-        </label>
+        </div>
       </fieldset>
 
       <fieldset className="profile-form__block">
-        <div className="profile-form__row">
+        <div className="form-row">
           <DateField
             id="profile-birth-date"
             label={t.profileBirthDateLabel}
@@ -324,10 +324,11 @@ export function ProfileDetailsForm({
           />
           <fieldset
             className={`profile-form__radio-group${fieldInvalid("gender") ? " is-invalid" : ""}`}
+            aria-labelledby="profile-gender-label"
           >
-            <legend>
+            <div id="profile-gender-label" className="form-group profile-form__radio-legend">
               <FieldLabel hint={t.profileGenderHint}>{t.profileGenderLabel}</FieldLabel>
-            </legend>
+            </div>
             <div className="profile-form__radio-options">
               <label className="profile-form__radio">
                 <input
@@ -380,17 +381,17 @@ export function ProfileDetailsForm({
         {upsfMember && (
           <div className="profile-form__toggle-body">
             {showMembershipHints && (
-              <p className="profile-form__info-note" role="note">
+              <p className="form-note" role="note">
                 {t.profileNameUaInfo}
               </p>
             )}
-            <div className="profile-form__row">
-              <label className="auth-form__field">
+            <div className="form-row">
+              <div className="form-group">
                 <FieldLabel hint={showMembershipHints ? t.profileNameUaHint : undefined}>
                   {t.profileFirstNameUaLabel}
                 </FieldLabel>
                 <input
-                  className={`auth-form__input${fieldInvalid("firstNameUa") ? " is-invalid" : ""}`}
+                  className={`form-control${fieldInvalid("firstNameUa") ? " is-invalid" : ""}`}
                   type="text"
                   autoComplete="given-name"
                   maxLength={100}
@@ -413,13 +414,13 @@ export function ProfileDetailsForm({
                     }
                   }}
                 />
-              </label>
-              <label className="auth-form__field">
+              </div>
+              <div className="form-group">
                 <FieldLabel hint={showMembershipHints ? t.profileNameUaHint : undefined}>
                   {t.profileLastNameUaLabel}
                 </FieldLabel>
                 <input
-                  className={`auth-form__input${fieldInvalid("lastNameUa") ? " is-invalid" : ""}`}
+                  className={`form-control${fieldInvalid("lastNameUa") ? " is-invalid" : ""}`}
                   type="text"
                   autoComplete="family-name"
                   maxLength={100}
@@ -442,13 +443,13 @@ export function ProfileDetailsForm({
                     }
                   }}
                 />
-              </label>
+              </div>
             </div>
-            <div className="profile-form__row">
-              <label className="auth-form__field">
+            <div className="form-row">
+              <div className="form-group">
                 <FieldLabel hint={t.profileRegionHint}>{t.profileRegionLabel}</FieldLabel>
                 <select
-                  className={`auth-form__input${fieldInvalid("region") ? " is-invalid" : ""}`}
+                  className={`form-control${fieldInvalid("region") ? " is-invalid" : ""}`}
                   value={region}
                   aria-invalid={fieldInvalid("region") || undefined}
                   onChange={(e) => {
@@ -464,11 +465,11 @@ export function ProfileDetailsForm({
                     </option>
                   ))}
                 </select>
-              </label>
-              <label className="auth-form__field">
+              </div>
+              <div className="form-group">
                 <FieldLabel hint={t.profileCityHint}>{t.profileCityLabel}</FieldLabel>
                 <input
-                  className="auth-form__input"
+                  className="form-control"
                   type="text"
                   autoComplete="address-level2"
                   maxLength={100}
@@ -478,12 +479,12 @@ export function ProfileDetailsForm({
                     setCity(e.target.value);
                   }}
                 />
-              </label>
+              </div>
             </div>
-            <label className="auth-form__field">
+            <div className="form-group">
               <FieldLabel hint={t.profileClubHint}>{t.profileClubLabel}</FieldLabel>
               <input
-                className={`auth-form__input${fieldInvalid("club") ? " is-invalid" : ""}`}
+                className={`form-control${fieldInvalid("club") ? " is-invalid" : ""}`}
                 type="text"
                 autoComplete="organization"
                 maxLength={100}
@@ -496,7 +497,7 @@ export function ProfileDetailsForm({
                   liveValidateProfile({ club: value }, ["club"]);
                 }}
               />
-            </label>
+            </div>
           </div>
         )}
       </fieldset>
@@ -538,17 +539,17 @@ export function ProfileDetailsForm({
         {ipscMember && (
           <div className="profile-form__toggle-body">
             {showMembershipHints && (
-              <p className="profile-form__info-note" role="note">
+              <p className="form-note" role="note">
                 {t.profileNameEnInfo}
               </p>
             )}
-            <div className="profile-form__row">
-              <label className="auth-form__field">
+            <div className="form-row">
+              <div className="form-group">
                 <FieldLabel hint={showMembershipHints ? t.profileNameEnHint : undefined}>
                   {t.profileFirstNameEnLabel}
                 </FieldLabel>
                 <input
-                  className={`auth-form__input${fieldInvalid("firstNameEn") ? " is-invalid" : ""}`}
+                  className={`form-control${fieldInvalid("firstNameEn") ? " is-invalid" : ""}`}
                   type="text"
                   autoComplete="given-name"
                   maxLength={100}
@@ -561,13 +562,13 @@ export function ProfileDetailsForm({
                     liveValidateProfile({ firstNameEn: value }, ["firstNameEn"]);
                   }}
                 />
-              </label>
-              <label className="auth-form__field">
+              </div>
+              <div className="form-group">
                 <FieldLabel hint={showMembershipHints ? t.profileNameEnHint : undefined}>
                   {t.profileLastNameEnLabel}
                 </FieldLabel>
                 <input
-                  className={`auth-form__input${fieldInvalid("lastNameEn") ? " is-invalid" : ""}`}
+                  className={`form-control${fieldInvalid("lastNameEn") ? " is-invalid" : ""}`}
                   type="text"
                   autoComplete="family-name"
                   maxLength={100}
@@ -580,15 +581,15 @@ export function ProfileDetailsForm({
                     liveValidateProfile({ lastNameEn: value }, ["lastNameEn"]);
                   }}
                 />
-              </label>
+              </div>
             </div>
-            <div className="profile-form__row">
-              <label className="auth-form__field">
+            <div className="form-row">
+              <div className="form-group">
                 <FieldLabel hint={t.profileIpscMemberNumberHint}>
                   {t.profileIpscMemberNumberLabel}
                 </FieldLabel>
                 <input
-                  className="auth-form__input"
+                  className="form-control"
                   type="text"
                   autoComplete="off"
                   maxLength={50}
@@ -598,11 +599,11 @@ export function ProfileDetailsForm({
                     setIpscMemberNumber(e.target.value);
                   }}
                 />
-              </label>
-              <label className="auth-form__field">
+              </div>
+              <div className="form-group">
                 <FieldLabel hint={t.profileIpscRegionHint}>{t.profileIpscRegionLabel}</FieldLabel>
                 <input
-                  className={`auth-form__input${fieldInvalid("ipscRegion") ? " is-invalid" : ""}`}
+                  className={`form-control${fieldInvalid("ipscRegion") ? " is-invalid" : ""}`}
                   type="text"
                   autoComplete="off"
                   maxLength={5}
@@ -615,14 +616,14 @@ export function ProfileDetailsForm({
                     liveValidateProfile({ ipscRegion: value }, ["ipscRegion"]);
                   }}
                 />
-              </label>
+              </div>
             </div>
           </div>
         )}
       </fieldset>
 
       {displayedError && (
-        <p className="auth-form__error" role="alert">
+        <p className="form-error" role="alert">
           {displayedError}
         </p>
       )}

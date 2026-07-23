@@ -79,13 +79,16 @@ export function OtpStep({
   }
 
   return (
-    <div className="auth-wizard-step">
-      <h2 className="auth-page__title">{t.otpStepTitle}</h2>
-      <form className="auth-form" onSubmit={handleVerify}>
-        <label className="auth-form__field">
-          <span className="auth-form__label">{t.otpLabel}</span>
+    <div className="auth-step">
+      <h2 className="auth-title">{t.otpStepTitle}</h2>
+      <form onSubmit={handleVerify}>
+        <div className="form-group">
+          <label className="form-label" htmlFor="otp-code">
+            {t.otpLabel}
+          </label>
           <input
-            className="auth-form__input auth-form__input--code"
+            id="otp-code"
+            className="form-control otp-code"
             type="text"
             inputMode="numeric"
             autoComplete="one-time-code"
@@ -94,17 +97,17 @@ export function OtpStep({
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
             required
           />
-        </label>
+        </div>
         {error && (
-          <p className="auth-form__error" role="alert">
+          <div className="auth-form-error" role="alert">
             {error}
-          </p>
+          </div>
         )}
-        <button className="btn btn--primary auth-form__submit" type="submit" disabled={verifying}>
+        <button className="btn btn-primary btn-lg btn-block" type="submit" disabled={verifying}>
           {verifying ? t.otpVerifying : t.otpVerify}
         </button>
       </form>
-      <div className="auth-page__links">
+      <div className="auth-links">
         {turnstileSiteKey && cooldown === 0 && (
           <TurnstileWidget
             key={turnstileAttempt}
@@ -114,7 +117,7 @@ export function OtpStep({
         )}
         <button
           type="button"
-          className="btn btn--ghost auth-form__resend"
+          className="btn btn-outline btn-sm"
           onClick={handleResend}
           disabled={cooldown > 0 || resending || Boolean(turnstileSiteKey && !turnstileToken)}
         >
@@ -122,7 +125,7 @@ export function OtpStep({
             ? `${t.otpResendWaitPrefix} ${cooldown}${t.otpResendWaitSuffix}`
             : t.otpResend}
         </button>
-        <button type="button" className="auth-page__link auth-page__link--button" onClick={onBack}>
+        <button type="button" className="link-btn" onClick={onBack}>
           {t.backButton}
         </button>
       </div>

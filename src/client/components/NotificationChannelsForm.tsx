@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
 import { maskEmail, maskPhoneE164 } from "../lib/maskIdentity";
 import { useLocale } from "../locale";
 
@@ -52,14 +52,12 @@ function resolvePreferred(
   for (const channel of CHANNEL_ORDER) {
     if (connected[channel]) return channel;
   }
-  // Nothing connected — keep SMS as the UI default (radio stays disabled).
   return preferred ?? "sms";
 }
 
 /**
  * Edit form for `/profile` «Сповіщення».
- * Radios pick the active notify preference (enabled only when connected);
- * status icons reflect connect state and open expandable connect panels when disconnected.
+ * Gentelella `.list-group` rows with `.form-check` radios and `.toggle-row` layout.
  */
 export function NotificationChannelsForm({
   submitting,
@@ -76,7 +74,7 @@ export function NotificationChannelsForm({
   const groupId = useId();
 
   const baselineEmail = (initialEmail ?? "").trim().toLowerCase();
-  const emailConnected = false; // email OTP verify not shipped — never fake connected
+  const emailConnected = false;
   const telegramConnected = Boolean(telegramUserId?.trim());
   const smsConnected = Boolean(phoneE164.trim());
   const connectedMap: ChannelConnectedMap = {
@@ -84,7 +82,6 @@ export function NotificationChannelsForm({
     telegram: telegramConnected,
     sms: smsConnected,
   };
-  // Preference API does not exist yet — fall back to first connected (usually SMS).
   const baselinePreferred = resolvePreferred(null, connectedMap);
 
   const [preferred, setPreferred] = useState<NotifyChannel>(baselinePreferred);
@@ -124,7 +121,6 @@ export function NotificationChannelsForm({
   async function persistEmailIfNeeded(raw: string): Promise<boolean> {
     const trimmed = raw.trim().toLowerCase();
     if (!trimmed) {
-      // Empty is OK when preference is not email / user did not change collection.
       if (!baselineEmail) return true;
       setEmailClientError(t.commChannelsEmailRequired);
       return false;
@@ -185,7 +181,6 @@ export function NotificationChannelsForm({
       setEmailClientError(t.authErrorInvalidEmail);
       return;
     }
-    // Collection can succeed; OTP send is not wired — stay honest.
     if (trimmed !== baselineEmail) {
       const saved = await onSaveEmail(trimmed);
       if (!saved) return;
@@ -212,10 +207,8 @@ export function NotificationChannelsForm({
   const maskedPhone = phoneE164.trim() ? maskPhoneE164(phoneE164) : "";
 
   return (
-    <form className="auth-form profile-form notification-channels" onSubmit={handleSubmit}>
-      <fieldset className="notification-channels__radios">
-        <legend className="visually-hidden">{t.commChannelsTitle}</legend>
-
+    <form onSubmit={handleSubmit}>
+      <div className="list-group channel-list">
         <ChannelRadioRow
           name={groupId}
           value="email"
@@ -231,79 +224,87 @@ export function NotificationChannelsForm({
             syncDirty({ preferred: "email" });
           }}
           onStatusClick={emailConnected ? undefined : openEmailConnect}
+          panel={
+            showEmailPanel ? (
+              <div className="channel-panel">
+                {emailPhase === "edit" && (
+                  <>
+                    <div className="form-group">
+                      <label className="form-label" htmlFor={`${groupId}-email`}>
+                        {t.commChannelsEmailLabel}
+                      </label>
+                      <input
+                        id={`${groupId}-email`}
+                        className="form-control"
+                        type="email"
+                        autoComplete="email"
+                        maxLength={254}
+                        value={email}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setEmail(value);
+                          syncDirty({ email: value });
+                        }}
+                        disabled={busy}
+                      />
+                    </div>
+                    <div className="channel-panel__actions">
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-sm"
+                        disabled={busy}
+                        onClick={() => void handleSendEmailCode()}
+                      >
+                        {t.commChannelsSendCode}
+                      </button>
+                    </div>
+                  </>
+                )}
+                {emailPhase === "awaiting_code" && (
+                  <>
+                    <p className="form-help">{maskedEmail}</p>
+                    <div className="form-group">
+                      <label className="form-label" htmlFor={`${groupId}-code`}>
+                        {t.commChannelsEmailCodeLabel}
+                      </label>
+                      <input
+                        id={`${groupId}-code`}
+                        className="form-control"
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        maxLength={8}
+                        value={emailCode}
+                        onChange={(e) => setEmailCode(e.target.value)}
+                        disabled={busy}
+                      />
+                    </div>
+                    <div className="channel-panel__actions">
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-sm"
+                        disabled={busy}
+                        onClick={handleConfirmEmailCode}
+                      >
+                        {t.commChannelsConfirmCode}
+                      </button>
+                    </div>
+                  </>
+                )}
+                {emailStubNotice && (
+                  <p className="form-help" role="status">
+                    {emailStubNotice}
+                  </p>
+                )}
+                {emailError && (
+                  <p className="form-error" role="alert">
+                    {emailError}
+                  </p>
+                )}
+              </div>
+            ) : null
+          }
         />
-        {showEmailPanel && (
-          <div className="notification-channels__connect-panel profile-form__toggle-body">
-            {emailPhase === "edit" && (
-              <>
-                <label className="auth-form__field">
-                  <span className="auth-form__label">{t.commChannelsEmailLabel}</span>
-                  <input
-                    className="auth-form__input"
-                    type="email"
-                    autoComplete="email"
-                    maxLength={254}
-                    value={email}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setEmail(value);
-                      syncDirty({ email: value });
-                    }}
-                    disabled={busy}
-                  />
-                </label>
-                <div className="notification-channels__actions">
-                  <button
-                    type="button"
-                    className="btn btn--primary"
-                    disabled={busy}
-                    onClick={() => void handleSendEmailCode()}
-                  >
-                    {t.commChannelsSendCode}
-                  </button>
-                </div>
-              </>
-            )}
-            {emailPhase === "awaiting_code" && (
-              <>
-                <p className="notification-channels__pending-email">{maskedEmail}</p>
-                <label className="auth-form__field">
-                  <span className="auth-form__label">{t.commChannelsEmailCodeLabel}</span>
-                  <input
-                    className="auth-form__input"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={8}
-                    value={emailCode}
-                    onChange={(e) => setEmailCode(e.target.value)}
-                    disabled={busy}
-                  />
-                </label>
-                <div className="notification-channels__actions">
-                  <button
-                    type="button"
-                    className="btn btn--primary"
-                    disabled={busy}
-                    onClick={handleConfirmEmailCode}
-                  >
-                    {t.commChannelsConfirmCode}
-                  </button>
-                </div>
-              </>
-            )}
-            {emailStubNotice && (
-              <p className="auth-form__field-hint" role="status">
-                {emailStubNotice}
-              </p>
-            )}
-            {emailError && (
-              <p className="auth-form__error" role="alert">
-                {emailError}
-              </p>
-            )}
-          </div>
-        )}
 
         <ChannelRadioRow
           name={groupId}
@@ -319,26 +320,28 @@ export function NotificationChannelsForm({
             syncDirty({ preferred: "telegram" });
           }}
           onStatusClick={telegramConnected ? undefined : openTelegramConnect}
+          panel={
+            telegramExpanded && !telegramConnected ? (
+              <div className="channel-panel">
+                <div className="channel-panel__actions">
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    disabled={busy}
+                    onClick={handleTelegramConnectClick}
+                  >
+                    {t.commChannelsTelegramConnect}
+                  </button>
+                </div>
+                {telegramStubNotice && (
+                  <p className="form-help" role="status">
+                    {t.commChannelsTelegramUnavailable}
+                  </p>
+                )}
+              </div>
+            ) : null
+          }
         />
-        {telegramExpanded && !telegramConnected && (
-          <div className="notification-channels__connect-panel profile-form__toggle-body">
-            <div className="notification-channels__actions">
-              <button
-                type="button"
-                className="btn btn--primary"
-                disabled={busy}
-                onClick={handleTelegramConnectClick}
-              >
-                {t.commChannelsTelegramConnect}
-              </button>
-            </div>
-            {telegramStubNotice && (
-              <p className="auth-form__field-hint" role="status">
-                {t.commChannelsTelegramUnavailable}
-              </p>
-            )}
-          </div>
-        )}
 
         <ChannelRadioRow
           name={groupId}
@@ -354,15 +357,15 @@ export function NotificationChannelsForm({
             syncDirty({ preferred: "sms" });
           }}
         />
-      </fieldset>
+      </div>
 
-      <div className="profile-form__actions">
+      <div className="form-actions right">
         {onCancel && (
-          <button type="button" className="btn btn--ghost" disabled={busy} onClick={onCancel}>
+          <button type="button" className="btn btn-ghost" disabled={busy} onClick={onCancel}>
             {t.profileEditCancel}
           </button>
         )}
-        <button className="btn btn--primary" type="submit" disabled={busy}>
+        <button className="btn btn-primary" type="submit" disabled={busy}>
           {t.profileSubmit}
         </button>
       </div>
@@ -370,9 +373,7 @@ export function NotificationChannelsForm({
   );
 }
 
-/**
- * Read-only «Сповіщення» for `/profile` view mode.
- */
+/** Read-only «Сповіщення» for `/profile` view mode. */
 export function NotificationChannelsSummary({
   email,
   phoneE164,
@@ -392,28 +393,26 @@ export function NotificationChannelsSummary({
   const maskedPhone = phoneE164.trim() ? maskPhoneE164(phoneE164) : "";
 
   return (
-    <div className="auth-form profile-form profile-form--readonly notification-channels">
-      <div className="notification-channels__radios" role="list">
-        <ChannelSummaryRow
-          labelKey="email"
-          preferred={preferred === "email"}
-          connected={emailConnected}
-          identifier={emailConnected ? maskedEmail : null}
-          pendingIdentifier={!emailConnected && maskedEmail ? maskedEmail : null}
-        />
-        <ChannelSummaryRow
-          labelKey="telegram"
-          preferred={preferred === "telegram"}
-          connected={telegramConnected}
-          identifier={telegramConnected ? telegramUserId!.trim() : null}
-        />
-        <ChannelSummaryRow
-          labelKey="sms"
-          preferred={preferred === "sms"}
-          connected={smsConnected}
-          identifier={maskedPhone || null}
-        />
-      </div>
+    <div className="list-group channel-list" role="list">
+      <ChannelSummaryRow
+        labelKey="email"
+        preferred={preferred === "email"}
+        connected={emailConnected}
+        identifier={emailConnected ? maskedEmail : null}
+        pendingIdentifier={!emailConnected && maskedEmail ? maskedEmail : null}
+      />
+      <ChannelSummaryRow
+        labelKey="telegram"
+        preferred={preferred === "telegram"}
+        connected={telegramConnected}
+        identifier={telegramConnected ? telegramUserId!.trim() : null}
+      />
+      <ChannelSummaryRow
+        labelKey="sms"
+        preferred={preferred === "sms"}
+        connected={smsConnected}
+        identifier={maskedPhone || null}
+      />
     </div>
   );
 }
@@ -429,6 +428,7 @@ function ChannelRadioRow({
   busy,
   onSelect,
   onStatusClick,
+  panel,
 }: {
   name: string;
   value: NotifyChannel;
@@ -440,45 +440,43 @@ function ChannelRadioRow({
   busy: boolean;
   onSelect: () => void;
   onStatusClick?: () => void;
+  panel?: ReactNode;
 }) {
   const { t } = useLocale();
   const inputId = `${name}-${value}`;
 
   return (
-    <div
-      className={`notification-channels__row${checked ? " is-selected" : ""}`}
-    >
-      <label
-        className="notification-channels__radio notification-channels__control"
-        htmlFor={inputId}
-      >
-        <input
-          id={inputId}
-          type="radio"
-          name={name}
-          value={value}
-          checked={checked}
-          disabled={busy || !connected}
-          onChange={onSelect}
-        />
-      </label>
-      <label className="notification-channels__label-row" htmlFor={inputId}>
-        {label}
-        <span className="visually-hidden">
-          {connected ? t.commChannelsConnected : t.commChannelsDisconnected}
-        </span>
-      </label>
-      <span className="notification-channels__status-slot">
+    <div className={`list-group-item${checked ? " active" : ""}`}>
+      <div className="toggle-row">
+        <div>
+          <label className="form-check" htmlFor={inputId}>
+            <input
+              id={inputId}
+              type="radio"
+              name={name}
+              value={value}
+              checked={checked}
+              disabled={busy || !connected}
+              onChange={onSelect}
+            />
+            <span>{label}</span>
+          </label>
+          <ChannelIdentifier
+            identifier={identifier}
+            pendingIdentifier={pendingIdentifier}
+            asDesc
+          />
+          <span className="visually-hidden">
+            {connected ? t.commChannelsConnected : t.commChannelsDisconnected}
+          </span>
+        </div>
         <ConnectionStatus
           connected={connected}
           onConnectClick={onStatusClick}
           disabled={busy}
         />
-      </span>
-      <ChannelIdentifier
-        identifier={identifier}
-        pendingIdentifier={pendingIdentifier}
-      />
+      </div>
+      {panel}
     </div>
   );
 }
@@ -505,31 +503,22 @@ function ChannelSummaryRow({
         : t.commChannelsSmsLabel;
 
   return (
-    <div
-      className={`notification-channels__row notification-channels__row--summary${
-        preferred ? " is-selected" : ""
-      }`}
-    >
-      <span
-        className="notification-channels__summary-pref notification-channels__control"
-        aria-hidden="true"
-      >
-        {preferred ? "●" : "○"}
-      </span>
-      <span className="notification-channels__label-row">
-        {label}
-        <span className="visually-hidden">
-          {preferred ? t.commChannelsPreferred : ""}
-          {connected ? t.commChannelsConnected : t.commChannelsDisconnected}
-        </span>
-      </span>
-      <span className="notification-channels__status-slot">
+    <div className={`list-group-item${preferred ? " active" : ""}`} role="listitem">
+      <div className="toggle-row">
+        <div>
+          <div className="label">{label}</div>
+          <ChannelIdentifier
+            identifier={identifier}
+            pendingIdentifier={pendingIdentifier}
+            asDesc
+          />
+          <span className="visually-hidden">
+            {preferred ? t.commChannelsPreferred : ""}
+            {connected ? t.commChannelsConnected : t.commChannelsDisconnected}
+          </span>
+        </div>
         {connected ? <ConnectionStatus connected /> : null}
-      </span>
-      <ChannelIdentifier
-        identifier={identifier}
-        pendingIdentifier={pendingIdentifier}
-      />
+      </div>
     </div>
   );
 }
@@ -537,23 +526,27 @@ function ChannelSummaryRow({
 function ChannelIdentifier({
   identifier,
   pendingIdentifier,
+  asDesc = false,
 }: {
   identifier: string | null;
   pendingIdentifier?: string | null;
+  asDesc?: boolean;
 }) {
   if (identifier) {
-    return (
-      <span className="notification-channels__identifier">{identifier}</span>
+    return asDesc ? (
+      <div className="desc">{identifier}</div>
+    ) : (
+      <span className="meta">{identifier}</span>
     );
   }
   if (pendingIdentifier) {
-    return (
-      <span className="notification-channels__identifier notification-channels__identifier--pending">
-        {pendingIdentifier}
-      </span>
+    return asDesc ? (
+      <div className="desc channel-pending">{pendingIdentifier}</div>
+    ) : (
+      <span className="meta channel-pending">{pendingIdentifier}</span>
     );
   }
-  return <span className="notification-channels__identifier" aria-hidden="true" />;
+  return null;
 }
 
 function ConnectionStatus({
@@ -569,12 +562,15 @@ function ConnectionStatus({
 
   if (connected) {
     return (
-      <img
-        className="notification-channels__status-icon"
-        src="/icon-channel-connected.png"
-        alt={t.commChannelsConnected}
-        title={t.commChannelsConnected}
-      />
+      <span className="status status-green" title={t.commChannelsConnected}>
+        <img
+          className="channel-status-icon"
+          src="/icon-channel-connected.png"
+          alt=""
+          aria-hidden="true"
+        />
+        <span className="visually-hidden">{t.commChannelsConnected}</span>
+      </span>
     );
   }
 
@@ -582,35 +578,39 @@ function ConnectionStatus({
     return (
       <button
         type="button"
-        className="notification-channels__status-btn"
+        className="btn btn-sm btn-outline channel-connect-btn"
         onClick={onConnectClick}
         disabled={disabled}
         title={t.commChannelsConnect}
         aria-label={t.commChannelsConnect}
       >
         <img
-          className="notification-channels__status-icon notification-channels__status-icon--idle"
+          className="channel-status-icon channel-status-icon--idle"
           src="/icon-channel-disconnected.png"
           alt=""
           aria-hidden="true"
         />
         <img
-          className="notification-channels__status-icon notification-channels__status-icon--hover"
+          className="channel-status-icon channel-status-icon--hover"
           src="/icon-channel-connected.png"
           alt=""
           aria-hidden="true"
         />
+        <span className="channel-connect-label">{t.commChannelsConnect}</span>
       </button>
     );
   }
 
   return (
-    <img
-      className="notification-channels__status-icon notification-channels__status-icon--static"
-      src="/icon-channel-disconnected.png"
-      alt={t.commChannelsDisconnected}
-      title={t.commChannelsDisconnected}
-    />
+    <span className="status status-red" title={t.commChannelsDisconnected}>
+      <img
+        className="channel-status-icon"
+        src="/icon-channel-disconnected.png"
+        alt=""
+        aria-hidden="true"
+      />
+      <span className="visually-hidden">{t.commChannelsDisconnected}</span>
+    </span>
   );
 }
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { PublicChrome } from "../components/PublicChrome";
+import { AuthLayout } from "../components/AuthLayout";
 import { OtpStep } from "../components/OtpStep";
 import { PasswordField } from "../components/PasswordField";
 import { HintPanel } from "../components/HintPanel";
@@ -66,6 +66,7 @@ export function ChangePhonePage() {
 
   async function handleConfirmSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!account) return;
     setError(null);
     // Prefer FormData so browser password autofill (often missing from React
     // controlled state) still reaches the server.
@@ -156,30 +157,28 @@ export function ChangePhonePage() {
   const stepNumber = step === "confirm" ? 1 : step === "new_phone" ? 2 : 3;
 
   return (
-    <>
-      <PublicChrome
-        hint={
-          <HintPanel progress={`${t.flowStep} ${stepNumber} ${t.flowStepOf} 3`}>
-            {step === "confirm"
-              ? t.changePhoneConfirmHint
-              : step === "new_phone"
-                ? t.changePhoneNewHint
-                : t.otpSentNotice}
-          </HintPanel>
-        }
-      />
-      <main className="auth-page">
+    <AuthLayout
+      hint={
+        <HintPanel progress={`${t.flowStep} ${stepNumber} ${t.flowStepOf} 3`}>
+          {step === "confirm"
+            ? t.changePhoneConfirmHint
+            : step === "new_phone"
+              ? t.changePhoneNewHint
+              : t.otpSentNotice}
+        </HintPanel>
+      }
+    >
         {step === "confirm" ? (
           <>
-            <h1 className="auth-page__title">{t.changePhoneTitle}</h1>
-            <p className="auth-page__hint">
+            <h1 className="auth-title">{t.changePhoneTitle}</h1>
+            <p className="auth-subtitle">
               {t.changePhoneCurrentMaskedPrefix} <strong>{maskedCurrent}</strong>
             </p>
-            <form className="auth-form" onSubmit={handleConfirmSubmit}>
-              <label className="auth-form__field">
+            <form onSubmit={handleConfirmSubmit}>
+              <div className="form-group">
                 <FieldLabel hint={t.phoneHint}>{t.changePhoneCurrentLabel}</FieldLabel>
                 <input
-                  className="auth-form__input"
+                  className="form-control"
                   type="tel"
                   name="currentPhone"
                   inputMode="tel"
@@ -189,7 +188,7 @@ export function ChangePhonePage() {
                   placeholder="0XXXXXXXXX"
                   required
                 />
-              </label>
+              </div>
               <PasswordField
                 id="change-phone-password"
                 label={t.passwordLabel}
@@ -199,32 +198,28 @@ export function ChangePhonePage() {
                 required
               />
               {error && (
-                <p className="auth-form__error" role="alert">
+                <div className="auth-form-error" role="alert">
                   {error}
-                </p>
+                </div>
               )}
-              <button
-                className="btn btn--primary auth-form__submit"
-                type="submit"
-                disabled={submitting}
-              >
+              <button className="btn btn-primary btn-lg btn-block" type="submit" disabled={submitting}>
                 {submitting ? t.loginSubmitting : t.continueButton}
               </button>
             </form>
-            <Link to="/profile" className="btn btn--ghost auth-page__back">
-              {t.changePhoneBackToProfile}
-            </Link>
+            <div className="auth-links">
+              <Link to="/profile">{t.changePhoneBackToProfile}</Link>
+            </div>
           </>
         ) : null}
 
         {step === "new_phone" ? (
           <>
-            <h1 className="auth-page__title">{t.changePhoneNewTitle}</h1>
-            <form className="auth-form" onSubmit={handleNewPhoneSubmit}>
-              <label className="auth-form__field">
+            <h1 className="auth-title">{t.changePhoneNewTitle}</h1>
+            <form onSubmit={handleNewPhoneSubmit}>
+              <div className="form-group">
                 <FieldLabel hint={t.phoneHint}>{t.changePhoneNewLabel}</FieldLabel>
                 <input
-                  className="auth-form__input"
+                  className="form-control"
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
@@ -233,7 +228,7 @@ export function ChangePhonePage() {
                   placeholder="0XXXXXXXXX"
                   required
                 />
-              </label>
+              </div>
               {turnstileSiteKey && (
                 <TurnstileWidget
                   key={turnstileAttempt}
@@ -242,35 +237,37 @@ export function ChangePhonePage() {
                 />
               )}
               {error && (
-                <p className="auth-form__error" role="alert">
+                <div className="auth-form-error" role="alert">
                   {error}
-                </p>
+                </div>
               )}
               <button
-                className="btn btn--primary auth-form__submit"
+                className="btn btn-primary btn-lg btn-block"
                 type="submit"
                 disabled={submitting || Boolean(turnstileSiteKey && !turnstileToken)}
               >
                 {t.forgotSendCode}
               </button>
             </form>
-            <button
-              type="button"
-              className="auth-page__link auth-page__link--button"
-              onClick={() => {
-                setError(null);
-                reauthProofRef.current = null;
-                setStep("confirm");
-              }}
-            >
-              {t.backButton}
-            </button>
+            <div className="auth-links">
+              <button
+                type="button"
+                className="link-btn"
+                onClick={() => {
+                  setError(null);
+                  reauthProofRef.current = null;
+                  setStep("confirm");
+                }}
+              >
+                {t.backButton}
+              </button>
+            </div>
           </>
         ) : null}
 
         {step === "otp" ? (
           submitting ? (
-            <p className="auth-page__hint">{t.changePhoneSubmitting}</p>
+            <p className="auth-subtitle">{t.changePhoneSubmitting}</p>
           ) : (
             <OtpStep
               phoneE164={newPhone}
@@ -287,7 +284,6 @@ export function ChangePhonePage() {
             />
           )
         ) : null}
-      </main>
-    </>
+    </AuthLayout>
   );
 }

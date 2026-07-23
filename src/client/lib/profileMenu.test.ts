@@ -1,58 +1,50 @@
 import { describe, expect, it } from "vitest";
 import {
-  defaultAnchorForMenuGroup,
   isProfileMenuGroupExpanded,
   LINKED_SHOOTERS_PATH,
   MATCHES_PATH,
   pathForProfileSection,
   postAuthLandingPath,
+  PROFILE_IN_PAGE_NAV_ITEMS,
   PROFILE_MENU_GROUPS,
   PROFILE_PATH,
+  profileInPageNavItems,
   profileSectionFromPath,
 } from "./profileMenu";
 
-describe("profile side menu accordion", () => {
+describe("profile side menu", () => {
   it("expands only the active top-level section", () => {
-    expect(isProfileMenuGroupExpanded("profile", "profile")).toBe(true);
     expect(isProfileMenuGroupExpanded("matches", "profile")).toBe(false);
     expect(isProfileMenuGroupExpanded("linked", "matches")).toBe(false);
     expect(isProfileMenuGroupExpanded("matches", "matches")).toBe(true);
   });
 
-  it("keeps profile expanded while any profile sub-anchor is active (section stays profile)", () => {
-    expect(isProfileMenuGroupExpanded("profile", "profile")).toBe(true);
-    const profileGroup = PROFILE_MENU_GROUPS.find((g) => g.section === "profile");
-    expect(profileGroup?.children.map((c) => c.id)).toEqual([
-      "my-profile",
-      "my-divisions",
-      "my-notifications",
-      "profile-actions",
-    ]);
-  });
-
-  it("structures every top-level screen as a routed group that can gain children later", () => {
-    expect(PROFILE_MENU_GROUPS.map((g) => g.section)).toEqual([
-      "matches",
-      "linked",
-      "profile",
-    ]);
+  it("lists only routed screens in the sidebar (no profile tree)", () => {
+    expect(PROFILE_MENU_GROUPS.map((g) => g.section)).toEqual(["matches", "linked"]);
     expect(PROFILE_MENU_GROUPS.map((g) => g.path)).toEqual([
       MATCHES_PATH,
       LINKED_SHOOTERS_PATH,
-      PROFILE_PATH,
     ]);
     for (const group of PROFILE_MENU_GROUPS) {
-      expect(Array.isArray(group.children)).toBe(true);
+      expect(group.children).toEqual([]);
     }
-    expect(PROFILE_MENU_GROUPS.find((g) => g.section === "matches")?.children).toEqual([]);
-    expect(PROFILE_MENU_GROUPS.find((g) => g.section === "linked")?.children).toEqual([]);
   });
 
-  it("defaults parent click to the first child anchor when present", () => {
-    const profile = PROFILE_MENU_GROUPS.find((g) => g.section === "profile")!;
-    const matches = PROFILE_MENU_GROUPS.find((g) => g.section === "matches")!;
-    expect(defaultAnchorForMenuGroup(profile)).toBe("my-profile");
-    expect(defaultAnchorForMenuGroup(matches)).toBeNull();
+  it("keeps profile in-page nav in the aside without security", () => {
+    expect(PROFILE_IN_PAGE_NAV_ITEMS.map((item) => item.id)).toEqual([
+      "my-profile",
+      "my-divisions",
+      "my-notifications",
+    ]);
+    expect(profileInPageNavItems().map((item) => item.id)).toEqual([
+      "my-profile",
+      "my-divisions",
+      "my-notifications",
+    ]);
+    expect(profileInPageNavItems({ showNotifications: false }).map((item) => item.id)).toEqual([
+      "my-profile",
+      "my-divisions",
+    ]);
   });
 
   it("maps pathnames to top-level sections and back", () => {

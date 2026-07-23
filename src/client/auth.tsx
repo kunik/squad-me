@@ -52,9 +52,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
   }, [refresh]);
 
-  // Exposed for the logout flow (PublicHeader clears the account
-  // optimistically before `refresh()` confirms it) — clearing the account
-  // always clears the stale onboarding flag with it.
+  // Exposed for logout: callers clear the account optimistically before
+  // `refresh()` confirms it. Clearing the account always clears onboarding too.
   const setAccount = useCallback((next: AccountView | null) => {
     setAccountState(next);
     if (!next) {

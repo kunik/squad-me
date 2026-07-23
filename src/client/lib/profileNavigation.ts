@@ -7,7 +7,7 @@ export type ProfileAnchorPosition<T extends string> = {
 
 /**
  * Comfort gap below fixed top chrome (or the viewport top when nothing is
- * pinned). Matches `.profile-page__anchor { scroll-margin-top: 1.5rem }` at the
+ * pinned). Matches `.profile-section { scroll-margin-top: 72px }` at the
  * default root font size. Previously 5rem / 80px, which left headings too far
  * down after a menu scroll when header/hint were not pinned.
  */
@@ -34,8 +34,8 @@ export const PROFILE_TO_EMAIL_MENU_ANCHOR = "my-notifications" as const;
  */
 export const PROFILE_STEP_ADVANCE_MENU_ANCHOR = PROFILE_TO_EMAIL_MENU_ANCHOR;
 
-/** Selector for fixed App Shell top chrome (header + optional HintPanel). */
-export const PROFILE_STICKY_CHROME_SELECTORS = [".app-top-chrome"] as const;
+/** Selector for fixed Gentelella topbar (+ optional onboarding banner). */
+export const PROFILE_STICKY_CHROME_SELECTORS = [".topbar", ".onboarding-banner"] as const;
 
 export function ProfileContentSection({
   id,
@@ -52,7 +52,7 @@ export function ProfileContentSection({
     "section",
     {
       id,
-      className: `profile-page__block profile-page__anchor${className ? ` ${className}` : ""}`,
+      className: `card profile-section${className ? ` ${className}` : ""}`,
       "aria-labelledby": ariaLabelledby,
     },
     children,
@@ -64,7 +64,7 @@ export function ProfileContentSection({
  * covers the viewport. Non-pinned header/banner that scroll away are ignored
  * so menu scroll does not reserve space for chrome that will not be present.
  * Stacked sticky/fixed layers (header + hint panel) accumulate when they abut.
- * Measures the `.app-top-chrome` layout box (header + optional «панель підказки»).
+ * Measures fixed topbar + optional onboarding banner above content.
  */
 export function stickyTopChromeBottomPx(
   elements: ReadonlyArray<{ position: string; top: number; bottom: number }>,
@@ -131,7 +131,7 @@ export function profileReadingLinePx(
 /**
  * Window `scrollY` that places an anchor at the viewport top minus scroll-margin.
  * Prefer this over `Element.scrollIntoView`: ancestors with `overflow: hidden`
- * (e.g. `.public-surface`) are scroll containers, and scrollIntoView can shift
+ * (e.g. overflow ancestors) are scroll containers, and scrollIntoView can shift
  * them so the site header scrolls out of reach while `window.scrollY` stays ~0.
  */
 export function windowScrollTopForAnchor(

@@ -1,45 +1,46 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
-import { PublicChrome } from "./PublicChrome";
+import { Link, useLocation } from "react-router-dom";
 import { ProfileSideMenu } from "./ProfileSideMenu";
+import { SidebarFooter } from "./SidebarFooter";
 import { useAuth } from "../auth";
 import { useLocale } from "../locale";
-import { getProfile } from "../lib/authApi";
-import { PROFILE_PATH } from "../lib/profileMenu";
-import { PROFILE_ANCHOR } from "../hooks/useProfileScrollSpy";
+import { AUTHENTICATED_HOME_PATH, getProfile } from "../lib/authApi";
+import { profileSectionFromPath } from "../lib/profileMenu";
+import { readSidebarRail, writeSidebarRail } from "../lib/sidebarRail";
+import { isDesktopShell } from "../lib/theme";
 
 type AccountShellProps = {
-  /** Optional onboarding HintPanel in the fixed top chrome. */
+  /** Optional onboarding hint (rendered as a Gentelella banner above content). */
   hint?: ReactNode;
-  /** Active in-page profile anchor (only meaningful on `/profile`). */
-  activeAnchor?: string;
-  /** Scroll handler when already on `/profile`; otherwise unused. */
-  onScrollToAnchor?: (id: string) => void;
   /**
    * When provided (including `null`), skips the shell’s own profile fetch and
    * uses this nickname (ProfilePage keeps the live form copy in sync).
    */
   nickname?: string | null;
+  /** Topbar breadcrumb / page label; defaults to the active section name. */
+  title?: string;
   children: ReactNode;
 };
 
 /**
- * Shared chrome for `/matches`, `/linked-shooters`, and `/profile`:
- * avatar + nickname + accordion side menu + main pane.
+ * Authenticated shell built on Gentelella v4's real layout: dark fixed sidebar
+ * (`.sidebar`), translucent `.topbar`, and a `.main` / `.page-wrapper` content
+ * column. Language, theme, and logout live in the sidebar footer.
  */
 export function AccountShell({
   hint,
-  activeAnchor = "",
-  onScrollToAnchor,
   nickname: nicknameProp,
+  title,
   children,
 }: AccountShellProps) {
   const { t } = useLocale();
   const { account, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const nicknameControlled = nicknameProp !== undefined;
   const [fetchedNickname, setFetchedNickname] = useState<string | null>(null);
   const [loadingNickname, setLoadingNickname] = useState(!nicknameControlled);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarRail, setSidebarRail] = useState(readSidebarRail);
 
   const accountId = account?.id;
   useEffect(() => {
@@ -64,51 +65,110 @@ export function AccountShell({
     };
   }, [nicknameControlled, authLoading, accountId]);
 
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.classList.toggle("sidebar-rail", sidebarRail);
+    return () => {
+      document.body.classList.remove("sidebar-rail");
+    };
+  }, [sidebarRail]);
+
+  useEffect(() => {
+    document.body.classList.toggle("sidebar-open", sidebarOpen);
+    return () => {
+      document.body.classList.remove("sidebar-open");
+    };
+  }, [sidebarOpen]);
+
   const nickname = nicknameControlled ? nicknameProp : fetchedNickname;
   const showNickname = nicknameControlled || !loadingNickname;
+  const section = profileSectionFromPath(pathname);
+  const pageTitle =
+    title ??
+    (section === "matches"
+      ? t.profileMenuMatches
+      : section === "linked"
+        ? t.profileMenuLinkedShooters
+        : t.profileMenuMyProfile);
 
   if (authLoading || !account) {
     return (
-      <>
-        <PublicChrome />
-        <main className="profile-page" />
-      </>
+      <main className="main">
+        <div className="main__hex" aria-hidden="true" />
+        <div className="page-wrapper" />
+      </main>
     );
+  }
+
+  function handleSidebarToggle() {
+    if (isDesktopShell()) {
+      setSidebarRail((rail) => {
+        const next = !rail;
+        writeSidebarRail(next);
+        return next;
+      });
+      return;
+    }
+    setSidebarOpen((open) => !open);
   }
 
   return (
     <>
-      <PublicChrome hint={hint} />
-      <main className="profile-page">
-        <aside className="profile-page__aside">
-          <div className="profile-page__identity">
-            <div className="profile-page__avatar" aria-hidden="true">
-              <img
-                className="profile-page__avatar-img"
-                src="/avatar-default.png"
-                alt=""
-                width={160}
-                height={160}
-              />
-            </div>
-            {showNickname && nickname ? (
-              <p className="profile-page__nickname">{nickname}</p>
-            ) : showNickname ? (
-              <button
-                type="button"
-                className="auth-page__link auth-page__link--button profile-page__nickname is-empty"
-                onClick={() => navigate(`${PROFILE_PATH}#${PROFILE_ANCHOR}`)}
-              >
-                {t.profileAddNickname}
-              </button>
-            ) : null}
-          </div>
-          <ProfileSideMenu
-            activeAnchor={activeAnchor}
-            onScrollToAnchor={onScrollToAnchor}
-          />
-        </aside>
-        <div className="profile-page__main">{children}</div>
+      <aside className={`sidebar${sidebarOpen ? " open" : ""}`} aria-label={t.profileMenuLabel}>
+        <Link to={AUTHENTICATED_HOME_PATH} className="sidebar-brand" aria-label="Squad Me">
+          <span className="brand-icon">
+            <img src="/logo-mark.svg" alt="" width={28} height={28} />
+          </span>
+          <span className="brand-name">Squad Me</span>
+        </Link>
+
+        <ProfileSideMenu />
+
+        <SidebarFooter
+          nickname={nickname ?? null}
+          showNickname={showNickname}
+          phoneE164={account.phoneE164}
+        />
+      </aside>
+
+      <div
+        className="sidebar-backdrop"
+        hidden={!sidebarOpen}
+        onClick={() => setSidebarOpen(false)}
+        aria-hidden="true"
+      />
+
+      <header className="topbar">
+        <div className="topbar-left">
+          <button
+            type="button"
+            className="sidebar-toggle"
+            aria-label={t.profileMenuLabel}
+            aria-expanded={sidebarOpen}
+            aria-pressed={sidebarRail}
+            onClick={handleSidebarToggle}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <nav className="breadcrumb" aria-label="Breadcrumb">
+            <span className="current" aria-current="page">
+              {pageTitle}
+            </span>
+          </nav>
+        </div>
+      </header>
+
+      <main className="main">
+        <div className="main__hex" aria-hidden="true" />
+        <div className="page-wrapper">
+          {hint}
+          {children}
+        </div>
       </main>
     </>
   );

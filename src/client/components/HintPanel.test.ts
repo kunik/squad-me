@@ -19,7 +19,7 @@ describe("HintPanel", () => {
     expect(markup).toContain('role="status"');
     expect(markup).toContain("Підказка");
     expect(markup).toContain(
-      '<button type="button" class="btn btn--ghost hint-panel__action">Пропустити</button>',
+      '<button type="button" class="btn btn-sm btn-outline">Пропустити</button>',
     );
   });
 

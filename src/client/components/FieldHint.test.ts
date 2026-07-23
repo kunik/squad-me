@@ -14,9 +14,8 @@ describe("FieldHint structured content", () => {
       }),
     );
 
-    expect(markup).toContain('class="field-hint__description"');
     expect(markup).toContain("For unofficial competitions.");
-    expect(markup).toContain('class="field-hint__rules"');
+    expect(markup).toContain('class="hint-rules"');
     expect(markup).toContain("Required. Letters, digits, spaces, or hyphens.");
     expect(markup).toContain(
       'aria-label="For unofficial competitions. Required. Letters, digits, spaces, or hyphens."',
@@ -29,6 +28,6 @@ describe("FieldHint structured content", () => {
     );
 
     expect(markup).toContain("For determining category.");
-    expect(markup).not.toContain("field-hint__rules");
+    expect(markup).not.toContain("hint-rules");
   });
 });

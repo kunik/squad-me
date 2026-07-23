@@ -27,7 +27,7 @@ type AppDialogProps = {
 };
 
 /**
- * Shared in-app modal shell (dark app chrome, not `window.confirm`).
+ * Shared in-app modal shell on Gentelella's `.modal-backdrop` / `.modal-dialog`.
  * Handles backdrop dismiss, Escape, body scroll lock, focus trap, and return focus.
  */
 export function AppDialog({
@@ -48,9 +48,9 @@ export function AppDialog({
   const onCloseRef = useRef(onClose);
   const autoTitleId = useId();
   const autoDescriptionId = useId();
-  const titleId = `app-dialog-title-${autoTitleId}`;
+  const titleId = `modal-title-${autoTitleId}`;
   const descriptionId = description
-    ? `app-dialog-description-${autoDescriptionId}`
+    ? `modal-description-${autoDescriptionId}`
     : undefined;
 
   busyRef.current = busy;
@@ -64,6 +64,7 @@ export function AppDialog({
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.classList.add("modal-open");
 
     requestAnimationFrame(() => {
       const preferred = initialFocusRef?.current;
@@ -102,6 +103,7 @@ export function AppDialog({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = previousOverflow;
+      document.body.classList.remove("modal-open");
       const restore = returnFocusRef?.current ?? previouslyFocused.current;
       restore?.focus?.();
     };
@@ -117,32 +119,52 @@ export function AppDialog({
 
   return (
     <div
-      className="app-dialog__backdrop"
+      className="modal-backdrop show"
       onMouseDown={handleBackdropMouseDown}
     >
       <div
         ref={dialogRef}
-        className={`app-dialog${tone === "danger" ? " app-dialog--danger" : ""}`}
+        className={`modal-dialog${tone === "danger" ? " modal-dialog-danger" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-busy={busy || undefined}
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
       >
-        <h2 id={titleId} className="app-dialog__title">
-          {title}
-        </h2>
+        <div className="modal-header">
+          <h2 id={titleId} className="modal-title">
+            {title}
+          </h2>
+          <button
+            type="button"
+            className="modal-close"
+            aria-label="Close"
+            disabled={busy}
+            onClick={() => {
+              if (!busyRef.current) onClose();
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <path d="M4 4l8 8M12 4l-8 8" />
+            </svg>
+          </button>
+        </div>
         {typeof description === "string" ? (
-          <p id={descriptionId} className="app-dialog__description">
-            {description}
-          </p>
-        ) : description ? (
-          <div id={descriptionId} className="app-dialog__description">
-            {description}
+          <div className="modal-body">
+            <p id={descriptionId} className="modal-description">
+              {description}
+            </p>
+            {children}
           </div>
+        ) : description ? (
+          <div id={descriptionId} className="modal-body modal-description">
+            {description}
+            {children}
+          </div>
+        ) : children ? (
+          <div className="modal-body">{children}</div>
         ) : null}
-        {children}
-        <div className="app-dialog__actions">{actions}</div>
+        <div className="modal-footer">{actions}</div>
       </div>
     </div>
   );

@@ -4,7 +4,10 @@ import { BrowserRouter } from "react-router-dom";
 import { App } from "./App";
 import { AuthProvider } from "./auth";
 import { LocaleProvider } from "./locale";
+import { initTheme } from "./lib/theme";
 import "./styles.css";
+
+initTheme();
 
 const root = document.getElementById("root");
 if (!root) {

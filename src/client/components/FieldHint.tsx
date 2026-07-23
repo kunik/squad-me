@@ -40,7 +40,8 @@ type Placement = "right" | "top";
 /**
  * Compact (i) control that reveals a short field/block hint on click
  * (and hover on fine pointers). Prefers right of the icon, falls back to
- * above when there isn't enough room. Safe inside wrapping `<label>`s.
+ * above when there isn't enough room. Keep outside wrapping `<label>`s for
+ * the whole control — use a `.form-group` wrapper instead.
  *
  * Structured hints show purpose first, then validation rules on a new
  * italic line.
@@ -121,7 +122,7 @@ export function FieldHint({ text }: FieldHintProps) {
     >
       <button
         type="button"
-        className="field-hint__trigger"
+        className="hint-trigger"
         aria-label={ariaLabel}
         aria-expanded={open}
         aria-controls={tipId}
@@ -137,14 +138,9 @@ export function FieldHint({ text }: FieldHintProps) {
       >
         <span aria-hidden="true">i</span>
       </button>
-      <span
-        ref={popoverRef}
-        id={tipId}
-        role="tooltip"
-        className="field-hint__popover"
-      >
-        <span className="field-hint__description">{description}</span>
-        {validation ? <span className="field-hint__rules">{validation}</span> : null}
+      <span ref={popoverRef} id={tipId} role="tooltip" className="hint-pop">
+        <span>{description}</span>
+        {validation ? <span className="hint-rules">{validation}</span> : null}
       </span>
     </span>
   );
@@ -161,8 +157,8 @@ export function FieldLabel({
   id?: string;
 }) {
   return (
-    <span className="auth-form__label-row">
-      <span className="auth-form__label" id={id}>
+    <span className="form-label-row">
+      <span className="form-label" id={id}>
         {children}
       </span>
       {hint ? <FieldHint text={hint} /> : null}

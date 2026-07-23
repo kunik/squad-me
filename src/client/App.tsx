@@ -8,7 +8,6 @@ import { ChangePhonePage } from "./pages/ChangePhonePage";
 import { MatchesPage } from "./pages/MatchesPage";
 import { LinkedShootersPage } from "./pages/LinkedShootersPage";
 import { ProfilePage } from "./pages/ProfilePage";
-import { PublicAtmosphere } from "./components/PublicAtmosphere";
 import { useAuth } from "./auth";
 import { useLocale } from "./locale";
 import { safeNextPath } from "./lib/authApi";
@@ -142,11 +141,11 @@ export function App() {
   const { t } = useLocale();
 
   return (
-    <PublicAtmosphere>
+    <>
       {refreshError && (
         <div className="app-status" role="alert">
           <span>{t.authRefreshFailed}</span>
-          <button type="button" className="auth-page__link auth-page__link--button" onClick={() => void refresh().catch(() => undefined)}>
+          <button type="button" className="link-btn" onClick={() => void refresh().catch(() => undefined)}>
             {t.retryButton}
           </button>
         </div>
@@ -212,6 +211,6 @@ export function App() {
           <Route path="*" element={<CatchAllRoute />} />
         </Routes>
       </OnboardingGuard>
-    </PublicAtmosphere>
+    </>
   );
 }

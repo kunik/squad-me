@@ -20,14 +20,12 @@ describe("DateField", () => {
       }),
     );
 
-    expect(markup).toContain("date-field__input");
-    expect(markup).toContain("auth-form__input");
+    expect(markup).toContain("form-control");
     expect(markup).toContain('type="text"');
     expect(markup).toContain('value="15.05.1990"');
     expect(markup).toContain("/icon-calendar.png");
-    expect(markup).toContain("date-field__calendar-btn");
+    expect(markup).toContain("cal-btn");
     expect(markup).not.toContain('type="date"');
-    expect(markup).not.toContain("date-field__trigger");
   });
 
   it("shows a muted placeholder when empty", () => {

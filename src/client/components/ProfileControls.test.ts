@@ -76,12 +76,12 @@ describe("normal profile management controls", () => {
     expect(markup).not.toContain("Надіслати код");
     expect(markup).not.toContain("Пропустити");
 
-    // Shared row cells: control / label / status slot / identifier (not icon-in-label).
-    expect(markup).toContain("notification-channels__row");
-    expect(markup).toContain("notification-channels__status-slot");
-    expect(markup).toContain("notification-channels__identifier");
+    // Gentelella list-group rows: radio / label / status / identifier.
+    expect(markup).toContain("list-group-item");
+    expect(markup).toContain("toggle-row");
+    expect(markup).toContain('class="desc"');
     expect(markup).not.toMatch(
-      /notification-channels__label-row[^>]*>[^<]*<img[^>]*icon-channel-/,
+      /form-check[^>]*>[^<]*<img[^>]*icon-channel-/,
     );
 
     // Disconnected Email/Telegram radios stay disabled; SMS (auth phone) is selectable.
@@ -100,15 +100,14 @@ describe("normal profile management controls", () => {
       }),
     );
 
-    // Email is never fake-connected; SMS shows the preferred marker instead.
+    // Email is never fake-connected; SMS row gets `.list-group-item active`.
     const emailMarker = markup.indexOf("Електронна пошта");
     const telegramMarker = markup.indexOf("Telegram-бот");
-    const smsMarker = markup.indexOf(">SMS<");
-    const emailRow = markup.slice(emailMarker - 200, telegramMarker);
-    const smsRow = markup.slice(smsMarker - 200, smsMarker + 40);
-    expect(emailRow).toContain("○");
-    expect(emailRow).not.toContain("●");
-    expect(smsRow).toContain("●");
+    const smsMarker = markup.indexOf("SMS");
+    const emailRow = markup.slice(emailMarker - 120, telegramMarker);
+    const smsRow = markup.slice(smsMarker - 120, smsMarker + 120);
+    expect(emailRow).not.toContain("list-group-item active");
+    expect(smsRow).toContain("list-group-item active");
   });
 
   it("renders notification channels summary with three channel rows", () => {
@@ -133,15 +132,15 @@ describe("normal profile management controls", () => {
     expect(markup).not.toContain("Зберегти зміни");
     expect(markup).not.toContain("Надіслати код");
 
-    // Same row skeleton as edit; status lives in a dedicated slot after the label.
-    expect(markup).toContain("notification-channels__row notification-channels__row--summary");
-    expect(markup).toContain("notification-channels__status-slot");
+    // Same Gentelella list-group skeleton as edit; status lives after the label row.
+    expect(markup).toContain("list-group-item");
+    expect(markup).toContain("toggle-row");
     expect(markup).not.toMatch(
-      /notification-channels__label-row[^>]*>[^<]*<img[^>]*icon-channel-/,
+      /class="label"[^>]*>[^<]*<img[^>]*icon-channel-/,
     );
-    const smsIdx = markup.indexOf(">SMS<");
-    const smsTail = markup.slice(smsIdx, smsIdx + 350);
-    expect(smsTail).toContain("notification-channels__status-slot");
+    const smsIdx = markup.indexOf("SMS");
+    const smsTail = markup.slice(smsIdx, smsIdx + 400);
+    expect(smsTail).toContain("status-green");
     expect(smsTail).toContain("icon-channel-connected.png");
   });
 });
@@ -324,7 +323,7 @@ describe("membership copy, placeholders, and info blocks", () => {
     expect(markup).not.toContain("Ім&#x27;я та прізвище (українською)");
     // Full-width info sits above the name+surname row (not inside Ім'я only).
     expect(markup).toMatch(
-      /profile-form__info-note" role="note">вводьте ім&#x27;я та прізвище українською мовою, як в офіційних документах<\/p><div class="profile-form__row"/,
+      /form-note" role="note">вводьте ім&#x27;я та прізвище українською мовою, як в офіційних документах<\/p><div class="form-row"/,
     );
     expect(markup).toContain('placeholder="Іван"');
     expect(markup).toContain('placeholder="Франко"');
@@ -332,7 +331,7 @@ describe("membership copy, placeholders, and info blocks", () => {
     expect(markup).toContain('placeholder="ССК Барвінок"');
     expect(markup).toContain("Для офіційних змагань ФПСУ.");
     expect(markup).toContain("Обов’язкове. Лише українські літери, пробіл або дефіс.");
-    expect(markup).toContain("field-hint__rules");
+    expect(markup).toContain("hint-rules");
     expect(markup).toContain("Для всеукраїнських змагань та чемпіонатів областей.");
     expect(markup).toContain("Для реєстрації на чемпіонати міст.");
     expect(markup).toContain("Для офіційних матчів ФПСУ.");
@@ -355,7 +354,7 @@ describe("membership copy, placeholders, and info blocks", () => {
     );
     expect(markup).not.toContain("Ім&#x27;я та прізвище (англійською)");
     expect(markup).toMatch(
-      /profile-form__info-note" role="note">вводьте ім&#x27;я та прізвище англійською мовою, як в закордонних документах<\/p><div class="profile-form__row"/,
+      /form-note" role="note">вводьте ім&#x27;я та прізвище англійською мовою, як в закордонних документах<\/p><div class="form-row"/,
     );
     expect(markup).toContain("Членський номер");
     expect(markup).toContain('placeholder="John"');
@@ -385,7 +384,7 @@ describe("membership copy, placeholders, and info blocks", () => {
       }),
     );
 
-    expect(upsf).not.toContain("profile-form__info-note");
+    expect(upsf).not.toContain("form-note");
     expect(upsf).not.toContain(
       "вводьте ім&#x27;я та прізвище українською мовою, як в офіційних документах",
     );
@@ -393,7 +392,7 @@ describe("membership copy, placeholders, and info blocks", () => {
     expect(upsf).toContain("Для всеукраїнських змагань та чемпіонатів областей.");
     expect(upsf).toContain("Для офіційних матчів ФПСУ.");
 
-    expect(ipsc).not.toContain("profile-form__info-note");
+    expect(ipsc).not.toContain("form-note");
     expect(ipsc).not.toContain(
       "вводьте ім&#x27;я та прізвище англійською мовою, як в закордонних документах",
     );

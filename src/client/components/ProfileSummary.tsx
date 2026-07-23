@@ -42,7 +42,7 @@ export function ProfileSummary({
         : empty;
 
   return (
-    <div className="auth-form profile-form profile-form--readonly">
+    <div className="profile-form profile-form--readonly">
       {mode === "profile" && (
         <>
           <fieldset className="profile-form__block">
@@ -54,17 +54,17 @@ export function ProfileSummary({
           </fieldset>
 
           <fieldset className="profile-form__block">
-            <div className="profile-form__row">
+            <div className="form-row">
               <ReadonlyField
                 label={t.profileBirthDateLabel}
                 value={displayValue(profile?.birthDate, empty)}
                 hint={t.profileBirthDateHint}
               />
-              <fieldset className="profile-form__radio-group">
-                <legend>
+              <fieldset className="profile-form__radio-group" aria-labelledby="profile-summary-gender-label">
+                <div id="profile-summary-gender-label" className="form-group profile-form__radio-legend">
                   <FieldLabel hint={t.profileGenderHint}>{t.profileGenderLabel}</FieldLabel>
-                </legend>
-                <p className="profile-form__readonly-value">{genderLabel}</p>
+                </div>
+                <p className="field-view-value">{genderLabel}</p>
               </fieldset>
             </div>
           </fieldset>
@@ -74,11 +74,11 @@ export function ProfileSummary({
             label={t.profileUpsfMemberLabel}
           >
             {showMembershipHints && (
-              <p className="profile-form__info-note" role="note">
+              <p className="form-note" role="note">
                 {t.profileNameUaInfo}
               </p>
             )}
-            <div className="profile-form__row">
+            <div className="form-row">
               <ReadonlyField
                 label={t.profileFirstNameUaLabel}
                 value={displayValue(profile?.firstNameUa, empty)}
@@ -90,7 +90,7 @@ export function ProfileSummary({
                 hint={nameUaHint}
               />
             </div>
-            <div className="profile-form__row">
+            <div className="form-row">
               <ReadonlyField
                 label={t.profileRegionLabel}
                 value={displayValue(profile?.region, empty)}
@@ -114,11 +114,11 @@ export function ProfileSummary({
             label={t.profileIpscMemberLabel}
           >
             {showMembershipHints && (
-              <p className="profile-form__info-note" role="note">
+              <p className="form-note" role="note">
                 {t.profileNameEnInfo}
               </p>
             )}
-            <div className="profile-form__row">
+            <div className="form-row">
               <ReadonlyField
                 label={t.profileFirstNameEnLabel}
                 value={displayValue(profile?.firstNameEn, empty)}
@@ -130,7 +130,7 @@ export function ProfileSummary({
                 hint={nameEnHint}
               />
             </div>
-            <div className="profile-form__row">
+            <div className="form-row">
               <ReadonlyField
                 label={t.profileIpscMemberNumberLabel}
                 value={displayValue(profile?.ipscMemberNumber, empty)}
@@ -229,7 +229,7 @@ function DisciplineSummary({
       {enabled && (
         <div className="profile-form__toggle-body">
           <p
-            className="profile-form__readonly-value profile-form__discipline-meta"
+            className="field-view-value profile-form__discipline-meta"
             aria-label={`${t.profileDivisionLabel}: ${division}. ${t.profilePowerFactorLabel}: ${powerFactor}`}
           >
             {division} - {powerFactor}
@@ -250,9 +250,9 @@ function ReadonlyField({
   hint?: FieldHintContent;
 }) {
   return (
-    <div className="auth-form__field">
+    <div className="form-group">
       <FieldLabel hint={hint}>{label}</FieldLabel>
-      <p className="profile-form__readonly-value">{value}</p>
+      <p className="field-view-value">{value}</p>
     </div>
   );
 }

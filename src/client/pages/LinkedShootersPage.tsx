@@ -1,18 +1,69 @@
 import { AccountShell } from "../components/AccountShell";
+import { Card, CardBody, CardHeader } from "../components/ui/Card";
+import { DataTable } from "../components/ui/DataTable";
+import { EmptyState } from "../components/ui/EmptyState";
+import { SectionHeader } from "../components/ui/SectionHeader";
 import { useLocale } from "../locale";
+import {
+  DEMO_I_REGISTER,
+  DEMO_REGISTER_ME,
+  type LinkedShooter,
+} from "../lib/linkedShootersDemo";
 
-/** «Пов’язані стрільці» — profiles I register / who can register me. */
+/** «Пов’язані стрільці» — two Gentelella-style tables on mock data. */
 export function LinkedShootersPage() {
   const { t } = useLocale();
 
+  const columns = [
+    {
+      key: "nickname",
+      header: t.linkedColNickname,
+      cell: (row: LinkedShooter) => row.nickname,
+    },
+    {
+      key: "name",
+      header: t.linkedColName,
+      cell: (row: LinkedShooter) => row.fullName,
+    },
+    {
+      key: "phone",
+      header: t.linkedColPhone,
+      cell: (row: LinkedShooter) => row.phoneMasked,
+    },
+  ] as const;
+
   return (
     <AccountShell>
-      <div className="profile-page__block profile-page__placeholder">
-        <h1 className="profile-page__section-title">{t.profileMenuLinkedShooters}</h1>
-        <h2 className="profile-page__subheading">{t.profileLinkedIRegister}</h2>
-        <p className="profile-page__hint">{t.profileMatchesComingSoon}</p>
-        <h2 className="profile-page__subheading">{t.profileLinkedRegisterMe}</h2>
-        <p className="profile-page__hint">{t.profileMatchesComingSoon}</p>
+      <SectionHeader title={t.profileMenuLinkedShooters} />
+
+      <div className="stack">
+        <Card>
+          <CardHeader title={t.profileLinkedIRegister} />
+          <CardBody flush>
+            <DataTable
+              columns={columns}
+              rows={DEMO_I_REGISTER}
+              rowKey={(row) => row.id}
+              empty={
+                <EmptyState title={t.linkedEmptyIRegister} description={t.profileMatchesComingSoon} />
+              }
+            />
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title={t.profileLinkedRegisterMe} />
+          <CardBody flush>
+            <DataTable
+              columns={columns}
+              rows={DEMO_REGISTER_ME}
+              rowKey={(row) => row.id}
+              empty={
+                <EmptyState title={t.linkedEmptyRegisterMe} description={t.profileMatchesComingSoon} />
+              }
+            />
+          </CardBody>
+        </Card>
       </div>
     </AccountShell>
   );

@@ -10,13 +10,13 @@ export function ProfileFormActions({
   onCancel?: () => void;
 }) {
   return (
-    <div className="profile-form__actions">
+    <div className="form-actions right">
       {onCancel && (
-        <button type="button" className="btn btn--ghost" disabled={busy} onClick={onCancel}>
+        <button type="button" className="btn btn-ghost" disabled={busy} onClick={onCancel}>
           {cancelLabel}
         </button>
       )}
-      <button className="btn btn--primary" type="submit" disabled={busy}>
+      <button className="btn btn-primary" type="submit" disabled={busy}>
         {submitLabel}
       </button>
     </div>

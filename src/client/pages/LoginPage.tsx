@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { PublicChrome } from "../components/PublicChrome";
+import { AuthLayout } from "../components/AuthLayout";
 import { HintPanel } from "../components/HintPanel";
 import { PasswordField } from "../components/PasswordField";
 import { useAuth } from "../auth";
@@ -64,62 +64,53 @@ export function LoginPage() {
   }
 
   return (
-    <>
-      <PublicChrome
-        hint={
-          loginNotice ? (
-            <HintPanel>{loginNoticeMessage(loginNotice, t)}</HintPanel>
-          ) : undefined
-        }
-      />
-      <main className="auth-page">
-        <h1 className="auth-page__title">{t.loginTitle}</h1>
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label className="auth-form__field">
-            <span className="auth-form__label">{t.phoneLabel}</span>
-            <input
-              className="auth-form__input"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="0XXXXXXXXX"
-              required
-            />
+    <AuthLayout
+      title={t.loginTitle}
+      hint={
+        loginNotice ? <HintPanel>{loginNoticeMessage(loginNotice, t)}</HintPanel> : undefined
+      }
+    >
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label className="form-label" htmlFor="login-phone">
+            {t.phoneLabel}
           </label>
-          <PasswordField
-            id="login-password"
-            label={t.passwordLabel}
-            value={password}
-            onChange={setPassword}
-            autoComplete="current-password"
+          <input
+            id="login-phone"
+            className="form-control"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="0XXXXXXXXX"
             required
           />
-          {error && (
-            <p className="auth-form__error" role="alert">
-              {error}
-            </p>
-          )}
-          <button className="btn btn--primary auth-form__submit" type="submit" disabled={submitting}>
-            {submitting ? t.loginSubmitting : t.loginSubmit}
-          </button>
-        </form>
-        <div className="auth-page__links">
-          <Link to="/forgot-password" className="auth-page__link">
-            {t.loginForgotLink}
-          </Link>
-          <p className="auth-page__hint">
-            {t.loginRegisterPrompt}{" "}
-            <Link to="/register" className="auth-page__link">
-              {t.loginRegisterLink}
-            </Link>
-          </p>
         </div>
-        <Link to="/" className="btn btn--ghost auth-page__back">
-          {t.backHome}
-        </Link>
-      </main>
-    </>
+        <PasswordField
+          id="login-password"
+          label={t.passwordLabel}
+          value={password}
+          onChange={setPassword}
+          autoComplete="current-password"
+          required
+        />
+        {error && (
+          <div className="auth-form-error" role="alert">
+            {error}
+          </div>
+        )}
+        <button className="btn btn-primary btn-lg btn-block" type="submit" disabled={submitting}>
+          {submitting ? t.loginSubmitting : t.loginSubmit}
+        </button>
+      </form>
+      <div className="auth-links">
+        <Link to="/forgot-password">{t.loginForgotLink}</Link>
+        <p>
+          {t.loginRegisterPrompt} <Link to="/register">{t.loginRegisterLink}</Link>
+        </p>
+        <Link to="/">{t.backHome}</Link>
+      </div>
+    </AuthLayout>
   );
 }

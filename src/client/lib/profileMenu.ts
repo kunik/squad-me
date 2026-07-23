@@ -1,7 +1,6 @@
 import type { Messages } from "../i18n";
 import type { ProfileNavSection } from "../hooks/useUnsavedDiscard";
 import {
-  ACTIONS_ANCHOR,
   DIVISIONS_ANCHOR,
   NOTIFICATIONS_ANCHOR,
   PROFILE_ANCHOR,
@@ -27,12 +26,19 @@ export const MATCHES_PATH = "/matches";
 /** «Пов’язані стрільці». */
 export const LINKED_SHOOTERS_PATH = "/linked-shooters";
 
-/** Personal profile (anchors for details / divisions / notifications / security). */
+/** Personal profile (anchors for details / divisions / notifications). */
 export const PROFILE_PATH = "/profile";
 
+/** In-page section nav for `/profile` aside (security is a separate card, not a link). */
+export const PROFILE_IN_PAGE_NAV_ITEMS: readonly ProfileMenuChild[] = [
+  { id: PROFILE_ANCHOR, labelKey: "profileMenuPersonalDetails" },
+  { id: DIVISIONS_ANCHOR, labelKey: "profileMenuDivisions" },
+  { id: NOTIFICATIONS_ANCHOR, labelKey: "profileMenuNotifications" },
+];
+
 /**
- * Data-driven accordion groups for the account left nav.
- * Matches / Linked are own routes; profile keeps in-page hash children.
+ * Data-driven sidebar groups: routed screens only.
+ * Profile is reached via the sidebar footer avatar link and the profile aside.
  */
 export const PROFILE_MENU_GROUPS: readonly ProfileMenuGroup[] = [
   {
@@ -47,18 +53,17 @@ export const PROFILE_MENU_GROUPS: readonly ProfileMenuGroup[] = [
     labelKey: "profileMenuLinkedShooters",
     children: [],
   },
-  {
-    section: "profile",
-    path: PROFILE_PATH,
-    labelKey: "profileMenuMyProfile",
-    children: [
-      { id: PROFILE_ANCHOR, labelKey: "profileMenuPersonalDetails" },
-      { id: DIVISIONS_ANCHOR, labelKey: "profileMenuDivisions" },
-      { id: NOTIFICATIONS_ANCHOR, labelKey: "profileMenuNotifications" },
-      { id: ACTIONS_ANCHOR, labelKey: "profileMenuActions" },
-    ],
-  },
 ];
+
+/** In-page anchor nav rows for `/profile` aside. */
+export function profileInPageNavItems(options?: {
+  showNotifications?: boolean;
+}): readonly ProfileMenuChild[] {
+  if (options?.showNotifications === false) {
+    return PROFILE_IN_PAGE_NAV_ITEMS.filter((item) => item.id !== NOTIFICATIONS_ANCHOR);
+  }
+  return PROFILE_IN_PAGE_NAV_ITEMS;
+}
 
 /** Accordion rule: expand only the group whose section matches the active screen. */
 export function isProfileMenuGroupExpanded(
@@ -81,6 +86,9 @@ export function profileSectionFromPath(pathname: string): ProfileNavSection {
 
 /** Route for a top-level account-area section. */
 export function pathForProfileSection(section: ProfileNavSection): string {
+  if (section === "profile") {
+    return PROFILE_PATH;
+  }
   const group = PROFILE_MENU_GROUPS.find((g) => g.section === section);
   return group?.path ?? PROFILE_PATH;
 }
@@ -91,9 +99,4 @@ export function pathForProfileSection(section: ProfileNavSection): string {
  */
 export function postAuthLandingPath(onboardingStep: string | null | undefined): string {
   return onboardingStep ? PROFILE_PATH : MATCHES_PATH;
-}
-
-/** Default child to activate when selecting a group that scrolls in-page. */
-export function defaultAnchorForMenuGroup(group: ProfileMenuGroup): string | null {
-  return group.children[0]?.id ?? null;
 }

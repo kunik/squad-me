@@ -72,7 +72,7 @@ describe("profile navigation", () => {
     const markup = renderToStaticMarkup(
       createElement(
         "div",
-        { className: "profile-page__main" },
+        { className: "page-wrapper" },
         ids.map((id) => createElement(ProfileContentSection, { id, key: id })),
       ),
     );

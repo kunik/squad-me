@@ -4,8 +4,8 @@
   "description": "Платформа для організації матчів з практичної стрільби",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#050609",
+  "theme_color": "#050609",
   "lang": "uk",
   "icons": [
     {

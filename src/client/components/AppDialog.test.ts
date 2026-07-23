@@ -13,7 +13,7 @@ describe("AppDialog", () => {
         onClose: () => undefined,
         actions: createElement(
           "button",
-          { type: "button", className: "btn btn--ghost" },
+          { type: "button", className: "btn btn-ghost" },
           "Залишитись",
         ),
       }),
@@ -24,7 +24,8 @@ describe("AppDialog", () => {
     expect(markup).toContain("Незбережені зміни");
     expect(markup).toContain("Введені зміни не збережено.");
     expect(markup).toContain("Залишитись");
-    expect(markup).toContain("app-dialog");
+    expect(markup).toContain("modal-backdrop");
+    expect(markup).toContain("modal-dialog");
   });
 
   it("renders nothing when closed", () => {
@@ -51,6 +52,6 @@ describe("AppDialog", () => {
       }),
     );
 
-    expect(markup).toContain("app-dialog--danger");
+    expect(markup).toContain("modal-dialog-danger");
   });
 });
