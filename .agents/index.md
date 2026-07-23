@@ -6,6 +6,16 @@ Read in parallel, skipping missing files:
 - `.agents/notes.md`
 - The two newest files in `.agents/logs/`, sorted by filename descending
 
+## Local Vite / workerd
+
+Prefer detached scripts so the server outlives agent shell reaping:
+`npm run dev:status` → `dev:start` / `dev:restart` / `dev:stop` / `dev:logs`.
+URL: `http://localhost:5173/` (prefer `localhost`). Do **not** restart for
+routine code edits (HMR); restart only if down, the user asks, or after
+env/secrets, Wrangler bindings, Vite config, or dependency install. Prefer
+these npm scripts over raw `npm run dev` / `pkill`. Full rule:
+`.cursor/rules/local-dev-server.mdc`.
+
 ## Skills
 
 When a request matches a skill, read its `SKILL.md` before acting.

@@ -12,3 +12,5 @@ test-results/
 playwright-report/
 .DS_Store
 *.log
+.dev-server.pid
+.dev-server.log

@@ -10,7 +10,8 @@ Canonical product rationale: knowledge-base
 
 | Command | When |
 |---|---|
-| `npm run dev` | Inner loop — full local simulation (D1/DO/Queues/R2) |
+| `npm run dev` | Inner loop — full local simulation (D1/DO/Queues/R2), foreground |
+| `npm run dev:start` (also `dev:stop` / `dev:restart` / `dev:status` / `dev:logs`) | Same local stack, detached — prefer for agents so Vite outlives shell reaping |
 | `npm run typecheck` | Fast static check |
 | `npm test` | Unit + `@cloudflare/vitest-pool-workers` concurrency |
 | `npm run migrations:local` | Apply D1 migrations to the **top-level** local DB — the same Miniflare local D1 that plain `npm run dev` / `npm run build` use (no `--env`). Run this after every new migration, before `npm run dev`, or you'll hit `no such table` |

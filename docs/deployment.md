@@ -46,6 +46,10 @@ npm run dev
 Full local simulation: D1, Durable Objects, Queues, R2. No Cloudflare network
 required. Remote bindings are opt-in only.
 
+For a **detached** server that survives agent shell reaping (Cursor agents):
+`npm run dev:start` / `dev:stop` / `dev:restart` / `dev:status` / `dev:logs`
+(see `scripts/README.md`). Keep `npm run dev` for an attached human terminal.
+
 ## Provision Cloud Dev
 
 One-time bootstrap scripts live in `scripts/infra-setup/` (npm entry points

@@ -5,6 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:start": "bash scripts/dev-server.sh start",
+    "dev:stop": "bash scripts/dev-server.sh stop",
+    "dev:restart": "bash scripts/dev-server.sh restart",
+    "dev:status": "bash scripts/dev-server.sh status",
+    "dev:logs": "bash scripts/dev-server.sh logs",
     "dev:remote-debug": "echo 'Enable remote bindings only in wrangler.jsonc for the binding you need, then re-run npm run dev' && exit 1",
     "build": "vite build",
     "build:dev": "CLOUDFLARE_ENV=dev vite build",

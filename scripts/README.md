@@ -19,6 +19,8 @@ README and those docs in the **same** change (see
 
 | npm script | Script | Why |
 |---|---|---|
+| `npm run dev` | `vite` (foreground) | Attached local Vite/workerd for humans in a terminal |
+| `npm run dev:start` / `dev:stop` / `dev:restart` / `dev:status` / `dev:logs` | `dev-server.sh` | Detached local Vite/workerd (nohup + `.dev-server.pid` / `.dev-server.log`) so the process outlives agent shell reaping. Agents should prefer these over raw `npm run dev` / `pkill`. Hot reload unchanged. Health: `http://localhost:5173/` + `/api/health` |
 | `npm run parity:check` | `parity-check.mjs` | Compare Dev/Prod Wrangler shape (bindings, compatibility, cron, DO tags). CI PR gate; `--strict` also requires real `database_id`s |
 | `npm run seed:local` | `seed-dev.ts --local` | Synthetic seed against local D1 (Dev env). Never production |
 | `npm run seed:dev` | `seed-dev.ts --env dev` | Synthetic seed against remote Cloud Dev D1. Never production |
