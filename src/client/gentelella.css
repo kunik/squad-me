@@ -1036,6 +1036,13 @@ a:hover {
   transition: background 120ms, border-color 120ms, color 120ms, box-shadow 120ms;
   line-height: 1;
   white-space: nowrap;
+  text-decoration: none;
+}
+
+/* Links styled as buttons must not pick up global `a:hover` underline. */
+a.btn:hover,
+a.btn:focus {
+  text-decoration: none;
 }
 
 .btn svg {
