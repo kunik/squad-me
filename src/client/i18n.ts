@@ -7,6 +7,7 @@ export const messages = {
       "Платформа для реєстрації, скваддінгу та новин на матчах практичної стрільби",
     inviteHint: "Доступ до матчу — за запрошенням",
     backHome: "На головну",
+    backToProfile: "До профілю",
     langUa: "UA",
     langEn: "EN",
 
@@ -253,7 +254,6 @@ export const messages = {
     changePhoneNewTitle: "Новий номер",
     changePhoneNewLabel: "Новий номер телефону",
     changePhoneSubmitting: "Оновлюємо номер…",
-    changePhoneBackToProfile: "До профілю",
 
     // Shared OTP step
     otpStepTitle: "Підтвердження номера",
@@ -316,6 +316,7 @@ export const messages = {
       "Registration, squadding, and news for practical shooting matches",
     inviteHint: "Match access is by invitation only",
     backHome: "Back to home",
+    backToProfile: "Back to profile",
     langUa: "UA",
     langEn: "EN",
 
@@ -556,7 +557,6 @@ export const messages = {
     changePhoneNewTitle: "New number",
     changePhoneNewLabel: "New phone number",
     changePhoneSubmitting: "Updating number…",
-    changePhoneBackToProfile: "Back to profile",
 
     otpStepTitle: "Verify your number",
     otpLabel: "Verification code",

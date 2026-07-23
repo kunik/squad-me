@@ -14,6 +14,7 @@ docs by default.
 | Local test strategy, OTP sink, vitest commands | `testing.md` |
 | Bug triage / known regressions | `regression.md` — **index table first**; full entry only for matching Open IDs / area |
 | UI chrome / Gentelella fidelity | `plans/gentelella-fidelity-audit.md`; client under `src/client/` |
+| Auth form exit link (profile vs home) | KB `design/principles.md` § Exit-лінк; code `AuthExitLink` / `authExit.ts`; AUTH-006 in `regression.md` |
 | Cloudflare bootstrap, Access, zone, secrets workflow | `provision.md` §§ "Cloud Dev — full order", "Production — owner order", "Zone facts (`squadme.app`)", "Identity / auth secrets", "Local API tokens" |
 | Deploy tiers, CI, promote path | `deployment.md` |
 | Live resource names / IDs | `inventory-dev.md`, `inventory-production.md` |

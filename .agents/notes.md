@@ -25,9 +25,10 @@ live providers. Mirror checklist (keep boxes until done); fail-close detail in
 - Deploy / OTP gate / CI → `docs/deployment.md`
 - Auth phases / onboarding (`profile → disciplines → email`) →
   `docs/plans/auth-registration-STATUS.md` → full plan only if needed
-- HintPanel / chevron / FieldHint / membership copy → KB
+- HintPanel / chevron / FieldHint / membership copy / auth exit link → KB
   `products/match-platform/notes.md` (UX §),
+  `products/match-platform/design/principles.md` (§ Exit-лінк на auth-формах),
   `products/match-platform/specs/user-profile.md`,
   `products/match-platform/design/screens/user-profile.md`;
-  client under `src/client/`
+  client: `AuthExitLink` / `authExit.ts` under `src/client/`
 - Agent doc router → `docs/README.md`

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import { AuthExitLink } from "../components/AuthExitLink";
 import { AuthLayout } from "../components/AuthLayout";
 import { OtpStep } from "../components/OtpStep";
 import { PasswordField } from "../components/PasswordField";
@@ -210,7 +211,7 @@ export function ChangePhonePage() {
               </button>
             </form>
             <div className="auth-links">
-              <Link to="/profile">{t.changePhoneBackToProfile}</Link>
+              <AuthExitLink />
             </div>
           </>
         ) : null}

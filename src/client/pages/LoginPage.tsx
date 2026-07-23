@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { AuthExitLink } from "../components/AuthExitLink";
 import { AuthLayout } from "../components/AuthLayout";
 import { HintPanel } from "../components/HintPanel";
 import { PasswordField } from "../components/PasswordField";
@@ -109,7 +110,7 @@ export function LoginPage() {
         <p>
           {t.loginRegisterPrompt} <Link to="/register">{t.loginRegisterLink}</Link>
         </p>
-        <Link to="/">{t.backHome}</Link>
+        <AuthExitLink />
       </div>
     </AuthLayout>
   );

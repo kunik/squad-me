@@ -18,6 +18,7 @@ When editing an entry, keep this table’s Status column in sync (use `Fixed` or
 | AUTH-003 | Fixed | Profile black screen after phone change | useUnsavedDiscard / BrowserRouter | useNavigationBlocker.test.ts |
 | AUTH-004 | Fixed | Phone-change success lost login notice | ChangePhonePage / authNotice | authNotice.test.ts |
 | AUTH-005 | Fixed | Notifications Save left email onboarding open | ProfilePage / onboarding | routes.test.ts |
+| AUTH-006 | Fixed | Auth form exit link ignored signed-in state | AuthExitLink / authExit | authExit.test.ts |
 | PROFILE-001 | Fixed | Divisions menu did not navigate reliably | ProfilePage / scroll-spy | profileNavigation.test.ts |
 | PROFILE-002 | Fixed | Skip onboarding scrolled header out of reach | ProfilePage / public-surface | profileNavigation.test.ts |
 | PROFILE-003 | Fixed | Profile menu scroll overshot; upward spy flipped early | profileNavigation | profileNavigation.test.ts |
@@ -259,6 +260,20 @@ When editing an entry, keep this table’s Status column in sync (use `Fixed` or
 
 **Expected:** Save completes the email onboarding step (same as Skip or saving an email). `onboardingStep` is `null` before and after password reset; `POST /api/auth/password/reset` does not clear `email_prompt_dismissed_at` or `accounts.email`.
 **Actual:** Save exited edit mode but never called `dismissEmailPrompt` when no email was persisted, so `email_prompt_dismissed_at` stayed `NULL` and `accounts.email` stayed `NULL`. Password reset was unrelated (it only updates password hash / sessions); re-login still showed the email onboarding hint because the step had never been marked done.
+
+## AUTH-006 · Auth form exit link ignored signed-in state
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `AuthExitLink` / `authExitTarget`; `/forgot-password`, `/change-phone`, `/login`, `/register`
+**Coverage:** `src/client/lib/authExit.test.ts` — AUTH-006 signed-in → `/profile` (`backToProfile`), guest → `/` (`backHome`). Manual: from profile open «Змінити пароль» → footer «До профілю»; guest `/forgot-password` → «На головну».
+
+### Steps to reproduce
+1. Sign in, open `/profile`, press «Змінити пароль» (`/forgot-password`).
+2. Compare the footer exit link with «Змінити номер телефону» (`/change-phone`).
+3. Sign out and open `/forgot-password` (e.g. from login «Forgot password?»).
+
+**Expected:** Signed-in auth forms exit to `/profile` («До профілю»); guest forms exit to `/` («На головну»).
+**Actual:** Forgot-password always linked home; change-phone always linked profile — inconsistent for the same signed-in profile security flows.
 
 ## SHELL-001 · Mobile content width jumps (scrollbar gutter)
 

@@ -29,11 +29,11 @@ export function GuestBrand({
 
 type GuestUtilitiesProps = {
   className?: string;
-  /** Compact theme toggle (auth/home). */
+  /** Compact theme toggle (home). */
   compactTheme?: boolean;
 };
 
-/** Shared language + theme controls for guest surfaces. */
+/** Shared language + theme controls for guest surfaces (Home topbar). */
 export function GuestUtilities({ className, compactTheme = true }: GuestUtilitiesProps) {
   return (
     <div className={className}>

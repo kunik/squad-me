@@ -516,13 +516,6 @@ a.sidebar-user {
   border-radius: 0;
   background: transparent;
 }
-.auth-utilities {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 18px;
-}
 .auth-links {
   display: flex;
   flex-direction: column;

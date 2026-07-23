@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { GuestBrand, GuestUtilities } from "./GuestChrome";
+import { GuestBrand } from "./GuestChrome";
 
 type AuthLayoutProps = {
   hint?: ReactNode;
@@ -12,7 +12,9 @@ type AuthLayoutProps = {
 
 /**
  * Guest/auth chrome: Gentelella's full-viewport `.auth-page` background with a
- * centered `.auth-card`. Brand mark on top, language/theme at the foot.
+ * centered `.auth-card`. Brand mark on top. Language/theme stay on Home only —
+ * single-form auth flows should not compete with the form.
+ * Footer exit: pages should render `AuthExitLink` (signed-in → profile, guest → home).
  */
 export function AuthLayout({ hint, title, subtitle, wide = false, children }: AuthLayoutProps) {
   return (
@@ -25,8 +27,6 @@ export function AuthLayout({ hint, title, subtitle, wide = false, children }: Au
         {hint}
 
         {children}
-
-        <GuestUtilities className="auth-utilities" />
       </div>
     </main>
   );

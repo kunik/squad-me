@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { AuthExitLink } from "../components/AuthExitLink";
 import { AuthLayout } from "../components/AuthLayout";
 import { OtpStep } from "../components/OtpStep";
 import { PasswordField } from "../components/PasswordField";
@@ -167,7 +168,7 @@ export function ForgotPasswordPage() {
             )}
 
         <div className="auth-links">
-          <Link to="/">{t.backHome}</Link>
+          <AuthExitLink />
         </div>
     </AuthLayout>
   );
