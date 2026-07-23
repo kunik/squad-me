@@ -166,6 +166,13 @@ export function logout(): Promise<AuthApiResult<{ ok: true }>> {
   return postJson("/api/auth/logout", {});
 }
 
+/** Authenticated: password step-up, then revoke every other active session. */
+export function revokeOtherSessions(
+  password: string,
+): Promise<AuthApiResult<{ ok: true }>> {
+  return postJson("/api/auth/sessions/revoke-others", { password });
+}
+
 export function deleteAccount(): Promise<AuthApiResult<{ ok: true }>> {
   return requestJson("/api/auth/account", { method: "DELETE" });
 }

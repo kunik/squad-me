@@ -212,7 +212,14 @@ export const messages = {
     profileAsideLabel: "Профіль",
     profileAvatarAlt: "Аватар",
     profileClearSessions: "Вийти з усіх сесій",
-    profileClearSessionsSoon: "Незабаром",
+    profileClearSessionsTitle: "Вийти з усіх інших сесій?",
+    profileClearSessionsConfirm:
+      "Інші пристрої буде розлогінено. Ця сесія залишиться активною. Підтвердіть паролем.",
+    profileClearSessionsPasswordLabel: "Пароль",
+    profileClearSessionsSubmit: "Вийти з усіх сесій",
+    profileClearSessionsSubmitting: "Завершуємо…",
+    profileClearSessionsSuccess:
+      "На інших пристроях вас більше не залогінено. Тут ви лишаєтесь у системі.",
     profileUnsavedTitle: "Незбережені зміни",
     profileUnsavedConfirm: "Введені зміни не збережено. Вийти без збереження?",
     profileUnsavedStay: "Залишитись",
@@ -517,7 +524,14 @@ export const messages = {
     profileAsideLabel: "Profile",
     profileAvatarAlt: "Avatar",
     profileClearSessions: "Sign out everywhere",
-    profileClearSessionsSoon: "Coming soon",
+    profileClearSessionsTitle: "Sign out of all other sessions?",
+    profileClearSessionsConfirm:
+      "Other devices will be signed out. This session stays active. Confirm with your password.",
+    profileClearSessionsPasswordLabel: "Password",
+    profileClearSessionsSubmit: "Sign out everywhere",
+    profileClearSessionsSubmitting: "Signing out…",
+    profileClearSessionsSuccess:
+      "You’re signed out on other devices. This one stays signed in.",
     profileUnsavedTitle: "Unsaved changes",
     profileUnsavedConfirm: "Your changes have not been saved. Leave without saving?",
     profileUnsavedStay: "Stay",

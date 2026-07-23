@@ -11,8 +11,11 @@ type ProfileAsideIdentityProps = {
 };
 
 type ProfileAsideSecurityProps = {
+  onClearSessionsClick: () => void;
   onDeleteClick: () => void;
+  clearSessionsBusy?: boolean;
   deleteBusy?: boolean;
+  clearSessionsTriggerRef?: RefObject<HTMLButtonElement | null>;
   deleteTriggerRef?: RefObject<HTMLButtonElement | null>;
 };
 
@@ -41,8 +44,11 @@ export function ProfileAsideIdentity({ nickname, showNickname }: ProfileAsideIde
 
 /** Security / account actions card (change phone, password, delete). */
 export function ProfileAsideSecurity({
+  onClearSessionsClick,
   onDeleteClick,
+  clearSessionsBusy = false,
   deleteBusy = false,
+  clearSessionsTriggerRef,
   deleteTriggerRef,
 }: ProfileAsideSecurityProps) {
   const { t } = useLocale();
@@ -62,13 +68,13 @@ export function ProfileAsideSecurity({
           {t.profileChangePassword}
         </Link>
         <button
+          ref={clearSessionsTriggerRef}
           type="button"
           className="btn btn-outline btn-block"
-          disabled
-          title={t.profileClearSessionsSoon}
+          disabled={clearSessionsBusy}
+          onClick={onClearSessionsClick}
         >
           {t.profileClearSessions}
-          <span className="profile-aside-soon">{t.profileClearSessionsSoon}</span>
         </button>
         <button
           ref={deleteTriggerRef}
@@ -92,8 +98,11 @@ export function ProfileAsideSecurity({
 export function ProfileAside({
   nickname,
   showNickname,
+  onClearSessionsClick,
   onDeleteClick,
+  clearSessionsBusy = false,
   deleteBusy = false,
+  clearSessionsTriggerRef,
   deleteTriggerRef,
 }: ProfileAsideProps) {
   const { t } = useLocale();
@@ -102,8 +111,11 @@ export function ProfileAside({
     <aside className="profile-aside" aria-label={t.profileAsideLabel}>
       <ProfileAsideIdentity nickname={nickname} showNickname={showNickname} />
       <ProfileAsideSecurity
+        onClearSessionsClick={onClearSessionsClick}
         onDeleteClick={onDeleteClick}
+        clearSessionsBusy={clearSessionsBusy}
         deleteBusy={deleteBusy}
+        clearSessionsTriggerRef={clearSessionsTriggerRef}
         deleteTriggerRef={deleteTriggerRef}
       />
     </aside>

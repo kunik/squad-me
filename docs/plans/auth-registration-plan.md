@@ -90,6 +90,7 @@ sequenceDiagram
 | `POST` | `/api/auth/register` | proof + password + **nickname** → Account + nickname profile + session (якщо акаунт уже є — оновити пароль + nickname + session, як reset) |
 | `POST` | `/api/auth/login` | phone + password → session |
 | `POST` | `/api/auth/logout` | revoke |
+| `POST` | `/api/auth/sessions/revoke-others` | (auth) password → revoke every other active session |
 | `GET` | `/api/auth/me` | поточний account або 401 |
 | `POST` | `/api/auth/password/reset` | proof + new password |
 | `POST` | `/api/auth/phone/change` | (auth) reauthProofToken + OTP proof → update phone |

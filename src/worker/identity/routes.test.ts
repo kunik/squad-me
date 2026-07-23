@@ -1467,6 +1467,71 @@ describe("identity routes", () => {
     await testAppEnv.DB.prepare(`DELETE FROM account_deletion_registration_fixtures`).run();
   });
 
+  it("sessions/revoke-others requires auth + password and revokes every other session", async () => {
+    const phone = "+380671230040";
+    const password = "revoke-others-password-1";
+    const registerProof = await getProof(phone, "register");
+    const registerRes = await call("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ proofToken: registerProof, password, nickname: "Shooter" }),
+    });
+    const sessionA = extractCookie(registerRes.headers);
+
+    const loginRes = await call("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ phone, password }),
+    });
+    const sessionB = extractCookie(loginRes.headers);
+
+    const unauth = await call("/api/auth/sessions/revoke-others", {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    });
+    expect(unauth.status).toBe(401);
+
+    const missingPassword = await call("/api/auth/sessions/revoke-others", {
+      method: "POST",
+      body: JSON.stringify({}),
+      cookie: sessionA,
+    });
+    expect(missingPassword.status).toBe(400);
+    expect(missingPassword.body).toMatchObject({ error: "invalid_request" });
+
+    const wrongPassword = await call("/api/auth/sessions/revoke-others", {
+      method: "POST",
+      body: JSON.stringify({ password: "nope-wrong-password" }),
+      cookie: sessionA,
+    });
+    expect(wrongPassword.status).toBe(401);
+    expect(wrongPassword.body).toMatchObject({ error: "invalid_credentials" });
+
+    const stillBoth = await Promise.all([
+      loadAuthContext(testAppEnv, request("/api/auth/me", { cookie: sessionA })),
+      loadAuthContext(testAppEnv, request("/api/auth/me", { cookie: sessionB })),
+    ]);
+    expect(stillBoth[0]).not.toBeNull();
+    expect(stillBoth[1]).not.toBeNull();
+
+    const ok = await call("/api/auth/sessions/revoke-others", {
+      method: "POST",
+      body: JSON.stringify({ password }),
+      cookie: sessionA,
+    });
+    expect(ok.status).toBe(200);
+    expect(ok.body).toMatchObject({ ok: true });
+
+    const afterA = await loadAuthContext(
+      testAppEnv,
+      request("/api/auth/me", { cookie: sessionA }),
+    );
+    const afterB = await loadAuthContext(
+      testAppEnv,
+      request("/api/auth/me", { cookie: sessionB }),
+    );
+    expect(afterA).not.toBeNull();
+    expect(afterB).toBeNull();
+  });
+
   it("me / logout reflect session state", async () => {
     const anon = await call("/api/auth/me");
     expect(anon.status).toBe(401);

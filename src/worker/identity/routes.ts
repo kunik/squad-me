@@ -426,6 +426,41 @@ async function handleLogout(request: Request, env: Env): Promise<Response> {
   return json({ ok: true }, 200, { "Set-Cookie": buildClearSessionCookie(env) });
 }
 
+/**
+ * Sign out other devices: password step-up, then revoke every active session
+ * except the caller's. Keeps the current cookie valid.
+ */
+async function handleRevokeOtherSessions(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const gated = await requireAuth(request, env);
+  if (!gated.ok) return gated.response;
+
+  const body = await readJsonBody<{ password?: string }>(request);
+  if (!body || typeof body.password !== "string") {
+    return errorResponse("invalid_request", 400);
+  }
+
+  const passwordOk = await verifyPassword(
+    body.password,
+    gated.auth.account.password_hash,
+  );
+  if (!passwordOk) {
+    console.log(
+      `[auth] sessions/revoke-others failed phone=${maskPhone(gated.auth.account.phone_e164)}`,
+    );
+    return errorResponse("invalid_credentials", 401);
+  }
+
+  await revokeAllOtherSessions(
+    env,
+    gated.auth.account.id,
+    gated.auth.session.id,
+  );
+  return json({ ok: true });
+}
+
 async function handleMe(request: Request, env: Env): Promise<Response> {
   const gated = await requireAuth(request, env, { clearCookieOnMiss: true });
   if (!gated.ok) return gated.response;
@@ -769,6 +804,7 @@ const ROUTES: Record<string, Record<string, RouteHandler>> = {
   "/api/auth/login": { POST: handleLogin },
   "/api/auth/reauth": { POST: handleReauth },
   "/api/auth/logout": { POST: handleLogout },
+  "/api/auth/sessions/revoke-others": { POST: handleRevokeOtherSessions },
   "/api/auth/me": { GET: handleMe },
   "/api/auth/password/reset": { POST: handlePasswordReset },
   "/api/auth/phone/change": { POST: handlePhoneChange },

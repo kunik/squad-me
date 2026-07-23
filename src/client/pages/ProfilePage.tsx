@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AppDialog } from "../components/AppDialog";
 import { AccountShell } from "../components/AccountShell";
 import { HintPanel } from "../components/HintPanel";
+import { PasswordField } from "../components/PasswordField";
 import { ProfileForm } from "../components/ProfileForm";
 import { ProfileSectionHeader } from "../components/ProfileSectionHeader";
 import { ProfileSummary } from "../components/ProfileSummary";
@@ -19,6 +20,7 @@ import {
   dismissProfilePrompt,
   deleteAccount,
   getProfile,
+  revokeOtherSessions,
   setAccountEmail,
   upsertProfile,
   type ProfileInput,
@@ -64,6 +66,14 @@ export function ProfilePage() {
   const deleteTriggerRef = useRef<HTMLButtonElement>(null);
   const deleteInputRef = useRef<HTMLInputElement>(null);
   const deletingRef = useRef(false);
+
+  const [clearSessionsDialogOpen, setClearSessionsDialogOpen] = useState(false);
+  const [clearSessionsPassword, setClearSessionsPassword] = useState("");
+  const [clearSessionsError, setClearSessionsError] = useState<string | null>(null);
+  const [clearingSessions, setClearingSessions] = useState(false);
+  const [clearSessionsSuccess, setClearSessionsSuccess] = useState(false);
+  const clearSessionsTriggerRef = useRef<HTMLButtonElement>(null);
+  const clearingSessionsRef = useRef(false);
 
   const needsProfileStep = onboardingStep === "profile";
   const needsDisciplinesStep = onboardingStep === "disciplines";
@@ -374,6 +384,40 @@ export function ProfilePage() {
     setDeleteDialogOpen(false);
   }
 
+  async function handleClearSessions() {
+    if (!clearSessionsPassword || clearingSessionsRef.current) return;
+    setClearSessionsError(null);
+    clearingSessionsRef.current = true;
+    setClearingSessions(true);
+    try {
+      const result = await revokeOtherSessions(clearSessionsPassword);
+      if (!result.ok) {
+        setClearSessionsError(translateAuthError(result.error, t));
+        return;
+      }
+      setClearSessionsDialogOpen(false);
+      setClearSessionsPassword("");
+      setClearSessionsSuccess(true);
+    } catch {
+      setClearSessionsError(t.authErrorNetwork);
+    } finally {
+      clearingSessionsRef.current = false;
+      setClearingSessions(false);
+    }
+  }
+
+  function openClearSessionsDialog() {
+    setClearSessionsPassword("");
+    setClearSessionsError(null);
+    setClearSessionsSuccess(false);
+    setClearSessionsDialogOpen(true);
+  }
+
+  function closeClearSessionsDialog() {
+    if (clearingSessionsRef.current) return;
+    setClearSessionsDialogOpen(false);
+  }
+
   if (authLoading || !account) {
     return <AccountShell>{null}</AccountShell>;
   }
@@ -396,6 +440,8 @@ export function ProfilePage() {
             ? t.disciplinesOnboardingHint
             : t.emailOnboardingHint)}
     </HintPanel>
+  ) : clearSessionsSuccess ? (
+    <HintPanel>{t.profileClearSessionsSuccess}</HintPanel>
   ) : undefined;
 
   return (
@@ -556,8 +602,11 @@ export function ProfilePage() {
             <ProfileAside
               nickname={profile?.nickname?.trim() || null}
               showNickname
+              onClearSessionsClick={openClearSessionsDialog}
               onDeleteClick={openDeleteDialog}
+              clearSessionsBusy={clearingSessions}
               deleteBusy={deleting}
+              clearSessionsTriggerRef={clearSessionsTriggerRef}
               deleteTriggerRef={deleteTriggerRef}
             />
           )}
@@ -589,6 +638,59 @@ export function ProfilePage() {
           </>
         }
       />
+      <AppDialog
+        open={clearSessionsDialogOpen}
+        title={t.profileClearSessionsTitle}
+        description={t.profileClearSessionsConfirm}
+        busy={clearingSessions}
+        onClose={closeClearSessionsDialog}
+        returnFocusRef={clearSessionsTriggerRef}
+        actions={
+          <>
+            <button
+              className="btn btn-ghost"
+              type="button"
+              disabled={clearingSessions}
+              onClick={closeClearSessionsDialog}
+            >
+              {t.profileEditCancel}
+            </button>
+            <button
+              className="btn btn-primary"
+              type="submit"
+              form="profile-clear-sessions-form"
+              disabled={clearingSessions || !clearSessionsPassword}
+            >
+              {clearingSessions
+                ? t.profileClearSessionsSubmitting
+                : t.profileClearSessionsSubmit}
+            </button>
+          </>
+        }
+      >
+        <form
+          id="profile-clear-sessions-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleClearSessions();
+          }}
+        >
+          <PasswordField
+            id="profile-clear-sessions-password"
+            label={t.profileClearSessionsPasswordLabel}
+            value={clearSessionsPassword}
+            onChange={setClearSessionsPassword}
+            autoComplete="current-password"
+            required
+            disabled={clearingSessions}
+          />
+          {clearSessionsError && (
+            <p className="form-error" role="alert">
+              {clearSessionsError}
+            </p>
+          )}
+        </form>
+      </AppDialog>
       <AppDialog
         open={deleteDialogOpen}
         title={t.profileDeleteTitle}
