@@ -7,29 +7,33 @@ relevant Open IDs or a matching area. Do not load the whole file by default.
 
 ## Index
 
+Index **Status** may lag commits — trust Coverage / tests over the parenthetical.
+When editing an entry, keep this table’s Status column in sync (use `Fixed` or
+`Fixed (\`<sha\`)` only when the SHA is known; do not invent SHAs).
+
 | ID | Status | Title | Area | Coverage |
 |---|---|---|---|---|
-| AUTH-001 | Fixed (uncommitted) | Register-as-reset erased existing profile | RegisterPage / `POST /api/profile` | routes.test.ts |
-| AUTH-002 | Fixed (uncommitted) | Authed `/` HomeRoute Navigate loop | App / authNavigation | authNavigation.test.ts |
-| AUTH-003 | Fixed (uncommitted) | Profile black screen after phone change | useUnsavedDiscard / BrowserRouter | useNavigationBlocker.test.ts |
-| AUTH-004 | Fixed (uncommitted) | Phone-change success lost login notice | ChangePhonePage / authNotice | authNotice.test.ts |
-| AUTH-005 | Fixed (uncommitted) | Notifications Save left email onboarding open | ProfilePage / onboarding | routes.test.ts |
-| PROFILE-001 | Fixed (uncommitted) | Divisions menu did not navigate reliably | ProfilePage / scroll-spy | profileNavigation.test.ts |
-| PROFILE-002 | Fixed (uncommitted) | Skip onboarding scrolled header out of reach | ProfilePage / public-surface | profileNavigation.test.ts |
-| PROFILE-003 | Fixed (uncommitted) | Profile menu scroll overshot; upward spy flipped early | profileNavigation | profileNavigation.test.ts |
-| PROFILE-004 | Fixed (uncommitted) | Manual scroll-spy skipped Divisions | profileNavigation | profileNavigation.test.ts |
-| PROFILE-005 | Fixed (uncommitted) | Expanding membership panels shifted hex background | PublicAtmosphere / styles | PublicAtmosphere.test.ts |
-| PROFILE-006 | Fixed (uncommitted) | Profile validation banner without field highlight | ProfileForm / validation | ProfileControls.test.ts |
-| PROFILE-007 | Fixed (uncommitted) | Onboarding HintPanel blocked profile Edit | app-top-chrome / HintPanel | Manual (CSS pointer-events) |
-| PROFILE-008 | Fixed (uncommitted) | Male gender saved as empty when birth date missing | profileFormValidation | ProfileControls.test.ts |
-| PROFILE-009 | Fixed (uncommitted) | Sticky aside collapsed scroll-spy to two states | useProfileScrollSpy / aside | profileNavigation.test.ts |
-| PROFILE-010 | Fixed (uncommitted) | Document-end override skipped Divisions | resolveActiveProfileAnchor | profileNavigation.test.ts |
-| PROFILE-011 | Fixed (uncommitted) | Mobile Profile stacked identity before actions | profile-page-layout CSS | Manual (CSS order) |
-| PROFILE-012 | Fixed (uncommitted) | Mobile Profile cards stay narrow left column | profile-page-layout CSS | Manual (CSS) |
-| PROFILE-013 | Fixed (uncommitted) | Membership / discipline toggles did not mark dirty | ProfileDetailsForm / DivisionsForm | Manual |
-| SHELL-001 | Fixed (uncommitted) | Mobile content width jumps (scrollbar gutter) | styles / scrollLock | scrollLock.test.ts + visual |
-| SHELL-002 | Fixed (uncommitted) | Overlay scrims were slate-blue | `--overlay-scrim` | Manual (token) |
-| SHELL-003 | Fixed (uncommitted) | Mobile drawer footer stacks when rail preference set | sidebar-footer CSS | Manual (CSS) |
+| AUTH-001 | Fixed | Register-as-reset erased existing profile | RegisterPage / `POST /api/profile` | routes.test.ts |
+| AUTH-002 | Fixed | Authed `/` HomeRoute Navigate loop | App / authNavigation | authNavigation.test.ts |
+| AUTH-003 | Fixed | Profile black screen after phone change | useUnsavedDiscard / BrowserRouter | useNavigationBlocker.test.ts |
+| AUTH-004 | Fixed | Phone-change success lost login notice | ChangePhonePage / authNotice | authNotice.test.ts |
+| AUTH-005 | Fixed | Notifications Save left email onboarding open | ProfilePage / onboarding | routes.test.ts |
+| PROFILE-001 | Fixed | Divisions menu did not navigate reliably | ProfilePage / scroll-spy | profileNavigation.test.ts |
+| PROFILE-002 | Fixed | Skip onboarding scrolled header out of reach | ProfilePage / public-surface | profileNavigation.test.ts |
+| PROFILE-003 | Fixed | Profile menu scroll overshot; upward spy flipped early | profileNavigation | profileNavigation.test.ts |
+| PROFILE-004 | Fixed | Manual scroll-spy skipped Divisions | profileNavigation | profileNavigation.test.ts |
+| PROFILE-005 | Fixed | Expanding membership panels shifted hex background | PublicAtmosphere / styles | PublicAtmosphere.test.ts |
+| PROFILE-006 | Fixed | Profile validation banner without field highlight | ProfileForm / validation | ProfileControls.test.ts |
+| PROFILE-007 | Fixed | Onboarding HintPanel blocked profile Edit | app-top-chrome / HintPanel | Manual (CSS pointer-events) |
+| PROFILE-008 | Fixed | Male gender saved as empty when birth date missing | profileFormValidation | ProfileControls.test.ts |
+| PROFILE-009 | Fixed | Sticky aside collapsed scroll-spy to two states | useProfileScrollSpy / aside | profileNavigation.test.ts |
+| PROFILE-010 | Fixed | Document-end override skipped Divisions | resolveActiveProfileAnchor | profileNavigation.test.ts |
+| PROFILE-011 | Fixed | Mobile Profile stacked identity before actions | profile-page-layout CSS | Manual (CSS order) |
+| PROFILE-012 | Fixed | Mobile Profile cards stay narrow left column | profile-page-layout CSS | Manual (CSS) |
+| PROFILE-013 | Fixed | Membership / discipline toggles did not mark dirty | ProfileDetailsForm / DivisionsForm | Manual |
+| SHELL-001 | Fixed | Mobile content width jumps (scrollbar gutter) | styles / scrollLock | scrollLock.test.ts + visual |
+| SHELL-002 | Fixed | Overlay scrims were slate-blue | `--overlay-scrim` | Manual (token) |
+| SHELL-003 | Fixed | Mobile drawer footer stacks when rail preference set | sidebar-footer CSS | Manual (CSS) |
 
 ## Entry template
 

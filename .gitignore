@@ -14,3 +14,4 @@ playwright-report/
 *.log
 .dev-server.pid
 .dev-server.log
+.agents/tmp/

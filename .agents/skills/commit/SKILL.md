@@ -21,28 +21,15 @@ description: Prepares and creates a focused git commit with appropriate verifica
      If the diff advanced since the last log, update or create a log now.
 2. Inspect `git status`, staged and unstaged diffs, and recent commit style.
 3. Separate unrelated work. Never discard or overwrite user changes.
-4. **Infrastructure / scripts docs gate** — if the change set includes any of:
-   - `wrangler.jsonc` / Wrangler env or bindings
-   - `scripts/infra-setup/*` or other infra bootstrap scripts
-   - any add/move/rename/change under `scripts/` (runtime helpers or infra-setup)
-   - deploy/provision GitHub workflows (`.github/workflows/deploy*`,
-     provision-related workflows)
-   - Cloudflare resource/DNS/Access setup reflected in repo config
-   - `docs/inventory-*` or other infra inventory
-   then verify the matching durable docs were updated in the **same** change:
-   - `scripts/README.md` and/or `scripts/infra-setup/README.md` when scripts
-     under those trees change (catalog of what/why)
-   - `docs/provision.md` (bootstrap, resources, Access, zone, scripted vs manual)
-   - `docs/deployment.md` (tiers, CI, promote path) when deploy path changes
-   - relevant `docs/inventory-*.md` when resource names/IDs/status change
-   - `package.json` npm script paths when script file paths change
-   Checklist (all that apply, in the same commit):
-   - [ ] Matching README(s) updated
-   - [ ] `docs/provision.md` / `docs/deployment.md` / inventory updated as relevant
-   - [ ] No stale `infra-setup/` (repo-root) path references left behind
-   If infra/script files changed but those docs did not, **stop**: do not commit.
-   Update the docs (what/why only — not script internals) per
-   `.cursor/rules/infrastructure-documentation.mdc`, then resume.
+4. **Infrastructure / scripts docs gate** — if the change set touches
+   `package.json`, Wrangler/bindings, `scripts/` (incl. `infra-setup/`),
+   deploy/provision workflows, migrations, or inventory/config reflected in
+   those trees: follow `.cursor/rules/infrastructure-documentation.mdc` in the
+   **same** change.
+   - Matching README(s) + `docs/provision.md` / `deployment.md` / inventory as
+     relevant; no stale repo-root `infra-setup/` path references.
+   - If infra/script files changed but those docs did not, **stop**: update
+     docs (what/why only), then resume. Do not commit with the docs missing.
 5. Discover verification commands from repository documentation, package
    manifests, task runners, and CI configuration. Run the smallest relevant
    checks, then broader pre-commit checks when practical.

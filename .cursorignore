@@ -1,0 +1,5 @@
+# Scratch / agent working copies — do not search or load into context
+.agents/tmp/
+
+# Historical session logs — keep active `.agents/logs/` searchable for /resume
+.agents/logs/archive/

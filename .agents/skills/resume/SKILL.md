@@ -5,8 +5,8 @@ description: Restores working context from recent session logs. Use for /resume,
 
 # Resume
 
-1. Select logs from `.agents/logs/`:
-   - `/resume`: newest 10
+1. Select logs from `.agents/logs/` (skip `archive/`):
+   - `/resume`: newest **3**
    - `/resume N`: newest N
    - `/resume <topic>`: filename/content matches, newest first, maximum 20
 2. Read selected files in parallel when possible.

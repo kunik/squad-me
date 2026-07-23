@@ -1,6 +1,17 @@
 ---
 description: Document every infrastructure action; prefer provision scripts over ad-hoc commands
-alwaysApply: true
+globs:
+  - scripts/**
+  - scripts/infra-setup/**
+  - docs/provision.md
+  - docs/deployment.md
+  - docs/inventory-*.md
+  - scripts/README.md
+  - wrangler.jsonc
+  - package.json
+  - migrations/**
+  - .github/workflows/**
+alwaysApply: false
 ---
 
 # Infrastructure documentation and scripting

@@ -5,40 +5,19 @@ alwaysApply: true
 
 # Local Vite / workerd (detached)
 
-Agents use the **detached** manager so Vite outlives shell reaping. URL:
-`http://localhost:5173/` (prefer `localhost` over `127.0.0.1`). Foreground
-`npm run dev` is for humans with an attached terminal.
+URL: `http://localhost:5173/` (prefer `localhost`). Detached manager so Vite
+outlives agent shell reaping. Foreground `npm run dev` is for humans.
 
 | Command | Use |
 |---|---|
 | `npm run dev:status` | Health check first |
 | `npm run dev:start` | Bring up if down |
 | `npm run dev:stop` | Stop managed process |
-| `npm run dev:restart` | Only when restart is justified |
+| `npm run dev:restart` | Only if down, user asks, or env/bindings/Vite/deps changed |
 | `npm run dev:logs` | Read `.dev-server.log` |
 
-PID/log: `.dev-server.pid` / `.dev-server.log` (gitignored). Catalog:
-`scripts/README.md` → `scripts/dev-server.sh`.
-
-## When to restart
-
-- Server is down / not responding (`dev:status` fails, connection refused)
-- User explicitly asks to restart
-- After changes that need a **full process** restart: env/secrets (`.dev.vars`),
-  Wrangler bindings, Vite config, dependency install — **not** routine source
-  edits (HMR covers those)
-
-## When not to restart
-
-- Routine code changes
-- “Being helpful” or prophylactic restarts
-- Prefer `npm run dev:status` (or a quick health check) first; only restart if
-  down or the user asked
-
-## How
-
-- Prefer `npm run dev:start|stop|restart|status|logs` over raw `npm run dev` /
-  `pkill` / stacking extra Vite instances
-- `dev:start` / `dev:restart` may need unsandboxed/`all` permissions (sandbox
-  can fail with `uv_interface_addresses`)
-- Prior deaths were mostly reaped agent shells or `pkill`, not app/code errors
+Do **not** restart for routine source edits (HMR). Prefer these scripts over
+raw `npm run dev` / `pkill`. PID/log: `.dev-server.pid` / `.dev-server.log`
+(gitignored). Catalog: `scripts/README.md` → `scripts/dev-server.sh`.
+`dev:start`/`dev:restart` may need unsandboxed/`all` permissions (sandbox can
+fail with `uv_interface_addresses`).

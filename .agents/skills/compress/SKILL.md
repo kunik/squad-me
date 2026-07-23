@@ -26,7 +26,12 @@ description: Saves repository and knowledge-base work to separate compact sessio
    one partition contains changes, write only that partition's log; do not
    create an empty companion log.
 6. Include only sections with content: Summary, Key decisions, Files changed,
-   Verification, and Pending.
-7. State facts and outcomes, not a transcript. Never include secrets or tokens.
-8. Confirm every path written, grouped as repository log and knowledge-base
+   Verification, and Pending. Prefer ≤~40 lines / ~2KB; link durable docs
+   instead of pasting long detail. Historical bulk belongs in
+   `.agents/logs/archive/` (not read on start / default resume).
+7. **Shortening gate** — before saving a shortened log or other rewritten text:
+   summarize OLD meaning (~2 sentences) and NEW meaning (~2). If they mismatch,
+   revise first (compress or point — do not drop the point of the text).
+8. State facts and outcomes, not a transcript. Never include secrets or tokens.
+9. Confirm every path written, grouped as repository log and knowledge-base
    log.

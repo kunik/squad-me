@@ -1,6 +1,7 @@
 ---
 description: Mask phone numbers in UI display; leave phone form inputs unmasked
-alwaysApply: true
+globs: src/client/**/*.{tsx,ts}
+alwaysApply: false
 ---
 
 # Phone number display (UI)

@@ -6,13 +6,20 @@ description: Maintains docs/regression.md whenever a bug is discovered, reproduc
 # Update Regression Specifications
 
 1. Ensure `docs/regression.md` exists; preserve its established format.
-2. Create one entry per distinct bug. Use `<AREA>-<NNN>` with a short stable
-   subsystem tag and the next available number.
-3. Record status, affected area, concrete reproduction steps, expected
+2. **Triage:** read the **index table** near the top first. Open a full entry
+   only for relevant Open IDs or a matching area — do not load the whole file
+   by default.
+3. Create one entry per distinct bug. Use `<AREA>-<NNN>` with a short stable
+   subsystem tag and the next available number. Add a row to the index table
+   in the same change.
+4. Record status, affected area, concrete reproduction steps, expected
    behavior, actual behavior, and test coverage.
-4. Mark unfixed bugs Open. When fixed, record the commit only after it exists.
-5. Update existing entries instead of creating duplicates.
-6. Invoke the update-tests workflow when behavior is testable. If coverage is
+5. Mark unfixed bugs Open. When fixed, record the commit only after it exists
+   (do not invent SHAs); keep the index Status column in sync.
+6. Update existing entries instead of creating duplicates.
+7. Invoke the update-tests workflow when behavior is testable. If coverage is
    impractical, record the reason explicitly.
-7. Keep the regression entry with the fix or in a separate documentation commit
+8. Keep the regression entry with the fix or in a separate documentation commit
    when the fix will come later.
+9. If shortening an entry or the index prose: apply the Shortening docs gate in
+   `.agents/index.md` (OLD vs NEW meaning must match before save).

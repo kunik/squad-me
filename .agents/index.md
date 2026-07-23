@@ -4,17 +4,12 @@
 
 Read in parallel, skipping missing files:
 - `.agents/notes.md`
-- The two newest files in `.agents/logs/`, sorted by filename descending
+- The **one** newest file in `.agents/logs/` (filename descending; skip
+  `archive/`)
 
-## Local Vite / workerd
-
-Prefer detached scripts so the server outlives agent shell reaping:
-`npm run dev:status` → `dev:start` / `dev:restart` / `dev:stop` / `dev:logs`.
-URL: `http://localhost:5173/` (prefer `localhost`). Do **not** restart for
-routine code edits (HMR); restart only if down, the user asks, or after
-env/secrets, Wrangler bindings, Vite config, or dependency install. Prefer
-these npm scripts over raw `npm run dev` / `pkill`. Full rule:
-`.cursor/rules/local-dev-server.mdc`.
+Local Vite: `.cursor/rules/local-dev-server.mdc` (`npm run dev:status` first).
+Phone masking / UI icons / form labels are **glob-scoped** — on cross-cutting
+UI refactors, consciously open those `.cursor/rules/` files.
 
 ## Skills
 
@@ -32,11 +27,20 @@ When a request matches a skill, read its `SKILL.md` before acting.
 
 ## Session memory
 
-- Logs use `.agents/logs/YYYY-MM-DD-HHMM-<slug>.md`.
+- Logs use `.agents/logs/YYYY-MM-DD-HHMM-<slug>.md`. Prefer ≤~40 lines / ~2KB.
 - Write or update a log before each commit and after significant work when asked.
 - Put durable product or engineering knowledge in `docs/`, not session logs.
 - Put only non-derivable operational facts in `.agents/notes.md`.
 - Never store secrets, credentials, tokens, or personal data in logs or notes.
+- Docs router: start with `docs/README.md`; do not read whole docs by default.
+- `.agents/logs/archive/` is historical only — not read on start.
+
+## Shortening docs
+
+Before saving shortened docs/notes/logs/skills: write ~2 sentences on the
+**meaning/value** of the OLD text and ~2 on the NEW. If they do not match,
+revise before write (better compression or pointers — do not silently drop
+facts that were the point). Intentional ownership moves need a correct pointer.
 
 ## Log format
 
