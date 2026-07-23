@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { BrandMark } from "./BrandLogo";
 import { BrandWordmark } from "./BrandWordmark";
@@ -9,7 +9,13 @@ import { useSidebarScrollLock } from "../hooks/useSidebarScrollLock";
 import { useLocale } from "../locale";
 import { AUTHENTICATED_HOME_PATH, getProfile } from "../lib/authApi";
 import { profileSectionFromPath } from "../lib/profileMenu";
-import { readSidebarRail, writeSidebarRail } from "../lib/sidebarRail";
+import {
+  prefersReducedMotion,
+  readSidebarRail,
+  SIDEBAR_WIDTH_MS,
+  SIDEBAR_WORDMARK_MS,
+  writeSidebarRail,
+} from "../lib/sidebarRail";
 import { isDesktopShell } from "../lib/theme";
 
 type AccountShellProps = {
@@ -44,6 +50,10 @@ export function AccountShell({
   const [loadingNickname, setLoadingNickname] = useState(!nicknameControlled);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarRail, setSidebarRail] = useState(readSidebarRail);
+  /** Wordmark hidden while collapsing / collapsed / expanding (before fade-in). */
+  const [wordmarkOut, setWordmarkOut] = useState(() => readSidebarRail());
+  const [railBusy, setRailBusy] = useState(false);
+  const railTimerRef = useRef<number | null>(null);
 
   const accountId = account?.id;
   useEffect(() => {
@@ -79,6 +89,14 @@ export function AccountShell({
     };
   }, [sidebarRail]);
 
+  useEffect(() => {
+    return () => {
+      if (railTimerRef.current != null) {
+        window.clearTimeout(railTimerRef.current);
+      }
+    };
+  }, []);
+
   useSidebarScrollLock(sidebarOpen);
 
   const nickname = nicknameControlled ? nicknameProp : fetchedNickname;
@@ -102,21 +120,60 @@ export function AccountShell({
   }
 
   function handleSidebarToggle() {
-    if (isDesktopShell()) {
-      setSidebarRail((rail) => {
-        const next = !rail;
-        writeSidebarRail(next);
-        return next;
-      });
+    if (!isDesktopShell()) {
+      setSidebarOpen((open) => !open);
       return;
     }
-    setSidebarOpen((open) => !open);
+    if (railBusy) return;
+
+    const reduced = prefersReducedMotion();
+    if (railTimerRef.current != null) {
+      window.clearTimeout(railTimerRef.current);
+      railTimerRef.current = null;
+    }
+
+    if (!sidebarRail) {
+      // Collapse: hide wordmark, then shrink sidebar.
+      setWordmarkOut(true);
+      if (reduced) {
+        setSidebarRail(true);
+        writeSidebarRail(true);
+        return;
+      }
+      setRailBusy(true);
+      railTimerRef.current = window.setTimeout(() => {
+        setSidebarRail(true);
+        writeSidebarRail(true);
+        setRailBusy(false);
+        railTimerRef.current = null;
+      }, SIDEBAR_WORDMARK_MS);
+      return;
+    }
+
+    // Expand: grow sidebar, then fade wordmark in.
+    setSidebarRail(false);
+    writeSidebarRail(false);
+    if (reduced) {
+      setWordmarkOut(false);
+      return;
+    }
+    setRailBusy(true);
+    setWordmarkOut(true);
+    railTimerRef.current = window.setTimeout(() => {
+      setWordmarkOut(false);
+      setRailBusy(false);
+      railTimerRef.current = null;
+    }, SIDEBAR_WIDTH_MS);
   }
 
   return (
     <>
       <aside className={`sidebar${sidebarOpen ? " open" : ""}`} aria-label={t.profileMenuLabel}>
-        <Link to={AUTHENTICATED_HOME_PATH} className="sidebar-brand" aria-label="Squad Me">
+        <Link
+          to={AUTHENTICATED_HOME_PATH}
+          className={`sidebar-brand${wordmarkOut ? " is-wordmark-out" : ""}`}
+          aria-label="Squad Me"
+        >
           <BrandMark size={28} on="dark" />
           <BrandWordmark />
         </Link>

@@ -13,7 +13,7 @@ export function HomePage() {
         <GuestUtilities className="home-topbar-controls" />
       </div>
       <main className="home-hero">
-        <BrandFullLogo />
+        <BrandFullLogo className="brand-lockup home-hero-brand" markSize={72} />
         <p>{t.support}</p>
         <div className="cta">
           <Link to="/login" className="btn btn-primary btn-lg">

@@ -1,12 +1,9 @@
-/** Mark for dark surfaces (Floral White + Pumpkin). */
-export const LOGO_MARK_LIGHT = "/logo-mark-light.png";
-/** Mark for light surfaces (Black + Pumpkin). */
-export const LOGO_MARK_DARK = "/logo-mark-dark.png";
+import { BrandWordmark } from "./BrandWordmark";
 
-/** Full wordmark for dark surfaces. */
-export const LOGO_FULL_LIGHT = "/logo-full-light.png";
-/** Full wordmark for light surfaces. */
-export const LOGO_FULL_DARK = "/logo-full-dark.png";
+/** Mark for dark surfaces (Floral White + Pumpkin). */
+export const LOGO_MARK_LIGHT = "/logo-mark-light.svg";
+/** Mark for light surfaces (Black + Pumpkin). */
+export const LOGO_MARK_DARK = "/logo-mark-dark.svg";
 
 type BrandMarkProps = {
   /** Mark size in CSS pixels. */
@@ -21,7 +18,7 @@ type BrandMarkProps = {
   className?: string;
 };
 
-/** Squad Me mark with light/dark assets. */
+/** Squad Me mark (SVG) with light/dark variants. */
 export function BrandMark({ size = 28, on = "theme", className = "brand-icon" }: BrandMarkProps) {
   if (on === "dark") {
     return (
@@ -59,57 +56,25 @@ export function BrandMark({ size = 28, on = "theme", className = "brand-icon" }:
 
 type BrandFullLogoProps = {
   className?: string;
-  width?: number;
-  height?: number;
-  /** Surface behind the logo; defaults to theme. */
+  /** Mark size in CSS pixels. */
+  markSize?: number;
+  /** Surface behind the lockup; defaults to theme. */
   on?: "dark" | "light" | "theme";
+  /** Optional class on the text wordmark. */
+  nameClassName?: string;
 };
 
-/** Full logo (mark + wordmark) with light/dark assets. */
+/** Full logo as mark + text wordmark (`squadme`). */
 export function BrandFullLogo({
-  className = "hero-logo",
-  width = 788,
-  height = 177,
+  className = "brand-lockup",
+  markSize = 56,
   on = "theme",
+  nameClassName = "brand-name brand-lockup-name",
 }: BrandFullLogoProps) {
-  if (on === "dark") {
-    return (
-      <img
-        className={className}
-        src={LOGO_FULL_LIGHT}
-        alt="Squad Me"
-        width={width}
-        height={height}
-      />
-    );
-  }
-  if (on === "light") {
-    return (
-      <img
-        className={className}
-        src={LOGO_FULL_DARK}
-        alt="Squad Me"
-        width={width}
-        height={height}
-      />
-    );
-  }
   return (
-    <span className={`brand-full--themed ${className}`} role="img" aria-label="Squad Me">
-      <img
-        className="brand-full brand-full--for-dark"
-        src={LOGO_FULL_LIGHT}
-        alt=""
-        width={width}
-        height={height}
-      />
-      <img
-        className="brand-full brand-full--for-light"
-        src={LOGO_FULL_DARK}
-        alt=""
-        width={width}
-        height={height}
-      />
+    <span className={className} role="img" aria-label="Squad Me">
+      <BrandMark size={markSize} on={on} className="brand-icon brand-lockup-mark" />
+      <BrandWordmark className={nameClassName} />
     </span>
   );
 }

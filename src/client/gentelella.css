@@ -960,9 +960,6 @@ a:hover {
     padding: 0;
     justify-content: center;
   }
-  body.sidebar-rail .brand-name {
-    display: none;
-  }
   body.sidebar-rail .nav-group {
     padding: 0 8px;
   }

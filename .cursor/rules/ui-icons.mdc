@@ -1,21 +1,21 @@
 ---
-description: Prefer inline SVG for UI chrome icons; keep public/ icons only when needed
-alwaysApply: true
+description: Prefer vector (SVG) over raster; inline SVG for chrome; public/ only when needed
+globs:
+  - src/client/**/*.{tsx,ts,css}
+  - public/**
+  - scripts/regen-brand-icons.mjs
+alwaysApply: false
 ---
 
-# UI icons (chrome vs static assets)
+# UI icons & brand imagery
 
-## Prefer inline SVG in React
+## Prefer vector over raster
 
-For UI chrome icons (nav, theme sun/moon/auto, edit/cancel, logout, dialogs,
-empty states, card header actions), use **inline SVG in React** — same style as
-`ThemeSwitch`, `ProfileSectionHeader`, and `SidebarFooter`:
-
-- `stroke="currentColor"` (or fill when the glyph is solid)
-- `fill="none"` when stroked
-- `aria-hidden="true"` when decorative; pair with a visible label or
-  `aria-label` on the control
-- Match existing size / stroke-width conventions in nearby components
+Use **SVG** (inline in React, or a `.svg` file under `public/`) whenever the
+asset is geometric / brand / chrome. Prefer **inline SVG in React** for UI
+chrome. Do **not** ship PNG/JPEG/WebP for logos or icons unless a platform
+requires raster (favicon ICO/PNG sizes, apple-touch, PWA maskable, photos,
+user avatars).
 
 ```tsx
 // ✅ GOOD — chrome icon as inline SVG
@@ -23,28 +23,39 @@ empty states, card header actions), use **inline SVG in React** — same style a
   <path d="…" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
 </svg>
 
-// ❌ BAD — generated PNG for edit/cancel/logout chrome
+// ✅ GOOD — brand mark as SVG file
+<img src="/logo-mark-light.svg" alt="" width={28} height={28} />
+
+// ❌ BAD — raster logo/icon when a vector exists or can be used
+<img src="/logo-mark-light.png" alt="" />
 <img src="/icon-edit.png" alt="" />
 ```
+
+## Brand mark & wordmark
+
+- Mark files: `public/logo-mark-light.svg` (Floral + Pumpkin),
+  `public/logo-mark-dark.svg` (Black + Pumpkin). Canonical source for chrome.
+- Wordmark in UI is **text** (`BrandWordmark` / `BrandFullLogo` lockup) — not an
+  image.
+- Do **not** keep unused `logo-full-*.png` or other raster logos “just in case”.
+
+After changing `logo-mark-light.svg`, run `npm run icons:regen` (writes
+`favicon.svg` + raster favicon/PWA derivatives that platforms require).
 
 ## When `public/` is appropriate
 
 Put files under `public/` **only** for:
 
-- Brand logos (`logo-full-light.png`, `logo-full-dark.png`,
-  `logo-mark-light.png`, `logo-mark-dark.png`, favicons)
-- PWA / app icons (`icon-192`, `icon-512`, maskable, apple-touch)
+- Brand mark SVGs (`logo-mark-light.svg`, `logo-mark-dark.svg`) and favicon.svg
+- Platform-required raster derivatives (`favicon-*.png`, `favicon.ico`,
+  `apple-touch-icon.png`, `icon-192` / `icon-512`, maskable)
 - Avatars (`avatar-default.png` and user-uploaded/served avatars)
 - Icons that must be shared as files (e.g. CSS `mask-image` →
   `icon-theme-auto.svg`)
-- True raster UI assets that are intentionally referenced (e.g. channel status
-  PNGs, calendar trigger art)
 
-Name new static icons `public/icon-<purpose>.svg` or `.png` and **reference them
-from code** in the same change. Do not leave unreferenced files in `public/`.
-
-After replacing `logo-mark-light.png`, regenerate chrome derivatives with
-`npm run icons:regen` (favicon, apple-touch, PWA / maskable).
+Name new static icons `public/icon-<purpose>.svg` (prefer) or `.png` only when
+raster is required, and **reference them from code** in the same change. Do not
+leave unreferenced files in `public/`.
 
 ## User-provided assets
 
@@ -54,5 +65,8 @@ redraw, “improve,” or AI-generate a replacement.
 ## Cleanup
 
 Do **not** keep unused generated or legacy UI icons in `public/` (e.g. old
-`icon-edit.png`, `icon-cancel.png`, `icon-verified.png` once unreferenced).
-When chrome moves to inline SVG, delete the orphaned asset in the same change.
+`icon-edit.png`, `icon-cancel.png`, `icon-verified.png`,
+`icon-channel-connected.png`, `icon-channel-disconnected.png`,
+`icon-calendar.png`, orphaned `logo-*.png` once unreferenced).
+When chrome moves to inline/vector SVG, delete the orphaned raster in the same
+change.

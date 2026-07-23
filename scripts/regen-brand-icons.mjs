@@ -1,19 +1,20 @@
 /**
- * Regenerate favicon + PWA/app icons from `public/logo-mark-light.png`.
+ * Regenerate favicon + PWA/app icons from `public/logo-mark-light.svg`.
  *
  * Light mark (Floral + Pumpkin) is the chrome/source mark. Opaque derivatives
  * sit on brand-black `#050609`. Maskable icons keep ~12% safe-zone padding.
+ * Raster outputs exist only where platforms require PNG/ICO.
  *
  * Usage: `npm run icons:regen`
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC = join(ROOT, "public");
-const MARK_LIGHT = join(PUBLIC, "logo-mark-light.png");
+const MARK_LIGHT = join(PUBLIC, "logo-mark-light.svg");
 const BRAND_BLACK = { r: 0x05, g: 0x06, b: 0x09, alpha: 1 };
 
 /** PNG-in-ICO (Vista+) with 16 + 32 frames. */
@@ -46,7 +47,7 @@ function writeIco(path, pngBuffers) {
 }
 
 async function resizeMark(size) {
-  return sharp(MARK_LIGHT)
+  return sharp(MARK_LIGHT, { density: 384 })
     .resize(size, size, { fit: "fill", kernel: sharp.kernel.lanczos3 })
     .png()
     .toBuffer();
@@ -55,7 +56,7 @@ async function resizeMark(size) {
 async function markOnBlack(size, padRatio = 0) {
   const content = Math.max(1, Math.round(size * (1 - 2 * padRatio)));
   const offset = Math.floor((size - content) / 2);
-  const mark = await sharp(MARK_LIGHT)
+  const mark = await sharp(MARK_LIGHT, { density: 384 })
     .resize(content, content, { fit: "fill", kernel: sharp.kernel.lanczos3 })
     .png()
     .toBuffer();
@@ -78,8 +79,14 @@ async function writePng(path, buffer) {
 }
 
 async function main() {
-  // Source must exist (byte-identical brand export).
-  readFileSync(MARK_LIGHT);
+  const svg = readFileSync(MARK_LIGHT, "utf8");
+  if (!svg.includes("#FEF8EC") || !svg.includes("#E8823C")) {
+    throw new Error("logo-mark-light.svg missing Floral/Pumpkin fills — update vector mark first");
+  }
+
+  // Keep favicon.svg identical to the canonical light mark.
+  copyFileSync(MARK_LIGHT, join(PUBLIC, "favicon.svg"));
+  console.log("wrote favicon.svg (from logo-mark-light.svg)");
 
   const fav16 = await resizeMark(16);
   const fav32 = await resizeMark(32);
@@ -98,13 +105,6 @@ async function main() {
   for (const [name, size, pad] of opaque) {
     await writePng(join(PUBLIC, name), await markOnBlack(size, pad));
   }
-
-  // favicon.svg is maintained as the vector light mark (Floral + Pumpkin).
-  const svg = readFileSync(join(PUBLIC, "favicon.svg"), "utf8");
-  if (!svg.includes("#FEF8EC") || !svg.includes("#E8823C")) {
-    throw new Error("favicon.svg missing Floral/Pumpkin fills — update vector mark first");
-  }
-  console.log("favicon.svg OK");
 }
 
 main().catch((err) => {
