@@ -18,7 +18,7 @@ import {
 const anchors = [
   { id: "my-profile", top: -186 },
   { id: "my-divisions", top: 455 },
-  { id: "profile-actions", top: 781 },
+  { id: "my-notifications", top: 781 },
 ] as const;
 
 /** Representative section tops (viewport Y) at various scroll positions. */
@@ -26,7 +26,6 @@ const sectionTops = {
   profile: { id: "my-profile" as const, top: 0 },
   divisions: { id: "my-divisions" as const, top: 480 },
   notifications: { id: "my-notifications" as const, top: 780 },
-  actions: { id: "profile-actions" as const, top: 1_100 },
 };
 
 describe("profile navigation", () => {
@@ -36,8 +35,25 @@ describe("profile navigation", () => {
     );
   });
 
-  it("uses the final section for manual scrolling at the document boundary", () => {
-    expect(resolveActiveProfileAnchor(anchors, 120, false, true, null)).toBe("profile-actions");
+  it("uses the final section at document end only when it lacks reading-line runway", () => {
+    // Last section still below the line → insufficient runway → force last.
+    expect(resolveActiveProfileAnchor(anchors, 120, false, true, null)).toBe("my-notifications");
+  });
+
+  it("PROFILE-010 keeps divisions active at document end when it still owns the reading line", () => {
+    expect(
+      resolveActiveProfileAnchor(
+        [
+          { id: "my-profile", top: -470 },
+          { id: "my-divisions", top: 10 },
+          { id: "my-notifications", top: 310 },
+        ],
+        PROFILE_ANCHOR_COMFORT_PAD_PX,
+        false,
+        true,
+        null,
+      ),
+    ).toBe("my-divisions");
   });
 
   it("PROFILE-001 resets bottom to profile at scrollY zero, even when the page is also at end", () => {
@@ -57,7 +73,6 @@ describe("profile navigation", () => {
           { id: "my-profile", top: -220 },
           { id: "my-divisions", top: 20 },
           { id: "my-notifications", top: 420 },
-          { id: "profile-actions", top: 700 },
         ],
         PROFILE_ANCHOR_COMFORT_PAD_PX,
         false,
@@ -90,7 +105,7 @@ describe("profile navigation", () => {
         [
           { id: "my-profile", top: -500 },
           { id: "my-divisions", top: 24 },
-          { id: "profile-actions", top: 800 },
+          { id: "my-notifications", top: 800 },
         ],
         24,
         false,
@@ -157,7 +172,6 @@ describe("profile navigation", () => {
       { id: "my-profile", top: sectionTops.profile.top },
       { id: "my-divisions", top: sectionTops.divisions.top },
       { id: "my-notifications", top: sectionTops.notifications.top },
-      { id: "profile-actions", top: sectionTops.actions.top },
     ] as const;
 
     // scrollY ≈ 0: profile top at/near viewport top → My Profile (also via
@@ -171,7 +185,6 @@ describe("profile navigation", () => {
           { id: "my-profile", top: 8 },
           { id: "my-divisions", top: 488 },
           { id: "my-notifications", top: 788 },
-          { id: "profile-actions", top: 1_108 },
         ],
         readingLine,
         false,
@@ -181,14 +194,12 @@ describe("profile navigation", () => {
     ).toBe("my-profile");
 
     // Reading line between divisions top and notifications top → Divisions.
-    // Example: divisions.top = 10 (<= 24), notifications.top = 310 (> 24).
     expect(
       resolveActiveProfileAnchor(
         [
           { id: "my-profile", top: -470 },
           { id: "my-divisions", top: 10 },
           { id: "my-notifications", top: 310 },
-          { id: "profile-actions", top: 630 },
         ],
         readingLine,
         false,
@@ -204,7 +215,6 @@ describe("profile navigation", () => {
           { id: "my-profile", top: -755 },
           { id: "my-divisions", top: -275 },
           { id: "my-notifications", top: 25 },
-          { id: "profile-actions", top: 345 },
         ],
         readingLine,
         false,
@@ -220,7 +230,6 @@ describe("profile navigation", () => {
           { id: "my-profile", top: -760 },
           { id: "my-divisions", top: -280 },
           { id: "my-notifications", top: 20 },
-          { id: "profile-actions", top: 340 },
         ],
         readingLine,
         false,
@@ -229,21 +238,20 @@ describe("profile navigation", () => {
       ),
     ).toBe("my-notifications");
 
-    // Actions owns the line.
+    // At document end, last main-column section (notifications) wins — not aside actions.
     expect(
       resolveActiveProfileAnchor(
         [
           { id: "my-profile", top: -1_080 },
           { id: "my-divisions", top: -600 },
           { id: "my-notifications", top: -300 },
-          { id: "profile-actions", top: 20 },
         ],
         readingLine,
         false,
-        false,
+        true,
         null,
       ),
-    ).toBe("profile-actions");
+    ).toBe("my-notifications");
   });
 
   it("PROFILE-004 mid-viewport heading does not steal the previous section (up or down)", () => {
@@ -254,7 +262,6 @@ describe("profile navigation", () => {
       { id: "my-profile", top: -400 },
       { id: "my-divisions", top: 220 },
       { id: "my-notifications", top: 520 },
-      { id: "profile-actions", top: 800 },
     ] as const;
     const line = profileReadingLinePx(0);
     expect(line).toBe(24);

@@ -1,0 +1,41 @@
+---
+description: Mask phone numbers in UI display; leave phone form inputs unmasked
+alwaysApply: true
+---
+
+# Phone number display (UI)
+
+Everywhere in the UI, phone numbers must be shown **masked**, except in form
+fields where the user is actively entering or editing a phone number.
+
+## Rules
+
+- **Display** (sidebar, summaries, tables, notices that echo a stored number,
+  notification channel identifiers, linked shooters, change-phone “current
+  number” readout, etc.): use `maskPhoneE164` from
+  `src/client/lib/maskIdentity.ts`. Do not invent a second mask format.
+- **Inputs** (`type="tel"`, login/register/forgot/change-phone entry fields):
+  show the value as typed — do **not** mask while editing.
+- Prefer passing the raw E.164 into the mask helper at the render site; do not
+  store a second “display format” unless the API already returns a masked field
+  intended for UI.
+
+## Format
+
+`maskPhoneE164("+380501112233")` → `+380*****2233` (up to five middle digits
+replaced with `*`; short numbers keep ends when possible).
+
+```tsx
+// ❌ BAD — raw E.164 in read-only UI
+<div className="role">{account.phoneE164}</div>
+
+// ✅ GOOD
+import { maskPhoneE164 } from "../lib/maskIdentity";
+<div className="role">{maskPhoneE164(account.phoneE164)}</div>
+
+// ✅ GOOD — active phone input stays unmasked
+<input type="tel" value={phone} onChange={...} />
+```
+
+Worker/log masking (`maskPhone` on the server) is separate; do not reuse that
+for client UI.

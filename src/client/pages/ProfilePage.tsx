@@ -103,7 +103,8 @@ export function ProfilePage() {
     },
   });
 
-  const { activeAnchor, scrollToAnchor } = useProfileScrollSpy({
+  // Hash sync + onboarding scroll-to-section (no in-page aside submenu).
+  useProfileScrollSpy({
     loadingProfile,
     showNotifications,
     showProfileEditor,
@@ -555,9 +556,6 @@ export function ProfilePage() {
             <ProfileAside
               nickname={profile?.nickname?.trim() || null}
               showNickname
-              activeAnchor={activeAnchor}
-              showNotifications={showNotifications}
-              onNavigate={scrollToAnchor}
               onDeleteClick={openDeleteDialog}
               deleteBusy={deleting}
               deleteTriggerRef={deleteTriggerRef}

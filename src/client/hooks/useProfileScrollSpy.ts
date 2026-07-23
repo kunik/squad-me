@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from "react";
 import {
   PROFILE_TO_DISCIPLINES_MENU_ANCHOR,
   PROFILE_TO_EMAIL_MENU_ANCHOR,
@@ -8,22 +7,25 @@ import {
   resolveActiveProfileAnchor,
   windowScrollTopForAnchor,
 } from "../lib/profileNavigation";
+import { useEffect, useRef, useState } from "react";
+
 export const PROFILE_ANCHOR = "my-profile";
 export const DIVISIONS_ANCHOR = PROFILE_TO_DISCIPLINES_MENU_ANCHOR;
 export const NOTIFICATIONS_ANCHOR = PROFILE_TO_EMAIL_MENU_ANCHOR;
+
+/** @deprecated Security actions are not a scroll-spy target (aside card only). */
 export const ACTIONS_ANCHOR = "profile-actions";
 
 export type ProfileAnchor =
   | typeof PROFILE_ANCHOR
   | typeof DIVISIONS_ANCHOR
-  | typeof NOTIFICATIONS_ANCHOR
-  | typeof ACTIONS_ANCHOR;
+  | typeof NOTIFICATIONS_ANCHOR;
 
+/** Main-column profile sections only — aside actions are out of the spy set. */
 export const PROFILE_ANCHORS: readonly ProfileAnchor[] = [
   PROFILE_ANCHOR,
   DIVISIONS_ANCHOR,
   NOTIFICATIONS_ANCHOR,
-  ACTIONS_ANCHOR,
 ];
 
 type UseProfileScrollSpyOptions = {
@@ -36,7 +38,10 @@ type UseProfileScrollSpyOptions = {
 };
 
 /**
- * Window scroll-spy + programmatic anchor scroll for `/profile` left nav.
+ * Window scroll-spy + programmatic anchor scroll for `/profile` section hashes.
+ * Used for onboarding Skip/Save scroll and intentional deep links
+ * (e.g. `#my-divisions`, `#my-notifications`). Default profile entry is plain
+ * `/profile` (no `#my-profile`).
  * Logic preserved from ProfilePage (PROFILE-002/004 regressions).
  */
 export function useProfileScrollSpy({
@@ -96,6 +101,7 @@ export function useProfileScrollSpy({
   }
 
   function scrollToAnchor(id: string) {
+    if (!PROFILE_ANCHORS.includes(id as ProfileAnchor)) return;
     const anchor = id as ProfileAnchor;
     pendingAnchor.current = anchor;
     setActiveAnchor(anchor);

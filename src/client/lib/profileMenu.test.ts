@@ -5,10 +5,8 @@ import {
   MATCHES_PATH,
   pathForProfileSection,
   postAuthLandingPath,
-  PROFILE_IN_PAGE_NAV_ITEMS,
   PROFILE_MENU_GROUPS,
   PROFILE_PATH,
-  profileInPageNavItems,
   profileSectionFromPath,
 } from "./profileMenu";
 
@@ -30,23 +28,6 @@ describe("profile side menu", () => {
     }
   });
 
-  it("keeps profile in-page nav in the aside without security", () => {
-    expect(PROFILE_IN_PAGE_NAV_ITEMS.map((item) => item.id)).toEqual([
-      "my-profile",
-      "my-divisions",
-      "my-notifications",
-    ]);
-    expect(profileInPageNavItems().map((item) => item.id)).toEqual([
-      "my-profile",
-      "my-divisions",
-      "my-notifications",
-    ]);
-    expect(profileInPageNavItems({ showNotifications: false }).map((item) => item.id)).toEqual([
-      "my-profile",
-      "my-divisions",
-    ]);
-  });
-
   it("maps pathnames to top-level sections and back", () => {
     expect(profileSectionFromPath("/matches")).toBe("matches");
     expect(profileSectionFromPath("/linked-shooters")).toBe("linked");
@@ -55,6 +36,12 @@ describe("profile side menu", () => {
     expect(pathForProfileSection("matches")).toBe(MATCHES_PATH);
     expect(pathForProfileSection("linked")).toBe(LINKED_SHOOTERS_PATH);
     expect(pathForProfileSection("profile")).toBe(PROFILE_PATH);
+  });
+
+  it("uses plain /profile as the default profile entry (no #my-profile)", () => {
+    expect(PROFILE_PATH).toBe("/profile");
+    expect(PROFILE_PATH).not.toContain("#");
+    expect(pathForProfileSection("profile")).toBe("/profile");
   });
 
   it("sends finished users to matches and onboarders to profile", () => {

@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { ProfileSideMenu } from "./ProfileSideMenu";
 import { SidebarFooter } from "./SidebarFooter";
 import { useAuth } from "../auth";
+import { useSidebarScrollLock } from "../hooks/useSidebarScrollLock";
 import { useLocale } from "../locale";
 import { AUTHENTICATED_HOME_PATH, getProfile } from "../lib/authApi";
 import { profileSectionFromPath } from "../lib/profileMenu";
@@ -76,12 +77,7 @@ export function AccountShell({
     };
   }, [sidebarRail]);
 
-  useEffect(() => {
-    document.body.classList.toggle("sidebar-open", sidebarOpen);
-    return () => {
-      document.body.classList.remove("sidebar-open");
-    };
-  }, [sidebarOpen]);
+  useSidebarScrollLock(sidebarOpen);
 
   const nickname = nicknameControlled ? nicknameProp : fetchedNickname;
   const showNickname = nicknameControlled || !loadingNickname;

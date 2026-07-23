@@ -1,10 +1,5 @@
 import type { Messages } from "../i18n";
 import type { ProfileNavSection } from "../hooks/useUnsavedDiscard";
-import {
-  DIVISIONS_ANCHOR,
-  NOTIFICATIONS_ANCHOR,
-  PROFILE_ANCHOR,
-} from "../hooks/useProfileScrollSpy";
 
 /** In-page (or future section-local) nav child under a top-level screen group. */
 export type ProfileMenuChild = {
@@ -26,19 +21,12 @@ export const MATCHES_PATH = "/matches";
 /** «Пов’язані стрільці». */
 export const LINKED_SHOOTERS_PATH = "/linked-shooters";
 
-/** Personal profile (anchors for details / divisions / notifications). */
+/** Personal profile (section anchors still used for hash deep links / onboarding). */
 export const PROFILE_PATH = "/profile";
-
-/** In-page section nav for `/profile` aside (security is a separate card, not a link). */
-export const PROFILE_IN_PAGE_NAV_ITEMS: readonly ProfileMenuChild[] = [
-  { id: PROFILE_ANCHOR, labelKey: "profileMenuPersonalDetails" },
-  { id: DIVISIONS_ANCHOR, labelKey: "profileMenuDivisions" },
-  { id: NOTIFICATIONS_ANCHOR, labelKey: "profileMenuNotifications" },
-];
 
 /**
  * Data-driven sidebar groups: routed screens only.
- * Profile is reached via the sidebar footer avatar link and the profile aside.
+ * Profile is reached via the sidebar footer avatar link.
  */
 export const PROFILE_MENU_GROUPS: readonly ProfileMenuGroup[] = [
   {
@@ -54,16 +42,6 @@ export const PROFILE_MENU_GROUPS: readonly ProfileMenuGroup[] = [
     children: [],
   },
 ];
-
-/** In-page anchor nav rows for `/profile` aside. */
-export function profileInPageNavItems(options?: {
-  showNotifications?: boolean;
-}): readonly ProfileMenuChild[] {
-  if (options?.showNotifications === false) {
-    return PROFILE_IN_PAGE_NAV_ITEMS.filter((item) => item.id !== NOTIFICATIONS_ANCHOR);
-  }
-  return PROFILE_IN_PAGE_NAV_ITEMS;
-}
 
 /** Accordion rule: expand only the group whose section matches the active screen. */
 export function isProfileMenuGroupExpanded(

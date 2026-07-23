@@ -173,9 +173,7 @@ export const messages = {
     profileMenuMatches: "Мої матчі",
     profileMenuLinkedShooters: "Пов’язані стрільці",
     profileMenuMyProfile: "Мій профіль",
-    profileMenuPersonalDetails: "Особисті дані",
     profileMenuDivisions: "Дивізіони",
-    profileMenuNotifications: "Сповіщення",
     profileMenuActions: "Безпека",
     profileLinkedIRegister: "Я реєструю",
     profileLinkedRegisterMe: "Мене реєструють",
@@ -310,6 +308,7 @@ export const messages = {
     themeToggleLabel: "Тема",
     themeLight: "Світла",
     themeDark: "Темна",
+    themeAuto: "Авто",
   },
   en: {
     login: "Log in",
@@ -479,9 +478,7 @@ export const messages = {
     profileMenuMatches: "My matches",
     profileMenuLinkedShooters: "Linked shooters",
     profileMenuMyProfile: "My profile",
-    profileMenuPersonalDetails: "Personal details",
     profileMenuDivisions: "Divisions",
-    profileMenuNotifications: "Notifications",
     profileMenuActions: "Security",
     profileLinkedIRegister: "I register",
     profileLinkedRegisterMe: "Others register me",
@@ -609,6 +606,7 @@ export const messages = {
     themeToggleLabel: "Theme",
     themeLight: "Light",
     themeDark: "Dark",
+    themeAuto: "Auto",
   },
 } as const;
 

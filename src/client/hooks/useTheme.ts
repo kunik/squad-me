@@ -1,10 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
-import { readTheme, setTheme, type Theme } from "../lib/theme";
+import {
+  cycleThemePreference,
+  readTheme,
+  readThemePreference,
+  setThemePreference,
+  type Theme,
+  type ThemePreference,
+} from "../lib/theme";
 
-/** Syncs Gentelella `data-theme` on `<html>` with React state. */
+/** Syncs Gentelella `data-theme` on `<html>` with React state (incl. system). */
 export function useTheme() {
   const [theme, setThemeState] = useState<Theme>(() =>
     typeof document === "undefined" ? "dark" : readTheme(),
+  );
+  const [preference, setPreferenceState] = useState<ThemePreference>(() =>
+    typeof window === "undefined" ? "system" : readThemePreference(),
   );
 
   useEffect(() => {
@@ -16,11 +26,35 @@ export function useTheme() {
     return () => observer.disconnect();
   }, []);
 
-  const toggle = useCallback(() => {
-    const next = readTheme() === "dark" ? "light" : "dark";
-    setTheme(next);
-    setThemeState(next);
+  useEffect(() => {
+    if (preference !== "system") return;
+
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => {
+      setThemeState(readTheme());
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [preference]);
+
+  const setPreference = useCallback((next: ThemePreference) => {
+    setThemePreference(next);
+    setPreferenceState(next);
+    setThemeState(readTheme());
   }, []);
 
-  return { theme, isDark: theme === "dark", setTheme, toggle };
+  const toggle = useCallback(() => {
+    const next = cycleThemePreference();
+    setPreferenceState(next);
+    setThemeState(readTheme());
+  }, []);
+
+  return {
+    theme,
+    preference,
+    isDark: theme === "dark",
+    setTheme: setPreference,
+    setPreference,
+    toggle,
+  };
 }

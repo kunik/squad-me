@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 type ProfileSectionHeaderProps = {
   title: string;
   editing: boolean;
@@ -27,19 +29,14 @@ export function ProfileSectionHeader({
       <div className="card-options">
         {editing
           ? onCancel && (
-              <HeaderIconButton
-                src="/icon-cancel.png"
-                label={cancelLabel}
-                disabled={busy}
-                onClick={onCancel}
-              />
+              <HeaderIconButton label={cancelLabel} disabled={busy} onClick={onCancel}>
+                <CancelIcon />
+              </HeaderIconButton>
             )
           : onEdit && (
-              <HeaderIconButton
-                src="/icon-edit.png"
-                label={editLabel}
-                onClick={onEdit}
-              />
+              <HeaderIconButton label={editLabel} onClick={onEdit}>
+                <EditIcon />
+              </HeaderIconButton>
             )}
       </div>
     </div>
@@ -47,15 +44,15 @@ export function ProfileSectionHeader({
 }
 
 function HeaderIconButton({
-  src,
   label,
   disabled = false,
   onClick,
+  children,
 }: {
-  src: string;
   label: string;
   disabled?: boolean;
   onClick: () => void;
+  children: ReactNode;
 }) {
   return (
     <button
@@ -66,7 +63,35 @@ function HeaderIconButton({
       aria-label={label}
       title={label}
     >
-      <img src={src} alt="" width={14} height={14} />
+      {children}
     </button>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CancelIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M18 6 6 18M6 6l12 12"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }

@@ -1,5 +1,6 @@
 import { useLocale } from "../locale";
 import { useTheme } from "../hooks/useTheme";
+import type { ThemePreference } from "../lib/theme";
 
 type ThemeSwitchProps = {
   className?: string;
@@ -8,15 +9,36 @@ type ThemeSwitchProps = {
   "data-rail-label"?: string;
 };
 
-/** Gentelella `.theme-toggle` — swaps `html[data-theme]` light/dark. */
+function preferenceLabel(
+  preference: ThemePreference,
+  t: { themeLight: string; themeDark: string; themeAuto: string },
+): string {
+  if (preference === "light") return t.themeLight;
+  if (preference === "dark") return t.themeDark;
+  return t.themeAuto;
+}
+
+/** Visible chip caption — AUTO is a product label; light/dark stay localized. */
+function preferenceChipLabel(
+  preference: ThemePreference,
+  t: { themeLight: string; themeDark: string },
+): string {
+  if (preference === "light") return t.themeLight;
+  if (preference === "dark") return t.themeDark;
+  return "AUTO";
+}
+
+/** Gentelella `.theme-toggle` — cycles light / dark / system (`html[data-theme]`). */
 export function ThemeSwitch({
   className = "",
   compact = false,
   "data-rail-label": railLabel,
 }: ThemeSwitchProps) {
   const { t } = useLocale();
-  const { isDark, toggle } = useTheme();
-  const tip = railLabel ?? t.themeToggleLabel;
+  const { preference, toggle } = useTheme();
+  const modeLabel = preferenceLabel(preference, t);
+  const chipLabel = preferenceChipLabel(preference, t);
+  const tip = railLabel ?? `${t.themeToggleLabel}: ${modeLabel}`;
 
   return (
     <button
@@ -24,7 +46,7 @@ export function ThemeSwitch({
       className={`tb-btn theme-toggle${compact ? " theme-toggle--compact" : ""}${className ? ` ${className}` : ""}`}
       title={tip}
       aria-label={tip}
-      aria-pressed={isDark}
+      data-theme-pref={preference}
       data-rail-label={railLabel}
       onClick={toggle}
     >
@@ -53,7 +75,8 @@ export function ThemeSwitch({
       >
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
       </svg>
-      {!compact && <span className="theme-toggle-label">{isDark ? t.themeDark : t.themeLight}</span>}
+      <span className="theme-icon-system" aria-hidden="true" />
+      {!compact && <span className="theme-toggle-label">{chipLabel}</span>}
     </button>
   );
 }

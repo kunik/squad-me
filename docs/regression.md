@@ -64,7 +64,7 @@ Record each distinct bug with reproducible behavior and its test coverage.
 
 **Status:** Fixed (uncommitted working tree)
 **Area:** `src/client/pages/ProfilePage.tsx`, `src/client/lib/profileNavigation.ts`, `.public-surface` overflow
-**Coverage:** `src/client/lib/profileNavigation.test.ts` — `PROFILE-002` step-advance anchors are `my-divisions` (profile→disciplines) and `my-notifications` (disciplines→email); window scroll-top helper clamps so `scrollY = 0` stays reachable (menu/Skip/Save must use that path, not `scrollIntoView`). Manual: on `/profile` with `onboardingStep === "profile"`, press Skip (or Save), confirm banner advances to disciplines, «Дивізіони» becomes active, divisions section opens in edit mode, and the page scrolls after the edit form lays out (not while still on the short summary); then Skip/Save divisions → email, «Сповіщення» active, window scrolls with scroll-margin, and scrolling back to `scrollY = 0` still shows PublicHeader/logo.
+**Coverage:** `src/client/lib/profileNavigation.test.ts` — `PROFILE-002` step-advance anchors are `my-divisions` (profile→disciplines) and `my-notifications` (disciplines→email); window scroll-top helper clamps so `scrollY = 0` stays reachable (Skip/Save must use that path, not `scrollIntoView`). Manual: on `/profile` with `onboardingStep === "profile"`, press Skip (or Save), confirm banner advances to disciplines, URL hash becomes `#my-divisions`, divisions section opens in edit mode, and the page scrolls after the edit form lays out (not while still on the short summary); then Skip/Save divisions → email, hash `#my-notifications`, window scrolls with scroll-margin, and scrolling back to `scrollY = 0` still shows PublicHeader/logo.
 
 ### Steps to reproduce
 1. Sign in with a session that still needs the profile onboarding step and open `/profile` near the top of the page.
@@ -92,7 +92,7 @@ Record each distinct bug with reproducible behavior and its test coverage.
 
 **Status:** Fixed (uncommitted working tree)
 **Area:** `src/client/lib/profileNavigation.ts`, `src/client/pages/ProfilePage.tsx` (spy only; click-scroll offset unchanged)
-**Coverage:** `src/client/lib/profileNavigation.test.ts` — `PROFILE-004` single near-chrome reading line equals click landing; classic “last top ≤ reading line” selection across profile/divisions/notifications/actions tops; Divisions wins when the line sits between divisions top and notifications top
+**Coverage:** `src/client/lib/profileNavigation.test.ts` — `PROFILE-004` single near-chrome reading line equals click landing; classic “last top ≤ reading line” selection across profile/divisions/notifications tops (aside actions are not in the spy set; see PROFILE-009); Divisions wins when the line sits between divisions top and notifications top
 
 ### Steps to reproduce
 1. Sign in and open `/profile` with Profile, Divisions, and Notifications sections tall enough to scroll.
@@ -157,6 +157,34 @@ Record each distinct bug with reproducible behavior and its test coverage.
 **Expected:** Summary shows «Чоловіча» (same as the selected radio). Gender and birth date are independently optional.
 **Actual:** `genderBirthForClientSave` stripped `male` when birth date was empty (to avoid persisting the UI default) while still allowing `female`, so the API stored `gender: null` and the summary rendered «—».
 
+## PROFILE-009 · Sticky aside + `#profile-actions` collapsed scroll-spy to two states
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/hooks/useProfileScrollSpy.ts`, `src/client/components/ProfileAside.tsx`, `.profile-aside` sticky CSS
+**Coverage:** `src/client/lib/profileNavigation.test.ts` — spy fixtures use only `my-profile` / `my-divisions` / `my-notifications`; document-end selects notifications (not actions). Manual: scroll `/profile` through all three main sections — URL hash cycles with the reading line; identity + security cards scroll away with the page (no in-page aside submenu).
+
+### Steps to reproduce
+1. Sign in and open `/profile` with enough content to scroll past personal details, divisions, and notifications.
+2. Scroll down slowly and watch the URL hash.
+3. Note whether the right column stays pinned while scrolling.
+
+**Expected:** Hash cycles `#my-profile` → `#my-divisions` → `#my-notifications`. Aside cards (avatar, security) scroll with the page. Actions are not a scroll-spy target.
+**Actual:** Sticky `.profile-aside` kept `#profile-actions` near the reading line, so the spy jumped between `#my-profile` and `#profile-actions` and skipped divisions/notifications. Actions were incorrectly in `PROFILE_ANCHORS`.
+
+## PROFILE-010 · Document-end override skipped Divisions while it owned the reading line
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/lib/profileNavigation.ts` (`resolveActiveProfileAnchor`)
+**Coverage:** `src/client/lib/profileNavigation.test.ts` — `PROFILE-010` at document end keeps `my-divisions` when it owns the reading line; runway force-last only when the reading-line winner is still the first section and last.top > reading line.
+
+### Steps to reproduce
+1. Sign in and open `/profile` with personal details, divisions, and notifications tall enough to scroll (aside not sticky).
+2. Scroll until «Дивізіони» sits under the topbar reading line while «Сповіщення» is still below it.
+3. If the viewport is near the document bottom (`scrollY + innerHeight ≈ scrollHeight`), watch the URL hash.
+
+**Expected:** `#my-divisions` stays active for that band (same as when not at document end).
+**Actual:** `atDocumentEnd` always forced the last spy section (`#my-notifications`), so divisions never highlighted on short/medium pages once the page bottom was in view.
+
 ## AUTH-003 · Profile black screen after phone change (`useBlocker` crash)
 
 **Status:** Fixed (uncommitted working tree)
@@ -197,3 +225,70 @@ Record each distinct bug with reproducible behavior and its test coverage.
 
 **Expected:** Save completes the email onboarding step (same as Skip or saving an email). `onboardingStep` is `null` before and after password reset; `POST /api/auth/password/reset` does not clear `email_prompt_dismissed_at` or `accounts.email`.
 **Actual:** Save exited edit mode but never called `dismissEmailPrompt` when no email was persisted, so `email_prompt_dismissed_at` stayed `NULL` and `accounts.email` stayed `NULL`. Password reset was unrelated (it only updates password hash / sessions); re-login still showed the email onboarding hint because the step had never been marked done.
+
+## SHELL-001 · Mobile content width jumps (scrollbar gutter)
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/styles.css` (`html { scrollbar-gutter: stable }` + `--removed-scrollbar-width` padding/topbar), `src/client/lib/scrollLock.ts` / `useSidebarScrollLock` (AccountShell), `body.sidebar-open { overflow: hidden }` in `gentelella.css`
+**Coverage:** Unit — `scrollLock.test.ts` covers gap math. Visual assert still needed on &lt;768px (classic vs overlay scrollbars / DOM lock).
+
+### Steps to reproduce
+1. Sign in on a viewport &lt;768px wide.
+2. Compare horizontal inset of content cards on `/profile` (tall, usually scrollable) vs `/matches`.
+3. On either page, open the mobile sidebar and watch the main column.
+
+**Expected:** Profile and Matches share the same content-block horizontal inset; opening the drawer does not shift content sideways.
+**Actual:** Tall Profile reserved a classic scrollbar while short Matches often did not, so Profile looked more inset on the right. Opening the drawer set `body.sidebar-open { overflow: hidden }`, removed the scrollbar, and the content expanded (~6–15px jump). `scrollbar-gutter: stable` alone is insufficient on Safari/macOS when the gutter is ignored or overlay scrollbars still interact with `overflow: hidden` differently — fix measures `clientWidth` before/after lock and sets `--removed-scrollbar-width` only when the gap is &gt; 0 (avoids double-padding when gutter already works).
+
+## SHELL-002 · Mobile sidebar backdrop was slate-blue
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/styles.css` (`--sidebar-backdrop`, `.sidebar-backdrop`), override of Gentelella `rgba(15, 23, 42, 0.4)`
+**Coverage:** Not covered — brand color token; manual visual check.
+
+### Steps to reproduce
+1. On &lt;768px, open the account sidebar drawer.
+2. Observe the scrim behind the panel.
+
+**Expected:** Neutral black/carbon-derived overlay aligned with Squad Me chrome.
+**Actual:** Bluish slate overlay from Gentelella leftover (`rgba(15, 23, 42, 0.4)`).
+
+## SHELL-003 · Mobile drawer footer stacks when rail preference set
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/styles.css` (`body.sidebar-rail .sidebar-footer-row` and related footer rail rules)
+**Coverage:** Not covered — CSS `@media (min-width: 769px)` layout; manual visual check.
+
+### Steps to reproduce
+1. On desktop (≥769px), collapse the sidebar to rail (`body.sidebar-rail`).
+2. Resize the viewport to &lt;769px (sidebar hides).
+3. Open the mobile drawer (`body.sidebar-open`).
+
+**Expected:** Profile link and logout sit on one horizontal row (expanded drawer chrome).
+**Actual:** Rail footer CSS (`flex-direction: column`, hidden logout label) still applied because `sidebar-rail` remained on `body` from the desktop preference, so logout stacked under profile.
+
+## PROFILE-011 · Mobile Profile stacked identity before actions incorrectly
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/styles.css` (`.profile-page-layout` / `.profile-aside` at `max-width: 1100px`, aligned with Gentelella `.col-8-4`), `src/client/components/ProfileAside.tsx`
+**Coverage:** Not covered — CSS flex `order` + `display: contents`; manual DOM/visual order on ≤1100px (including mid-range 769–1100).
+
+### Steps to reproduce
+1. Sign in and open `/profile` at ≤1100px width (e.g. 900px or &lt;768px).
+2. Scroll the page from top to bottom.
+
+**Expected:** Visual order is avatar/identity → `#my-profile` → `#my-divisions` → `#my-notifications` → security actions card at the bottom. Above 1100px keeps two-column main | aside.
+**Actual:** DOM was main column then aside (identity + actions together), so after the main sections the avatar and security still appeared as a pair — or identity sat with actions after content rather than avatar-first / actions-last. At 769–1100 the reorder previously did not apply (only &lt;768px).
+
+## PROFILE-012 · Mobile Profile cards stay narrow left column
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `src/client/styles.css` (`.profile-page-layout` at `max-width: 1100px`, same breakpoint as PROFILE-011 / Gentelella `.col-8-4`)
+**Coverage:** Not covered — CSS layout; manual visual check on ≤1100px vs Matches full-width cards.
+
+### Steps to reproduce
+1. Sign in and open `/profile` at ≤1100px width (after PROFILE-011 reorder), including mid-range 769–1100.
+2. Observe personal / divisions / notifications / security cards.
+
+**Expected:** Cards fill available content width in a single stacked column (Matches-style).
+**Actual:** Cards stayed a narrow left strip (~40–50% width) with empty space on the right — base `align-items: start` on the flex column prevented cross-axis stretch after `display: contents` + flex reorder. Stretch previously only applied under &lt;768px.

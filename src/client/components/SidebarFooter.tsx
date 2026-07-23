@@ -1,10 +1,8 @@
 import { Link } from "react-router-dom";
 import { useLocale } from "../locale";
 import { PROFILE_PATH } from "../lib/profileMenu";
-import { PROFILE_ANCHOR } from "../hooks/useProfileScrollSpy";
 import { useLogout } from "../hooks/useLogout";
-import { LangSwitch } from "./LangSwitch";
-import { ThemeSwitch } from "./ThemeSwitch";
+import { maskPhoneE164 } from "../lib/maskIdentity";
 
 import { UserAvatar } from "./UserAvatar";
 
@@ -15,8 +13,8 @@ type SidebarFooterProps = {
 };
 
 /**
- * Gentelella `.sidebar-footer`: profile link, then utility row for
- * language, theme, and logout (replaces the old topbar user menu).
+ * Gentelella `.sidebar-footer`: profile link and logout in one row
+ * (lang/theme live under the profile avatar identity block).
  */
 export function SidebarFooter({
   nickname,
@@ -25,28 +23,27 @@ export function SidebarFooter({
 }: SidebarFooterProps) {
   const { t } = useLocale();
   const { logout, busy, error } = useLogout();
+  const maskedPhone = maskPhoneE164(phoneE164);
 
   return (
     <div className="sidebar-footer">
-      <Link
-        to={`${PROFILE_PATH}#${PROFILE_ANCHOR}`}
-        className="sidebar-user"
-        aria-label={t.headerProfile}
-        data-rail-label={t.headerProfile}
-        title={t.headerProfile}
-      >
-        <UserAvatar size="sm" className="avatar" alt={t.headerProfile} />
-        <div className="sidebar-user-info">
-          <div className={`name${nickname ? "" : " is-empty"}`}>
-            {showNickname ? nickname || t.profileAddNickname : "\u00a0"}
+      <div className="sidebar-footer-row">
+        <Link
+          to={PROFILE_PATH}
+          className="sidebar-user"
+          aria-label={t.headerProfile}
+          data-rail-label={t.headerProfile}
+          title={t.headerProfile}
+        >
+          <UserAvatar size="sm" className="avatar" alt={t.headerProfile} />
+          <div className="sidebar-user-info">
+            <div className={`name${nickname ? "" : " is-empty"}`}>
+              {showNickname ? nickname || t.profileAddNickname : "\u00a0"}
+            </div>
+            <div className="role">{maskedPhone}</div>
           </div>
-          <div className="role">{phoneE164}</div>
-        </div>
-      </Link>
+        </Link>
 
-      <div className="sidebar-footer-tools">
-        <LangSwitch className="sidebar-lang" />
-        <ThemeSwitch compact data-rail-label={t.themeToggleLabel} />
         <button
           type="button"
           className="sidebar-logout-btn"

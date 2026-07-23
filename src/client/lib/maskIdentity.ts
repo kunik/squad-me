@@ -1,6 +1,7 @@
 /**
- * Display-only masking for contact identifiers (profile notifications UI).
- * Not for logs — worker `maskPhone` stays separate.
+ * Display-only masking for contact identifiers across the UI (sidebar,
+ * notifications, change-phone readout, etc.). Not for logs — worker
+ * `maskPhone` stays separate. Phone form inputs stay unmasked while editing.
  */
 
 /**

@@ -1,0 +1,54 @@
+---
+description: Prefer inline SVG for UI chrome icons; keep public/ icons only when needed
+alwaysApply: true
+---
+
+# UI icons (chrome vs static assets)
+
+## Prefer inline SVG in React
+
+For UI chrome icons (nav, theme sun/moon/auto, edit/cancel, logout, dialogs,
+empty states, card header actions), use **inline SVG in React** — same style as
+`ThemeSwitch`, `ProfileSectionHeader`, and `SidebarFooter`:
+
+- `stroke="currentColor"` (or fill when the glyph is solid)
+- `fill="none"` when stroked
+- `aria-hidden="true"` when decorative; pair with a visible label or
+  `aria-label` on the control
+- Match existing size / stroke-width conventions in nearby components
+
+```tsx
+// ✅ GOOD — chrome icon as inline SVG
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  <path d="…" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+</svg>
+
+// ❌ BAD — generated PNG for edit/cancel/logout chrome
+<img src="/icon-edit.png" alt="" />
+```
+
+## When `public/` is appropriate
+
+Put files under `public/` **only** for:
+
+- Brand logos (`logo-full.svg`, `logo-mark.svg`, favicons)
+- PWA / app icons (`icon-192`, `icon-512`, maskable, apple-touch)
+- Avatars (`avatar-default.png` and user-uploaded/served avatars)
+- Icons that must be shared as files (e.g. CSS `mask-image` →
+  `icon-theme-auto.svg`)
+- True raster UI assets that are intentionally referenced (e.g. channel status
+  PNGs, calendar trigger art)
+
+Name new static icons `public/icon-<purpose>.svg` or `.png` and **reference them
+from code** in the same change. Do not leave unreferenced files in `public/`.
+
+## User-provided assets
+
+If the user supplies an icon file, use it **byte-identical**. Do **not** invent,
+redraw, “improve,” or AI-generate a replacement.
+
+## Cleanup
+
+Do **not** keep unused generated or legacy UI icons in `public/` (e.g. old
+`icon-edit.png`, `icon-cancel.png`, `icon-verified.png` once unreferenced).
+When chrome moves to inline SVG, delete the orphaned asset in the same change.

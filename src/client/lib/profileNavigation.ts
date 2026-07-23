@@ -8,7 +8,7 @@ export type ProfileAnchorPosition<T extends string> = {
 /**
  * Comfort gap below fixed top chrome (or the viewport top when nothing is
  * pinned). CSS uses `--topbar-offset` (`--topbar-h` + `--space-4`) for
- * `.profile-section { scroll-margin-top }` and sticky aside.
+ * `.profile-section { scroll-margin-top }`.
  */
 export const PROFILE_ANCHOR_COMFORT_PAD_PX = 24;
 
@@ -145,6 +145,11 @@ export function windowScrollTopForAnchor(
  * Resolves the scroll-spy anchor. Menu-click authority wins while its scroll
  * settles; otherwise the page-start boundary wins over the document-end
  * fallback when a short page satisfies both conditions.
+ *
+ * At document end, force the last section only when the reading line still
+ * names the first section and the last has never reached the line (no scroll
+ * runway). If a middle section owns the line, keep it — otherwise short pages
+ * skip e.g. divisions (PROFILE-010).
  */
 export function resolveActiveProfileAnchor<T extends string>(
   anchors: readonly ProfileAnchorPosition<T>[],
@@ -170,5 +175,12 @@ export function resolveActiveProfileAnchor<T extends string>(
       break;
     }
   }
-  return atDocumentEnd ? anchors[anchors.length - 1].id : next;
+  if (atDocumentEnd) {
+    const first = anchors[0];
+    const last = anchors[anchors.length - 1];
+    if (next === first.id && last.top > readingLine) {
+      return last.id;
+    }
+  }
+  return next;
 }

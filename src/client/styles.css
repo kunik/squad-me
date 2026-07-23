@@ -7,7 +7,8 @@
      1. Squad Me brand tokens (tactical orange primary) mapped into Gentelella's
         CSS-variable slots — exactly the swap Gentelella's theme generator
         supports.
-     2. Theme follows Gentelella `html[data-theme]` (light/dark); dark is the default.
+     2. Theme follows Gentelella `html[data-theme]` (light/dark); preference may be
+        light, dark, or system (`prefers-color-scheme`). Default preference is system.
      3. A few product-specific widgets Gentelella does not ship (avatar identity,
         onboarding banner tweaks, date picker, field hints, OTP, Turnstile).
    Nothing here re-creates the old squad-me panel/card system.
@@ -94,6 +95,34 @@
   --sidebar-text-hover: color-mix(in srgb, var(--brand-floral) 88%, var(--brand-carbon));
   --sidebar-text-active: var(--brand-floral);
   --sidebar-border: color-mix(in srgb, var(--brand-floral) 8%, transparent);
+  /* Mobile drawer scrim — carbon/black, not Gentelella slate-blue */
+  --sidebar-backdrop: color-mix(in srgb, var(--brand-black) 52%, transparent);
+}
+
+/*
+ * Reserve scrollbar space so tall Profile vs short Matches share the same
+ * content width when the browser honors it. Drawer open still uses
+ * `body.sidebar-open { overflow: hidden }` (gentelella); Safari/macOS often
+ * ignore scrollbar-gutter, so AccountShell measures the clientWidth delta and
+ * sets --removed-scrollbar-width for the padding/topbar compensation below.
+ */
+html {
+  scrollbar-gutter: stable;
+}
+
+body.sidebar-open {
+  padding-right: var(--removed-scrollbar-width, 0px);
+}
+
+@media (max-width: 768px) {
+  /* Fixed topbar is viewport-relative; body padding alone does not inset it. */
+  body.sidebar-open .topbar {
+    right: var(--removed-scrollbar-width, 0px);
+  }
+}
+
+.sidebar-backdrop {
+  background: var(--sidebar-backdrop);
 }
 
 [data-theme="dark"] {
@@ -242,55 +271,24 @@ a.sidebar-brand:hover {
   text-decoration: none;
 }
 
-/* Sidebar footer profile link (Gentelella `.sidebar-user`). */
+/* Sidebar footer: profile link + logout in one row. */
+.sidebar-footer-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
 a.sidebar-user {
+  flex: 1;
+  min-width: 0;
   text-decoration: none;
   color: inherit;
 }
 .sidebar-user-info .name.is-empty {
   color: var(--primary);
 }
-
-/* Sidebar footer utilities: language, theme, logout. */
-.sidebar-footer-tools {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  padding-top: 8px;
-  border-top: 1px solid var(--sidebar-border);
-}
-.sidebar-footer .lang-seg {
-  background: color-mix(in srgb, var(--brand-floral) 6%, transparent);
-}
-.sidebar-footer .lang-seg button {
-  color: var(--sidebar-text);
-}
-.sidebar-footer .lang-seg button.active {
-  background: var(--primary);
-  color: var(--brand-floral);
-}
-.sidebar-footer-tools .theme-toggle {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--sidebar-text);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.sidebar-footer-tools .theme-toggle:hover {
-  background: var(--sidebar-hover);
-  color: var(--sidebar-text-hover);
-}
 .sidebar-logout-btn {
-  margin-left: auto;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -318,62 +316,46 @@ a.sidebar-user {
   color: var(--red);
 }
 
-body.sidebar-rail .sidebar-footer {
-  padding: 4px 0 6px;
-  min-width: 0;
-  max-width: 100%;
-}
-body.sidebar-rail .sidebar-footer-tools {
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  margin-top: 4px;
-  padding-top: 6px;
-  min-width: 0;
-  max-width: 100%;
-}
-body.sidebar-rail a.sidebar-user {
-  width: 100%;
-  justify-content: center;
-  min-width: 0;
-}
-body.sidebar-rail .sidebar-logout-btn {
-  margin-left: 0;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  justify-content: center;
-  flex-shrink: 0;
-}
-body.sidebar-rail .sidebar-logout-label {
-  display: none;
-}
-body.sidebar-rail .sidebar-footer .lang-seg {
-  flex-direction: column;
-  width: 32px;
-  max-width: 100%;
-  padding: 2px;
-  gap: 1px;
-  flex-shrink: 0;
-}
-body.sidebar-rail .sidebar-footer .lang-seg button {
-  padding: 2px 0;
-  font-size: 9px;
-  line-height: 1.2;
-  letter-spacing: 0;
-  min-height: 14px;
-  min-width: 0;
-}
-body.sidebar-rail .sidebar-footer-error {
-  display: none;
-}
-
 /*
- * Rail mode: clip horizontal overflow on the sidebar column. Gentelella sets
- * overflow:visible so ::after labels can escape — those labels use native
- * title attributes instead (see ProfileSideMenu / SidebarFooter).
+ * Rail mode: footer stack + clip. Scoped to desktop only — `body.sidebar-rail`
+ * may still be set on narrow viewports (persisted preference), but the mobile
+ * drawer shows expanded chrome, so profile + logout must stay one horizontal row.
  */
 @media (min-width: 769px) {
+  body.sidebar-rail .sidebar-footer {
+    padding: 4px 0 6px;
+    min-width: 0;
+    max-width: 100%;
+  }
+  body.sidebar-rail .sidebar-footer-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  body.sidebar-rail a.sidebar-user {
+    flex: none;
+    width: 100%;
+    justify-content: center;
+    min-width: 0;
+  }
+  body.sidebar-rail .sidebar-logout-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    justify-content: center;
+  }
+  body.sidebar-rail .sidebar-logout-label {
+    display: none;
+  }
+  body.sidebar-rail .sidebar-footer-error {
+    display: none;
+  }
+
+  /*
+   * Clip horizontal overflow on the sidebar column. Gentelella sets
+   * overflow:visible so ::after labels can escape — those labels use native
+   * title attributes instead (see ProfileSideMenu / SidebarFooter).
+   */
   body.sidebar-rail .sidebar,
   body.sidebar-rail .sidebar-brand,
   body.sidebar-rail .sidebar-nav,
@@ -714,21 +696,77 @@ h2.card-title {
   min-width: 0;
 }
 
-@media (min-width: 1101px) {
+/*
+ * ≤1100px (same as Gentelella `.col-8-4` / `.col-4-8` single-column collapse):
+ * visual order avatar → main sections → security actions. `display: contents`
+ * lets identity and security participate in the parent flex order without
+ * changing desktop (≥1101px) two-column IA (main | aside stack).
+ *
+ * Override `.row.col-8-4` grid + base `align-items: start` so promoted children
+ * stretch full width (Matches-style single column), not a narrow left strip.
+ */
+@media (max-width: 1100px) {
+  .profile-page-layout.row.col-8-4,
+  .profile-page-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    grid-template-columns: none;
+    width: 100%;
+    max-width: 100%;
+  }
+
   .profile-aside {
-    position: sticky;
-    top: var(--topbar-offset);
+    display: contents;
+  }
+
+  .profile-aside-identity-block,
+  .profile-page-main,
+  .profile-aside-security {
+    flex: 0 1 auto;
+    align-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .profile-aside-identity-block {
+    order: -1;
+  }
+
+  .profile-page-main {
+    order: 0;
+  }
+
+  .profile-aside-security {
+    order: 1;
   }
 }
 
-.profile-aside-card .card-body.profile-aside-identity {
+.profile-aside-identity-block {
+  min-width: 0;
+}
+
+.profile-aside-identity {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding-top: 20px;
-  padding-bottom: 16px;
+  padding: 8px 0 4px;
   text-align: center;
+}
+
+.profile-aside-avatar-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  /* Thin edge only — no card fill behind the avatar. */
+  box-shadow: inset 0 0 0 1px var(--border-color);
+  background: transparent;
 }
 
 .profile-aside-name {
@@ -745,32 +783,75 @@ h2.card-title {
   font-weight: 500;
 }
 
-.profile-aside-nav {
+.profile-aside-prefs {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 0 12px 12px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.profile-aside-link {
-  display: block;
-  padding: 8px 12px;
-  border-radius: var(--radius);
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: background 120ms, color 120ms;
-}
-
-.profile-aside-link:hover {
+.profile-aside-prefs .theme-toggle {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
   background: var(--bg-surface-secondary);
-  color: var(--text);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.profile-aside-link.active {
-  background: var(--primary-lt);
-  color: var(--primary);
+.profile-aside-prefs .theme-toggle:hover {
+  color: var(--text);
+  background: color-mix(in srgb, var(--bg-surface-secondary) 70%, var(--primary) 12%);
+}
+
+/*
+ * Three-state theme toggle: show the icon for the current preference.
+ * Overrides Gentelella rules that only toggle sun/moon from `html[data-theme]`.
+ */
+.theme-toggle .theme-icon-light,
+.theme-toggle .theme-icon-dark,
+.theme-toggle .theme-icon-system {
+  display: none !important;
+}
+.theme-toggle[data-theme-pref="light"] .theme-icon-light,
+.theme-toggle[data-theme-pref="dark"] .theme-icon-dark,
+.theme-toggle[data-theme-pref="system"] .theme-icon-system {
+  display: block !important;
+}
+
+/* AUTO: user SVG (black glyph) → mask so it follows currentColor on light/dark. */
+.theme-toggle .theme-icon-system {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  background-color: currentColor;
+  -webkit-mask-image: url("/icon-theme-auto.svg");
+  mask-image: url("/icon-theme-auto.svg");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+/* Profile edit/cancel — PNG was nearly invisible on light surfaces; SVG uses currentColor. */
+.profile-section .card-opt-btn {
+  color: var(--text-secondary);
+}
+.profile-section .card-opt-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--bg-surface-secondary);
+}
+.profile-section .card-opt-btn:disabled {
+  opacity: 0.45;
 }
 
 .profile-aside-security-body {
