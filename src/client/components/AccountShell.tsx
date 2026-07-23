@@ -4,6 +4,7 @@ import { BrandMark } from "./BrandLogo";
 import { BrandWordmark } from "./BrandWordmark";
 import { ProfileSideMenu } from "./ProfileSideMenu";
 import { SidebarFooter } from "./SidebarFooter";
+import { SiteFooter } from "./SiteFooter";
 import { useAuth } from "../auth";
 import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 import { useLocale } from "../locale";
@@ -216,12 +217,13 @@ export function AccountShell({
         </div>
       </header>
 
-      <main className="main">
+      <main className="main main--with-site-footer">
         <div className="main__hex" aria-hidden="true" />
         <div className="page-wrapper">
           {hint}
           {children}
         </div>
+        <SiteFooter />
       </main>
     </>
   );

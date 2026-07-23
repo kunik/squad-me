@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { GuestBrand } from "./GuestChrome";
+import { SiteChrome } from "./SiteFooter";
 
 type AuthLayoutProps = {
   hint?: ReactNode;
@@ -15,19 +16,22 @@ type AuthLayoutProps = {
  * centered `.auth-card`. Brand mark on top. Language/theme stay on Home only —
  * single-form auth flows should not compete with the form.
  * Footer exit: pages should render `AuthExitLink` (signed-in → profile, guest → home).
+ * Site footer sits below the fold via `SiteChrome`.
  */
 export function AuthLayout({ hint, title, subtitle, wide = false, children }: AuthLayoutProps) {
   return (
-    <main className="auth-page">
-      <div className={`auth-card${wide ? " is-wide" : ""}`}>
-        <GuestBrand className="auth-brand" markSize={34} />
+    <SiteChrome>
+      <main className="auth-page">
+        <div className={`auth-card${wide ? " is-wide" : ""}`}>
+          <GuestBrand className="auth-brand" markSize={34} />
 
-        {title ? <h1 className="auth-title">{title}</h1> : null}
-        {subtitle ? <p className="auth-subtitle">{subtitle}</p> : null}
-        {hint}
+          {title ? <h1 className="auth-title">{title}</h1> : null}
+          {subtitle ? <p className="auth-subtitle">{subtitle}</p> : null}
+          {hint}
 
-        {children}
-      </div>
-    </main>
+          {children}
+        </div>
+      </main>
+    </SiteChrome>
   );
 }

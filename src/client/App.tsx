@@ -8,11 +8,13 @@ import { ChangePhonePage } from "./pages/ChangePhonePage";
 import { MatchesPage } from "./pages/MatchesPage";
 import { LinkedShootersPage } from "./pages/LinkedShootersPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { LegalPage } from "./pages/LegalPage";
 import { useAuth } from "./auth";
 import { useLocale } from "./locale";
 import { safeNextPath } from "./lib/authApi";
 import { buildRequireAuthLoginRedirect } from "./lib/authNotice";
 import { postAuthLandingPath, PROFILE_PATH } from "./lib/profileMenu";
+import { SITE_FOOTER_PUBLIC_PATHS } from "./components/SiteFooter";
 
 /**
  * Pages reachable while signed in with onboarding still pending: public
@@ -28,6 +30,7 @@ const ONBOARDING_GUARD_EXEMPT_PATHS = new Set([
   "/profile",
   "/onboarding",
   "/complete-profile",
+  ...SITE_FOOTER_PUBLIC_PATHS,
 ]);
 
 /**
@@ -205,6 +208,9 @@ export function App() {
               </RequireAuth>
             }
           />
+          <Route path="/privacy" element={<LegalPage kind="privacy" />} />
+          <Route path="/terms" element={<LegalPage kind="terms" />} />
+          <Route path="/contact" element={<LegalPage kind="contact" />} />
           {/* Legacy aliases — profile owns post-auth onboarding + editing */}
           <Route path="/onboarding" element={<Navigate to={PROFILE_PATH} replace />} />
           <Route path="/complete-profile" element={<Navigate to={PROFILE_PATH} replace />} />

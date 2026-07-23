@@ -320,6 +320,16 @@ export const messages = {
     themeLight: "Світла",
     themeDark: "Темна",
     themeAuto: "Авто",
+
+    // Site footer (always-dark chrome)
+    footerNavHeading: "Розділи",
+    footerLegalHeading: "Документи",
+    footerHome: "Головна",
+    footerPrivacy: "Політика конфіденційності",
+    footerTerms: "Умови використання",
+    footerContact: "Зв’язатися з нами",
+    footerLegalStub: "Текст ще готуємо — з’явиться перед відкритою бетою.",
+    footerContactStub: "Контактні дані ще готуємо — з’являться трохи згодом.",
   },
   en: {
     login: "Log in",
@@ -628,6 +638,15 @@ export const messages = {
     themeLight: "Light",
     themeDark: "Dark",
     themeAuto: "Auto",
+
+    footerNavHeading: "Sections",
+    footerLegalHeading: "Legal",
+    footerHome: "Home",
+    footerPrivacy: "Privacy policy",
+    footerTerms: "Terms of use",
+    footerContact: "Contact us",
+    footerLegalStub: "We’re still writing this — it’ll be ready before open beta.",
+    footerContactStub: "Contact details aren’t ready yet — they’ll show up here soon.",
   },
 } as const;
 
