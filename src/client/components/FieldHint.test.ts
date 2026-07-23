@@ -29,5 +29,7 @@ describe("FieldHint structured content", () => {
 
     expect(markup).toContain("For determining category.");
     expect(markup).not.toContain("hint-rules");
+    expect(markup).toContain("<label");
+    expect(markup).toContain('tabindex="-1"');
   });
 });

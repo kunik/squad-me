@@ -203,6 +203,7 @@ export function DivisionsForm({
         divisionLabels={t.profileDivisionPistol}
         block={pistol}
         setBlock={(next) => {
+          markDirty();
           touchedFieldsRef.current.add("pistol");
           setPistol(next);
           liveValidateDivisions({ pistol: next });
@@ -218,6 +219,7 @@ export function DivisionsForm({
         divisionLabels={t.profileDivisionCarbine}
         block={carbine}
         setBlock={(next) => {
+          markDirty();
           touchedFieldsRef.current.add("carbine");
           setCarbine(next);
           liveValidateDivisions({ carbine: next });
@@ -233,6 +235,7 @@ export function DivisionsForm({
         divisionLabels={t.profileDivisionPcc}
         block={pccMiniRifle}
         setBlock={(next) => {
+          markDirty();
           touchedFieldsRef.current.add("pccMiniRifle");
           setPccMiniRifle(next);
           liveValidateDivisions({ pccMiniRifle: next });
@@ -248,6 +251,7 @@ export function DivisionsForm({
         divisionLabels={t.profileDivisionShotgun}
         block={shotgun}
         setBlock={(next) => {
+          markDirty();
           touchedFieldsRef.current.add("shotgun");
           setShotgun(next);
           liveValidateDivisions({ shotgun: next });
@@ -312,9 +316,12 @@ function DisciplineFields({
       }}
     >
       <div className="form-row">
-        <label className="form-group">
-          <span className="form-label">{divisionLabel}</span>
+        <div className="form-group">
+          <label className="form-label" htmlFor={`discipline-${disciplineKey}-division`}>
+            {divisionLabel}
+          </label>
           <select
+            id={`discipline-${disciplineKey}-division`}
             className={`form-control${divisionInvalid ? " is-invalid" : ""}`}
             value={block.division ?? ""}
             aria-invalid={divisionInvalid || undefined}
@@ -333,10 +340,13 @@ function DisciplineFields({
               </option>
             ))}
           </select>
-        </label>
-        <label className="form-group">
-          <span className="form-label">{powerFactorLabel}</span>
+        </div>
+        <div className="form-group">
+          <label className="form-label" htmlFor={`discipline-${disciplineKey}-pf`}>
+            {powerFactorLabel}
+          </label>
           <select
+            id={`discipline-${disciplineKey}-pf`}
             className="form-control"
             value={block.powerFactor ?? DISCIPLINE_DEFAULT_POWER_FACTOR[disciplineKey]}
             onChange={(e) =>
@@ -352,7 +362,7 @@ function DisciplineFields({
               </option>
             ))}
           </select>
-        </label>
+        </div>
       </div>
     </CollapsibleToggleBlock>
   );

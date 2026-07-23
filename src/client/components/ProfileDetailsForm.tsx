@@ -290,75 +290,87 @@ export function ProfileDetailsForm({
       onSubmit={handleSubmit}
       onChange={markDirty}
     >
-      <fieldset className="profile-form__block">
-        <div className="form-group">
-          <FieldLabel hint={t.profileNicknameHint}>{t.profileNicknameLabel}</FieldLabel>
-          <input
-            className={`form-control${fieldInvalid("nickname") ? " is-invalid" : ""}`}
-            type="text"
-            autoComplete="off"
-            maxLength={100}
-            value={nickname}
-            aria-invalid={fieldInvalid("nickname") || undefined}
-            onChange={(e) => {
-              const value = e.target.value;
-              setNickname(value);
-              liveValidateProfile({ nickname: value }, ["nickname"]);
-            }}
-          />
-        </div>
-      </fieldset>
+      <fieldset className="profile-form__block profile-form__panel" aria-label={t.profileSummaryTitle}>
+        <div className="profile-form__panel-body">
+          <div className="form-group">
+            <FieldLabel htmlFor="profile-nickname" hint={t.profileNicknameHint}>
+              {t.profileNicknameLabel}
+            </FieldLabel>
+            <input
+              id="profile-nickname"
+              className={`form-control${fieldInvalid("nickname") ? " is-invalid" : ""}`}
+              type="text"
+              autoComplete="off"
+              maxLength={100}
+              value={nickname}
+              aria-invalid={fieldInvalid("nickname") || undefined}
+              onChange={(e) => {
+                const value = e.target.value;
+                setNickname(value);
+                liveValidateProfile({ nickname: value }, ["nickname"]);
+              }}
+            />
+          </div>
 
-      <fieldset className="profile-form__block">
-        <div className="form-row">
-          <DateField
-            id="profile-birth-date"
-            label={t.profileBirthDateLabel}
-            hint={t.profileBirthDateHint}
-            value={birthDate}
-            invalid={fieldInvalid("birthDate")}
-            onChange={(next) => {
-              setBirthDate(next);
-              liveValidateProfile({ birthDate: next }, ["birthDate"]);
-            }}
-            max={todayIsoDate()}
-          />
-          <fieldset
-            className={`profile-form__radio-group${fieldInvalid("gender") ? " is-invalid" : ""}`}
-            aria-labelledby="profile-gender-label"
-          >
-            <div id="profile-gender-label" className="form-group profile-form__radio-legend">
-              <FieldLabel hint={t.profileGenderHint}>{t.profileGenderLabel}</FieldLabel>
-            </div>
-            <div className="profile-form__radio-options">
-              <label className="profile-form__radio">
-                <input
-                  type="radio"
-                  name="gender"
-                  checked={gender === "female"}
-                  aria-invalid={fieldInvalid("gender") || undefined}
-                  onChange={() => {
-                    setGender("female");
-                    liveValidateProfile({ gender: "female" }, ["gender"]);
-                  }}
-                />
-                {t.profileGenderFemale}
-              </label>
-              <label className="profile-form__radio">
-                <input
-                  type="radio"
-                  name="gender"
-                  checked={gender === "male"}
-                  aria-invalid={fieldInvalid("gender") || undefined}
-                  onChange={() => {
-                    setGender("male");
-                    liveValidateProfile({ gender: "male" }, ["gender"]);
-                  }}
-                />
-                {t.profileGenderMale}
-              </label>
-            </div>
-          </fieldset>
+          <div className="form-row">
+            <DateField
+              id="profile-birth-date"
+              label={t.profileBirthDateLabel}
+              hint={t.profileBirthDateHint}
+              value={birthDate}
+              invalid={fieldInvalid("birthDate")}
+              onChange={(next) => {
+                markDirty();
+                setBirthDate(next);
+                liveValidateProfile({ birthDate: next }, ["birthDate"]);
+              }}
+              max={todayIsoDate()}
+            />
+            <fieldset
+              className={`profile-form__radio-group${fieldInvalid("gender") ? " is-invalid" : ""}`}
+              aria-labelledby="profile-gender-label"
+            >
+              <div className="form-group profile-form__radio-legend">
+                <FieldLabel
+                  id="profile-gender-label"
+                  htmlFor="profile-gender-female"
+                  hint={t.profileGenderHint}
+                >
+                  {t.profileGenderLabel}
+                </FieldLabel>
+              </div>
+              <div className="profile-form__radio-options">
+                <label className="profile-form__radio">
+                  <input
+                    id="profile-gender-female"
+                    type="radio"
+                    name="gender"
+                    checked={gender === "female"}
+                    aria-invalid={fieldInvalid("gender") || undefined}
+                    onChange={() => {
+                      setGender("female");
+                      liveValidateProfile({ gender: "female" }, ["gender"]);
+                    }}
+                  />
+                  {t.profileGenderFemale}
+                </label>
+                <label className="profile-form__radio">
+                  <input
+                    id="profile-gender-male"
+                    type="radio"
+                    name="gender"
+                    checked={gender === "male"}
+                    aria-invalid={fieldInvalid("gender") || undefined}
+                    onChange={() => {
+                      setGender("male");
+                      liveValidateProfile({ gender: "male" }, ["gender"]);
+                    }}
+                  />
+                  {t.profileGenderMale}
+                </label>
+              </div>
+            </fieldset>
+          </div>
         </div>
       </fieldset>
 
@@ -366,6 +378,7 @@ export function ProfileDetailsForm({
         enabled={upsfMember}
         label={t.profileUpsfMemberLabel}
         onEnabledChange={(checked) => {
+          markDirty();
           setUpsfMember(checked);
           liveValidateProfile({ upsfMember: checked });
         }}
@@ -377,10 +390,14 @@ export function ProfileDetailsForm({
         )}
         <div className="form-row">
           <div className="form-group">
-            <FieldLabel hint={showMembershipHints ? t.profileNameUaHint : undefined}>
+            <FieldLabel
+              htmlFor="profile-first-name-ua"
+              hint={showMembershipHints ? t.profileNameUaHint : undefined}
+            >
               {t.profileFirstNameUaLabel}
             </FieldLabel>
             <input
+              id="profile-first-name-ua"
               className={`form-control${fieldInvalid("firstNameUa") ? " is-invalid" : ""}`}
               type="text"
               autoComplete="given-name"
@@ -406,10 +423,14 @@ export function ProfileDetailsForm({
             />
           </div>
           <div className="form-group">
-            <FieldLabel hint={showMembershipHints ? t.profileNameUaHint : undefined}>
+            <FieldLabel
+              htmlFor="profile-last-name-ua"
+              hint={showMembershipHints ? t.profileNameUaHint : undefined}
+            >
               {t.profileLastNameUaLabel}
             </FieldLabel>
             <input
+              id="profile-last-name-ua"
               className={`form-control${fieldInvalid("lastNameUa") ? " is-invalid" : ""}`}
               type="text"
               autoComplete="family-name"
@@ -437,8 +458,11 @@ export function ProfileDetailsForm({
         </div>
         <div className="form-row">
           <div className="form-group">
-            <FieldLabel hint={t.profileRegionHint}>{t.profileRegionLabel}</FieldLabel>
+            <FieldLabel htmlFor="profile-region" hint={t.profileRegionHint}>
+              {t.profileRegionLabel}
+            </FieldLabel>
             <select
+              id="profile-region"
               className={`form-control${fieldInvalid("region") ? " is-invalid" : ""}`}
               value={region}
               aria-invalid={fieldInvalid("region") || undefined}
@@ -457,8 +481,11 @@ export function ProfileDetailsForm({
             </select>
           </div>
           <div className="form-group">
-            <FieldLabel hint={t.profileCityHint}>{t.profileCityLabel}</FieldLabel>
+            <FieldLabel htmlFor="profile-city" hint={t.profileCityHint}>
+              {t.profileCityLabel}
+            </FieldLabel>
             <input
+              id="profile-city"
               className="form-control"
               type="text"
               autoComplete="address-level2"
@@ -472,8 +499,11 @@ export function ProfileDetailsForm({
           </div>
         </div>
         <div className="form-group">
-          <FieldLabel hint={t.profileClubHint}>{t.profileClubLabel}</FieldLabel>
+          <FieldLabel htmlFor="profile-club" hint={t.profileClubHint}>
+            {t.profileClubLabel}
+          </FieldLabel>
           <input
+            id="profile-club"
             className={`form-control${fieldInvalid("club") ? " is-invalid" : ""}`}
             type="text"
             autoComplete="organization"
@@ -494,6 +524,7 @@ export function ProfileDetailsForm({
         enabled={ipscMember}
         label={t.profileIpscMemberLabel}
         onEnabledChange={(checked) => {
+          markDirty();
           setIpscMember(checked);
           if (checked) {
             const nextRegion = ipscRegion || DEFAULT_IPSC_REGION;
@@ -520,10 +551,14 @@ export function ProfileDetailsForm({
         )}
         <div className="form-row">
           <div className="form-group">
-            <FieldLabel hint={showMembershipHints ? t.profileNameEnHint : undefined}>
+            <FieldLabel
+              htmlFor="profile-first-name-en"
+              hint={showMembershipHints ? t.profileNameEnHint : undefined}
+            >
               {t.profileFirstNameEnLabel}
             </FieldLabel>
             <input
+              id="profile-first-name-en"
               className={`form-control${fieldInvalid("firstNameEn") ? " is-invalid" : ""}`}
               type="text"
               autoComplete="given-name"
@@ -539,10 +574,14 @@ export function ProfileDetailsForm({
             />
           </div>
           <div className="form-group">
-            <FieldLabel hint={showMembershipHints ? t.profileNameEnHint : undefined}>
+            <FieldLabel
+              htmlFor="profile-last-name-en"
+              hint={showMembershipHints ? t.profileNameEnHint : undefined}
+            >
               {t.profileLastNameEnLabel}
             </FieldLabel>
             <input
+              id="profile-last-name-en"
               className={`form-control${fieldInvalid("lastNameEn") ? " is-invalid" : ""}`}
               type="text"
               autoComplete="family-name"
@@ -560,10 +599,11 @@ export function ProfileDetailsForm({
         </div>
         <div className="form-row">
           <div className="form-group">
-            <FieldLabel hint={t.profileIpscMemberNumberHint}>
+            <FieldLabel htmlFor="profile-ipsc-member-number" hint={t.profileIpscMemberNumberHint}>
               {t.profileIpscMemberNumberLabel}
             </FieldLabel>
             <input
+              id="profile-ipsc-member-number"
               className="form-control"
               type="text"
               autoComplete="off"
@@ -576,8 +616,11 @@ export function ProfileDetailsForm({
             />
           </div>
           <div className="form-group">
-            <FieldLabel hint={t.profileIpscRegionHint}>{t.profileIpscRegionLabel}</FieldLabel>
+            <FieldLabel htmlFor="profile-ipsc-region" hint={t.profileIpscRegionHint}>
+              {t.profileIpscRegionLabel}
+            </FieldLabel>
             <input
+              id="profile-ipsc-region"
               className={`form-control${fieldInvalid("ipscRegion") ? " is-invalid" : ""}`}
               type="text"
               autoComplete="off"

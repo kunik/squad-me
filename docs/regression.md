@@ -2,6 +2,35 @@
 
 Record each distinct bug with reproducible behavior and its test coverage.
 
+**Agents (triage):** read this **index** first; open a full entry only for
+relevant Open IDs or a matching area. Do not load the whole file by default.
+
+## Index
+
+| ID | Status | Title | Area | Coverage |
+|---|---|---|---|---|
+| AUTH-001 | Fixed (uncommitted) | Register-as-reset erased existing profile | RegisterPage / `POST /api/profile` | routes.test.ts |
+| AUTH-002 | Fixed (uncommitted) | Authed `/` HomeRoute Navigate loop | App / authNavigation | authNavigation.test.ts |
+| AUTH-003 | Fixed (uncommitted) | Profile black screen after phone change | useUnsavedDiscard / BrowserRouter | useNavigationBlocker.test.ts |
+| AUTH-004 | Fixed (uncommitted) | Phone-change success lost login notice | ChangePhonePage / authNotice | authNotice.test.ts |
+| AUTH-005 | Fixed (uncommitted) | Notifications Save left email onboarding open | ProfilePage / onboarding | routes.test.ts |
+| PROFILE-001 | Fixed (uncommitted) | Divisions menu did not navigate reliably | ProfilePage / scroll-spy | profileNavigation.test.ts |
+| PROFILE-002 | Fixed (uncommitted) | Skip onboarding scrolled header out of reach | ProfilePage / public-surface | profileNavigation.test.ts |
+| PROFILE-003 | Fixed (uncommitted) | Profile menu scroll overshot; upward spy flipped early | profileNavigation | profileNavigation.test.ts |
+| PROFILE-004 | Fixed (uncommitted) | Manual scroll-spy skipped Divisions | profileNavigation | profileNavigation.test.ts |
+| PROFILE-005 | Fixed (uncommitted) | Expanding membership panels shifted hex background | PublicAtmosphere / styles | PublicAtmosphere.test.ts |
+| PROFILE-006 | Fixed (uncommitted) | Profile validation banner without field highlight | ProfileForm / validation | ProfileControls.test.ts |
+| PROFILE-007 | Fixed (uncommitted) | Onboarding HintPanel blocked profile Edit | app-top-chrome / HintPanel | Manual (CSS pointer-events) |
+| PROFILE-008 | Fixed (uncommitted) | Male gender saved as empty when birth date missing | profileFormValidation | ProfileControls.test.ts |
+| PROFILE-009 | Fixed (uncommitted) | Sticky aside collapsed scroll-spy to two states | useProfileScrollSpy / aside | profileNavigation.test.ts |
+| PROFILE-010 | Fixed (uncommitted) | Document-end override skipped Divisions | resolveActiveProfileAnchor | profileNavigation.test.ts |
+| PROFILE-011 | Fixed (uncommitted) | Mobile Profile stacked identity before actions | profile-page-layout CSS | Manual (CSS order) |
+| PROFILE-012 | Fixed (uncommitted) | Mobile Profile cards stay narrow left column | profile-page-layout CSS | Manual (CSS) |
+| PROFILE-013 | Fixed (uncommitted) | Membership / discipline toggles did not mark dirty | ProfileDetailsForm / DivisionsForm | Manual |
+| SHELL-001 | Fixed (uncommitted) | Mobile content width jumps (scrollbar gutter) | styles / scrollLock | scrollLock.test.ts + visual |
+| SHELL-002 | Fixed (uncommitted) | Overlay scrims were slate-blue | `--overlay-scrim` | Manual (token) |
+| SHELL-003 | Fixed (uncommitted) | Mobile drawer footer stacks when rail preference set | sidebar-footer CSS | Manual (CSS) |
+
 ## Entry template
 
 ```markdown
@@ -240,18 +269,18 @@ Record each distinct bug with reproducible behavior and its test coverage.
 **Expected:** Profile and Matches share the same content-block horizontal inset; opening the drawer does not shift content sideways.
 **Actual:** Tall Profile reserved a classic scrollbar while short Matches often did not, so Profile looked more inset on the right. Opening the drawer set `body.sidebar-open { overflow: hidden }`, removed the scrollbar, and the content expanded (~6–15px jump). `scrollbar-gutter: stable` alone is insufficient on Safari/macOS when the gutter is ignored or overlay scrollbars still interact with `overflow: hidden` differently — fix measures `clientWidth` before/after lock and sets `--removed-scrollbar-width` only when the gap is &gt; 0 (avoids double-padding when gutter already works).
 
-## SHELL-002 · Mobile sidebar backdrop was slate-blue
+## SHELL-002 · Overlay scrims were slate-blue
 
 **Status:** Fixed (uncommitted working tree)
-**Area:** `src/client/styles.css` (`--sidebar-backdrop`, `.sidebar-backdrop`), override of Gentelella `rgba(15, 23, 42, 0.4)`
+**Area:** `src/client/styles.css` (`--overlay-scrim`; `.sidebar-backdrop`, `.modal-backdrop`, `.cmdk-backdrop`, `.drawer-backdrop`), override of Gentelella `rgba(15, 23, 42, …)` / `rgba(15, 22, 35, …)`
 **Coverage:** Not covered — brand color token; manual visual check.
 
 ### Steps to reproduce
-1. On &lt;768px, open the account sidebar drawer.
-2. Observe the scrim behind the panel.
+1. On &lt;768px, open the account sidebar drawer — or trigger any `AppDialog` (e.g. Profile unsaved-changes confirm).
+2. Observe the scrim behind the panel / dialog.
 
-**Expected:** Neutral black/carbon-derived overlay aligned with Squad Me chrome.
-**Actual:** Bluish slate overlay from Gentelella leftover (`rgba(15, 23, 42, 0.4)`).
+**Expected:** Neutral black/carbon-derived overlay (`--overlay-scrim`) aligned with Squad Me chrome, shared across sidebar and modals.
+**Actual:** Bluish slate overlay from Gentelella leftovers (`rgba(15, 23, 42, 0.4–0.45)` on sidebar/modal; same family on unused `.cmdk-backdrop` / `.drawer-backdrop`).
 
 ## SHELL-003 · Mobile drawer footer stacks when rail preference set
 
@@ -292,3 +321,17 @@ Record each distinct bug with reproducible behavior and its test coverage.
 
 **Expected:** Cards fill available content width in a single stacked column (Matches-style).
 **Actual:** Cards stayed a narrow left strip (~40–50% width) with empty space on the right — base `align-items: start` on the flex column prevented cross-axis stretch after `display: contents` + flex reorder. Stretch previously only applied under &lt;768px.
+
+## PROFILE-013 · Membership / discipline toggles did not mark the form dirty
+
+**Status:** Fixed (uncommitted working tree)
+**Area:** `ProfileDetailsForm.tsx`, `DivisionsForm.tsx` (`CollapsibleToggleBlock` switch → `markDirty`)
+**Coverage:** Not covered by DOM click tests (suite is `renderToStaticMarkup`). Manual: edit `/profile`, flip UPSF/IPSC or a discipline switch only, press Cancel (header or footer) — unsaved-changes dialog opens; Stay keeps edits, Discard exits edit mode.
+
+### Steps to reproduce
+1. Sign in, open `/profile`, press Edit on personal details (or Divisions).
+2. Toggle only «я член ФПСУ» / IPSC / a discipline enable switch (do not type in other fields).
+3. Press Скасувати (card header or form footer).
+
+**Expected:** Form is dirty after the toggle; Cancel opens the unsaved-changes confirmation.
+**Actual:** Switch is a `button[role=switch]`, so it never fired the form’s `onChange={markDirty}` path used by native inputs. Dirty stayed false and Cancel exited edit mode immediately with no dialog.

@@ -176,8 +176,11 @@ export function ChangePhonePage() {
             </p>
             <form onSubmit={handleConfirmSubmit}>
               <div className="form-group">
-                <FieldLabel hint={t.phoneHint}>{t.changePhoneCurrentLabel}</FieldLabel>
+                <FieldLabel htmlFor="change-phone-current" hint={t.phoneHint}>
+                  {t.changePhoneCurrentLabel}
+                </FieldLabel>
                 <input
+                  id="change-phone-current"
                   className="form-control"
                   type="tel"
                   name="currentPhone"
@@ -217,8 +220,11 @@ export function ChangePhonePage() {
             <h1 className="auth-title">{t.changePhoneNewTitle}</h1>
             <form onSubmit={handleNewPhoneSubmit}>
               <div className="form-group">
-                <FieldLabel hint={t.phoneHint}>{t.changePhoneNewLabel}</FieldLabel>
+                <FieldLabel htmlFor="change-phone-new" hint={t.phoneHint}>
+                  {t.changePhoneNewLabel}
+                </FieldLabel>
                 <input
+                  id="change-phone-new"
                   className="form-control"
                   type="tel"
                   inputMode="tel"

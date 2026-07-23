@@ -35,7 +35,7 @@ export function PasswordField({
 
   return (
     <div className="form-group">
-      <FieldLabel id={inputId} hint={hint}>
+      <FieldLabel htmlFor={inputId} hint={hint}>
         {label}
       </FieldLabel>
       <div className="password-field">
@@ -51,7 +51,6 @@ export function PasswordField({
           onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
           required={required}
           disabled={disabled}
-          aria-labelledby={inputId}
         />
         <button
           type="button"

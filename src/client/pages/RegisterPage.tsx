@@ -102,8 +102,11 @@ export function RegisterPage() {
             <h1 className="auth-title">{t.registerTitle}</h1>
             <form onSubmit={wizard.handlePhoneSubmit}>
               <div className="form-group">
-                <FieldLabel hint={t.phoneHint}>{t.phoneLabel}</FieldLabel>
+                <FieldLabel htmlFor="register-phone" hint={t.phoneHint}>
+                  {t.phoneLabel}
+                </FieldLabel>
                 <input
+                  id="register-phone"
                   className="form-control"
                   type="tel"
                   inputMode="tel"
@@ -162,8 +165,11 @@ export function RegisterPage() {
             <h1 className="auth-title">{t.passwordLabel}</h1>
             <form onSubmit={handlePasswordSubmit}>
               <div className="form-group">
-                <FieldLabel hint={t.profileNicknameHint}>{t.profileNicknameLabel}</FieldLabel>
+                <FieldLabel htmlFor="register-nickname" hint={t.profileNicknameHint}>
+                  {t.profileNicknameLabel}
+                </FieldLabel>
                 <input
+                  id="register-nickname"
                   className="form-control"
                   type="text"
                   autoComplete="off"

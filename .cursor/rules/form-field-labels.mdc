@@ -1,0 +1,38 @@
+---
+description: Form labels must focus their control; FieldHint (i) stays out of Tab order
+globs: src/client/**/*.{tsx,ts}
+alwaysApply: false
+---
+
+# Form field labels
+
+## Click label → focus control
+
+Every editable field label must activate its control when clicked.
+
+- Prefer `FieldLabel` with `htmlFor` matching the control’s `id`.
+- Or wrap the control in a native `<label>` (as in discipline selects).
+- Do **not** use a bare `<span className="form-label">` next to an input
+  without `htmlFor` / wrapping `<label>`.
+- Keep `FieldHint` **outside** the `<label>` (FieldLabel already does this) so
+  the (i) click opens the tip instead of focusing the field.
+
+```tsx
+// ✅ GOOD
+<FieldLabel htmlFor="profile-nickname" hint={t.profileNicknameHint}>
+  {t.profileNicknameLabel}
+</FieldLabel>
+<input id="profile-nickname" className="form-control" ... />
+
+// ❌ BAD — label click does nothing
+<span className="form-label">{t.profileNicknameLabel}</span>
+<input className="form-control" ... />
+```
+
+Readonly summary rows may omit `htmlFor` (no focus target).
+
+## Field hints (i)
+
+- `FieldHint` trigger uses `tabIndex={-1}` — not in sequential Tab order.
+- Do not add `tabIndex={0}` (or omit `-1`) on `.hint-trigger`.
+- Hints open via pointer (click / hover); Esc still closes when open.

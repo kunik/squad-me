@@ -562,13 +562,8 @@ function ConnectionStatus({
 
   if (connected) {
     return (
-      <span className="status status-green" title={t.commChannelsConnected}>
-        <img
-          className="channel-status-icon"
-          src="/icon-channel-connected.png"
-          alt=""
-          aria-hidden="true"
-        />
+      <span className="status status-green channel-status" title={t.commChannelsConnected}>
+        <ChannelConnectedIcon className="channel-status-icon" />
         <span className="visually-hidden">{t.commChannelsConnected}</span>
       </span>
     );
@@ -584,33 +579,74 @@ function ConnectionStatus({
         title={t.commChannelsConnect}
         aria-label={t.commChannelsConnect}
       >
-        <img
-          className="channel-status-icon channel-status-icon--idle"
-          src="/icon-channel-disconnected.png"
-          alt=""
-          aria-hidden="true"
-        />
-        <img
-          className="channel-status-icon channel-status-icon--hover"
-          src="/icon-channel-connected.png"
-          alt=""
-          aria-hidden="true"
-        />
+        <ChannelDisconnectedIcon className="channel-status-icon channel-status-icon--idle" />
+        <ChannelConnectedIcon className="channel-status-icon channel-status-icon--hover" />
         <span className="channel-connect-label">{t.commChannelsConnect}</span>
       </button>
     );
   }
 
   return (
-    <span className="status status-red" title={t.commChannelsDisconnected}>
-      <img
-        className="channel-status-icon"
-        src="/icon-channel-disconnected.png"
-        alt=""
-        aria-hidden="true"
-      />
+    <span className="status status-red channel-status" title={t.commChannelsDisconnected}>
+      <ChannelDisconnectedIcon className="channel-status-icon" />
       <span className="visually-hidden">{t.commChannelsDisconnected}</span>
     </span>
+  );
+}
+
+/** Chrome stroke — connected / verified channel. */
+function ChannelConnectedIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M8.5 12.25 10.75 14.5 15.5 9.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Chrome stroke — disconnected / needs connect (unplug). */
+function ChannelDisconnectedIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M9.5 7.5v3.5M14.5 7.5v3.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M8 11h8a1.5 1.5 0 0 1 1.5 1.5V14a4.5 4.5 0 0 1-4.5 4.5h-2A4.5 4.5 0 0 1 6.5 14v-1.5A1.5 1.5 0 0 1 8 11z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 5.5h6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 

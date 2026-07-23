@@ -406,7 +406,7 @@ export function DateField({
 
   return (
     <div className="form-group date-field-wrap" ref={rootRef}>
-      <FieldLabel id={`${fieldId}-label`} hint={hint}>
+      <FieldLabel id={`${fieldId}-label`} htmlFor={fieldId} hint={hint}>
         {label}
       </FieldLabel>
       <div className={`input-affix date-field${invalid ? " is-invalid" : ""}`}>
@@ -421,7 +421,6 @@ export function DateField({
           spellCheck={false}
           value={draft}
           disabled={disabled}
-          aria-labelledby={`${fieldId}-label`}
           aria-invalid={invalid || undefined}
           aria-controls={open ? popoverId : undefined}
           onChange={handleInputChange}

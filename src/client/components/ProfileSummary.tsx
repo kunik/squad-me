@@ -46,27 +46,28 @@ export function ProfileSummary({
     <div className="profile-form profile-form--readonly">
       {mode === "profile" && (
         <>
-          <fieldset className="profile-form__block">
-            <ReadonlyField
-              label={t.profileNicknameLabel}
-              value={displayValue(profile?.nickname, empty)}
-              hint={t.profileNicknameHint}
-            />
-          </fieldset>
-
-          <fieldset className="profile-form__block">
-            <div className="form-row">
+          <fieldset className="profile-form__block profile-form__panel" aria-label={t.profileSummaryTitle}>
+            <div className="profile-form__panel-body">
               <ReadonlyField
-                label={t.profileBirthDateLabel}
-                value={displayValue(profile?.birthDate, empty)}
-                hint={t.profileBirthDateHint}
+                label={t.profileNicknameLabel}
+                value={displayValue(profile?.nickname, empty)}
+                hint={t.profileNicknameHint}
               />
-              <fieldset className="profile-form__radio-group" aria-labelledby="profile-summary-gender-label">
-                <div id="profile-summary-gender-label" className="form-group profile-form__radio-legend">
-                  <FieldLabel hint={t.profileGenderHint}>{t.profileGenderLabel}</FieldLabel>
-                </div>
-                <p className="field-view-value">{genderLabel}</p>
-              </fieldset>
+              <div className="form-row">
+                <ReadonlyField
+                  label={t.profileBirthDateLabel}
+                  value={displayValue(profile?.birthDate, empty)}
+                  hint={t.profileBirthDateHint}
+                />
+                <fieldset className="profile-form__radio-group" aria-labelledby="profile-summary-gender-label">
+                  <div className="form-group profile-form__radio-legend">
+                    <FieldLabel id="profile-summary-gender-label" hint={t.profileGenderHint}>
+                      {t.profileGenderLabel}
+                    </FieldLabel>
+                  </div>
+                  <p className="field-view-value">{genderLabel}</p>
+                </fieldset>
+              </div>
             </div>
           </fieldset>
 

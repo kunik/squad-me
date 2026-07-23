@@ -68,8 +68,11 @@ export function ForgotPasswordPage() {
                 <h1 className="auth-title">{t.forgotTitle}</h1>
                 <form onSubmit={wizard.handlePhoneSubmit}>
                   <div className="form-group">
-                    <FieldLabel hint={t.phoneHint}>{t.phoneLabel}</FieldLabel>
+                    <FieldLabel htmlFor="forgot-phone" hint={t.phoneHint}>
+                      {t.phoneLabel}
+                    </FieldLabel>
                     <input
+                      id="forgot-phone"
                       className="form-control"
                       type="tel"
                       inputMode="tel"

@@ -44,7 +44,7 @@ type Placement = "right" | "top";
  * the whole control — use a `.form-group` wrapper instead.
  *
  * Structured hints show purpose first, then validation rules on a new
- * italic line.
+ * italic line. Not in the Tab order (`tabIndex={-1}`); open via pointer.
  */
 export function FieldHint({ text }: FieldHintProps) {
   const tipId = useId();
@@ -123,6 +123,7 @@ export function FieldHint({ text }: FieldHintProps) {
       <button
         type="button"
         className="hint-trigger"
+        tabIndex={-1}
         aria-label={ariaLabel}
         aria-expanded={open}
         aria-controls={tipId}
@@ -146,21 +147,27 @@ export function FieldHint({ text }: FieldHintProps) {
   );
 }
 
-/** Label text + optional (i) hint on one row. */
+/**
+ * Label text + optional (i) hint on one row. Pass `htmlFor` matching the
+ * control’s `id` so clicking the label focuses the field (hint stays outside
+ * the `<label>` so it does not steal that click).
+ */
 export function FieldLabel({
   children,
   hint,
   id,
+  htmlFor,
 }: {
   children: ReactNode;
   hint?: FieldHintContent;
   id?: string;
+  htmlFor?: string;
 }) {
   return (
     <span className="form-label-row">
-      <span className="form-label" id={id}>
+      <label className="form-label" id={id} htmlFor={htmlFor}>
         {children}
-      </span>
+      </label>
       {hint ? <FieldHint text={hint} /> : null}
     </span>
   );

@@ -67,8 +67,11 @@ describe("normal profile management controls", () => {
     expect(markup).not.toContain("+380501112233");
     expect(markup).toContain('type="radio"');
     expect(markup).toContain("Підключити");
-    expect(markup).toContain("icon-channel-connected.png");
-    expect(markup).toContain("icon-channel-disconnected.png");
+    expect(markup).toContain("channel-status-icon");
+    expect(markup).toContain("channel-status-icon--idle");
+    expect(markup).toContain("channel-status-icon--hover");
+    expect(markup).not.toContain("icon-channel-connected.png");
+    expect(markup).not.toContain("icon-channel-disconnected.png");
     expect(markup).not.toContain("icon-verified.png");
     expect(markup).not.toContain("icon-cancel.png");
     expect(markup).toContain("Зберегти зміни");
@@ -81,7 +84,7 @@ describe("normal profile management controls", () => {
     expect(markup).toContain("toggle-row");
     expect(markup).toContain('class="desc"');
     expect(markup).not.toMatch(
-      /form-check[^>]*>[^<]*<img[^>]*icon-channel-/,
+      /form-check[^>]*>[^<]*<(?:img|svg)[^>]*icon-channel-/,
     );
 
     // Disconnected Email/Telegram radios stay disabled; SMS (auth phone) is selectable.
@@ -125,7 +128,9 @@ describe("normal profile management controls", () => {
     expect(markup).toContain("+380*****2233");
     expect(markup).not.toContain("shooter@example.test");
     expect(markup).not.toContain("+380501112233");
-    expect(markup).toContain("icon-channel-connected.png");
+    expect(markup).toContain("channel-status-icon");
+    expect(markup).toContain("status-green");
+    expect(markup).not.toContain("icon-channel-connected.png");
     expect(markup).not.toContain("icon-channel-disconnected.png");
     expect(markup).not.toContain("icon-verified.png");
     expect(markup).not.toContain("profile-form__chevron");
@@ -141,7 +146,7 @@ describe("normal profile management controls", () => {
     const smsIdx = markup.indexOf("SMS");
     const smsTail = markup.slice(smsIdx, smsIdx + 400);
     expect(smsTail).toContain("status-green");
-    expect(smsTail).toContain("icon-channel-connected.png");
+    expect(smsTail).toContain("channel-status-icon");
   });
 });
 
@@ -181,7 +186,7 @@ describe("collapsible membership / discipline toggles", () => {
     expect(divisionsMarkup).not.toContain("profile-form__chevron");
   });
 
-  it("shows read-only toggles in view mode but still shows enabled nested content", () => {
+  it("shows Yes/No text in view mode but still shows enabled nested content", () => {
     const profileMarkup = withLocale(
       createElement(ProfileSummary, {
         mode: "profile",
@@ -208,11 +213,16 @@ describe("collapsible membership / discipline toggles", () => {
       }),
     );
 
-    expect(profileMarkup).toContain("toggle on");
-    expect(profileMarkup).toContain('aria-disabled="true"');
+    expect(profileMarkup).toContain("profile-form__toggle-state");
+    expect(profileMarkup).toContain("Так");
+    expect(profileMarkup).toContain("Ні");
+    expect(profileMarkup).not.toContain('role="switch"');
     expect(profileMarkup).not.toContain("profile-form__chevron");
     expect(profileMarkup).toContain("Олена");
     expect(profileMarkup).toContain("Шевченко");
+    expect(divisionsMarkup).toContain("profile-form__toggle-state");
+    expect(divisionsMarkup).toContain("Так");
+    expect(divisionsMarkup).not.toContain('role="switch"');
     expect(divisionsMarkup).not.toContain("profile-form__chevron");
     expect(divisionsMarkup).toContain("profile-form__toggle-body");
     expect(divisionsMarkup).toContain("is-enabled");

@@ -55,15 +55,15 @@ export function ProfileAsideSecurity({
         </h2>
       </div>
       <div className="card-body profile-aside-security-body">
-        <Link className="btn btn-ghost btn-block" to="/change-phone">
+        <Link className="btn btn-outline btn-block" to="/change-phone">
           {t.profileChangePhone}
         </Link>
-        <Link className="btn btn-ghost btn-block" to="/forgot-password">
+        <Link className="btn btn-outline btn-block" to="/forgot-password">
           {t.profileChangePassword}
         </Link>
         <button
           type="button"
-          className="btn btn-ghost btn-block"
+          className="btn btn-outline btn-block"
           disabled
           title={t.profileClearSessionsSoon}
         >
@@ -73,7 +73,7 @@ export function ProfileAsideSecurity({
         <button
           ref={deleteTriggerRef}
           type="button"
-          className="btn btn-danger btn-block"
+          className="btn btn-outline btn-block profile-aside-danger"
           disabled={deleteBusy}
           onClick={onDeleteClick}
         >
