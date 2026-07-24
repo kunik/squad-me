@@ -13,7 +13,7 @@ docs by default.
 | OTP / Turnstile / Twilio / budget gate before Dev/Prod deploy | `deployment.md` § "Before first identity/OTP deploy"; checklist mirror in `provision.md` § "Identity / auth secrets" |
 | Local test strategy, OTP sink, vitest commands | `testing.md` |
 | Bug triage / known regressions | `regression.md` — **index table first**; full entry only for matching Open IDs / area |
-| UI chrome / Gentelella fidelity | `plans/gentelella-fidelity-audit.md`; client under `src/client/` |
+| UI chrome / app shell | `src/client/` (shell, styles, pages); KB `design/app-shell-brief.md` |
 | Auth form exit link (profile vs home) | KB `design/principles.md` § Exit-лінк; code `AuthExitLink` / `authExit.ts`; AUTH-006 in `regression.md` |
 | Cloudflare bootstrap, Access, zone, secrets workflow | `provision.md` §§ "Cloud Dev — full order", "Production — owner order", "Zone facts (`squadme.app`)", "Identity / auth secrets", "Local API tokens" |
 | Deploy tiers, CI, promote path | `deployment.md` |
@@ -28,4 +28,4 @@ docs by default.
 - `deployment.md` — build-once artifact, Wrangler envs, Dev/Prod deploy flow
 - `provision.md` — Cloudflare resource bootstrap checklist (see router §§)
 - `inventory-dev.md` / `inventory-production.md` — live inventories
-- `plans/` — accepted feature plans (`auth-registration-plan.md`, etc.)
+- `plans/` — accepted feature plans (`auth-registration-STATUS.md` → `auth-registration-plan.md`); `close-unfinished-plans.md` (Gentelella plans closed; Auth Phase 0 owner gate)
